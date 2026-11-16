@@ -34,7 +34,7 @@ impl Drafts {
         let worker_pending = pending.clone();
         let (errors, mut error_updates) = watch::channel(false);
         drop(runtime::commit(async move {
-            while receiver.recv().await.is_some() {
+            while runtime::receive_committed(&mut receiver).await.is_some() {
                 loop {
                     let batch = std::mem::take(&mut *worker_pending.lock().expect("draft buffers"));
                     if batch.is_empty() {
@@ -64,8 +64,8 @@ impl Drafts {
                     }
                 }
             }
-            // Dropping the session closes the channel only after the last queued
-            // wake-up, so successful writes drain before account shutdown.
+            // Session disposal or process shutdown closes the channel after the
+            // last accepted wake-up, so writes drain before account shutdown.
             Ok(())
         }));
         let failed = signal(false);

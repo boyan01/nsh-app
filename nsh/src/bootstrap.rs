@@ -68,11 +68,7 @@ pub(crate) fn mount() -> bool {
             spawn(async {
                 // Drain on the business runtime before requesting final engine
                 // disposal. The engine's 200 ms quit budget is not used here.
-                let _ = runtime::run(async {
-                    runtime::drain_shutdown().await;
-                    Ok(())
-                })
-                .await;
+                runtime::shutdown().await;
                 log::info!("Application shutdown drained");
                 log::logger().flush();
                 desktop::quit();

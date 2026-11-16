@@ -65,6 +65,13 @@ pub(crate) fn release_account() {}
 
 pub(crate) fn stop() {}
 
+// The browser page owns termination; its draft queue ends with its UI sender.
+pub(crate) async fn receive_committed<T>(
+    receiver: &mut tokio::sync::mpsc::Receiver<T>,
+) -> Option<T> {
+    receiver.recv().await
+}
+
 fn logged<T>(
     caller: &'static std::panic::Location<'static>,
     result: ClientResult<T>,

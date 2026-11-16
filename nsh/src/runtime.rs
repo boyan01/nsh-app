@@ -5,6 +5,7 @@ use std::time::Duration;
 use mixin_desktop_api::{AccountClient, ClientError, ClientResult};
 use tokio::runtime::Runtime;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use tokio_util::task::{AbortOnDropHandle, TaskTracker};
 
 // Outlive NSH's engine so quitting can drain the business runtime.
@@ -14,9 +15,24 @@ static COMMITS: OnceLock<TaskTracker> = OnceLock::new();
 static ACCOUNT: Mutex<Option<Arc<AccountClient>>> = Mutex::new(None);
 static DRAIN_GATE: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 static SHUTDOWN: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
+static STOPPING: OnceLock<CancellationToken> = OnceLock::new();
 
 fn runtime() -> &'static Runtime {
     RUNTIME.get_or_init(|| Runtime::new().expect("create the business runtime"))
+}
+
+fn stopping() -> &'static CancellationToken {
+    STOPPING.get_or_init(CancellationToken::new)
+}
+
+async fn until_shutdown<T>(future: impl Future<Output = T>) -> ClientResult<T> {
+    tokio::select! {
+        biased;
+        _ = stopping().cancelled() => {
+            Err(ClientError::Internal("Application is shutting down".into()))
+        }
+        result = future => Ok(result),
+    }
 }
 
 /// Business work crosses to the runtime's threads on the desktop. Browser
@@ -47,7 +63,8 @@ pub(crate) fn run<T: Send + 'static>(
 ) -> impl Future<Output = ClientResult<T>> {
     let caller = std::panic::Location::caller();
     // Disposing the UI owner must cancel its background work too.
-    let task = AbortOnDropHandle::new(runtime().spawn(future));
+    let task =
+        AbortOnDropHandle::new(runtime().spawn(async move { until_shutdown(future).await? }));
     async move {
         logged(
             caller,
@@ -67,14 +84,14 @@ where
 {
     use futures::StreamExt as _;
     let (sender, receiver) = tokio::sync::mpsc::channel(32);
-    let task = AbortOnDropHandle::new(runtime().spawn(async move {
+    let task = AbortOnDropHandle::new(runtime().spawn(until_shutdown(async move {
         futures::pin_mut!(source);
         while let Some(item) = source.next().await {
             if sender.send(item).await.is_err() {
                 break;
             }
         }
-    }));
+    })));
     futures::stream::unfold((receiver, task), |(mut receiver, task)| async move {
         receiver.recv().await.map(|item| (item, (receiver, task)))
     })
@@ -132,7 +149,26 @@ pub(crate) fn release_account() {
     ACCOUNT.lock().expect("account lock").take();
 }
 
+/// Closes a persistent write queue at shutdown and drains accepted items,
+/// even while the UI still retains its sender.
+pub(crate) async fn receive_committed<T>(
+    receiver: &mut tokio::sync::mpsc::Receiver<T>,
+) -> Option<T> {
+    tokio::select! {
+        biased;
+        _ = stopping().cancelled() => {
+            receiver.close();
+            receiver.recv().await
+        }
+        item = receiver.recv() => item,
+    }
+}
+
 pub(crate) fn stop() {
+    *ACCEPTING_COMMITS.lock().expect("commit admission") = false;
+    // Release queries holding account locks and close persistent write queues
+    // before waiting for committed local work. UI disposal comes after draining.
+    stopping().cancel();
     if let Some(account) = ACCOUNT.lock().expect("account lock").take() {
         *SHUTDOWN.lock().expect("shutdown lock") = Some(runtime().spawn(async move {
             if let Some(commits) = COMMITS.get() {
@@ -142,6 +178,14 @@ pub(crate) fn stop() {
             account.shutdown().await;
             log::info!("NSH account shutdown completed");
         }));
+    }
+}
+
+/// Unlike view-owned work, the shutdown drain must survive its own stop signal.
+#[cfg(any(target_os = "macos", test))]
+pub(crate) async fn shutdown() {
+    if let Err(error) = runtime().spawn(drain_shutdown()).await {
+        log::warn!("Runtime shutdown failed: {error}");
     }
 }
 
@@ -169,7 +213,6 @@ pub fn finish_shutdown() {
 /// Completes committed writes and account shutdown before disposing the UI engine.
 pub async fn drain_shutdown() {
     let _gate = DRAIN_GATE.lock().await;
-    *ACCEPTING_COMMITS.lock().expect("commit admission") = false;
     stop();
     let task = SHUTDOWN.lock().expect("shutdown lock").take();
 
@@ -179,7 +222,8 @@ pub async fn drain_shutdown() {
 }
 
 async fn drain_tasks(commits: Option<TaskTracker>, task: Option<JoinHandle<()>>) -> bool {
-    let drain = async {
+    let task = task.map(AbortOnDropHandle::new);
+    let drain = async move {
         // Process settings can be committed from the sign-in screen too.
         // Their lifetime must not depend on retaining a signed-in account.
         if let Some(commits) = commits {
@@ -187,7 +231,7 @@ async fn drain_tasks(commits: Option<TaskTracker>, task: Option<JoinHandle<()>>)
             commits.wait().await;
         }
         if let Some(task) = task {
-            let _ = AbortOnDropHandle::new(task).await;
+            let _ = task.await;
         }
     };
     tokio::time::timeout(Duration::from_secs(10), drain)
@@ -247,6 +291,114 @@ mod tests {
         assert!(!drain_tasks(None, Some(task)).await);
         tokio::task::yield_now().await;
         assert!(abort.is_finished());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn stalled_committed_write_still_aborts_the_waiting_account_shutdown() {
+        let tracker = TaskTracker::new();
+        let write = tracker.spawn(std::future::pending::<()>());
+        let task = tokio::spawn(std::future::pending::<()>());
+        let abort = task.abort_handle();
+        assert!(!drain_tasks(Some(tracker), Some(task)).await);
+        tokio::task::yield_now().await;
+        assert!(abort.is_finished());
+        write.abort();
+        assert!(write.await.unwrap_err().is_cancelled());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn shutdown_closes_a_retained_write_queue_and_drains_accepted_items() {
+        const CHILD: &str = "MIXIN_SHUTDOWN_QUEUE_TEST";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "runtime::tests::shutdown_closes_a_retained_write_queue_and_drains_accepted_items",
+                ])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success());
+            return;
+        }
+
+        let (sender, mut receiver) = tokio::sync::mpsc::channel(2);
+        sender.try_send(1).unwrap();
+        sender.try_send(2).unwrap();
+        let tracker = TaskTracker::new();
+        let writer = tracker.spawn(async move {
+            let mut written = Vec::new();
+            while let Some(item) = receive_committed(&mut receiver).await {
+                // Local persistence must finish, even beyond the engine budget.
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                written.push(item);
+            }
+            written
+        });
+        let started = tokio::time::Instant::now();
+        // Reproduce the production order: stop admission, drain, dispose UI.
+        drain_shutdown().await;
+        let drained = drain_tasks(Some(tracker), None).await;
+        let elapsed = started.elapsed();
+        drop(sender);
+        assert_eq!(writer.await.unwrap(), vec![1, 2]);
+        assert!(
+            drained,
+            "retained UI sender exhausted the 10-second shutdown budget"
+        );
+        assert_eq!(elapsed, Duration::from_secs(2));
+    }
+
+    #[tokio::test]
+    async fn shutdown_cancels_background_work_before_draining_committed_writes() {
+        const CHILD: &str = "MIXIN_SHUTDOWN_BACKGROUND_TEST";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "runtime::tests::shutdown_cancels_background_work_before_draining_committed_writes",
+                ])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success());
+            return;
+        }
+
+        // Core operations can retain a mutation read guard across network I/O.
+        // Neither a pending query nor a subscription may block the final write.
+        let gate = Arc::new(tokio::sync::RwLock::new(()));
+        let query_gate = gate.clone();
+        let (started, ready) = oneshot::channel();
+        let query = tokio::spawn(run(async move {
+            let _guard = query_gate.read().await;
+            started.send(()).unwrap();
+            std::future::pending::<ClientResult<()>>().await
+        }));
+        let source_gate = gate.clone();
+        let (started, source_ready) = oneshot::channel();
+        let source = observe(futures::stream::once(async move {
+            let _guard = source_gate.read().await;
+            started.send(()).unwrap();
+            std::future::pending::<()>().await
+        }));
+        ready.await.unwrap();
+        source_ready.await.unwrap();
+
+        let write = commit(async move {
+            let _guard = gate.write().await;
+            Ok(42)
+        });
+        let drained = tokio::time::timeout(Duration::from_millis(500), shutdown()).await;
+        // Clean up on the failing path as well, before asserting the deadline.
+        query.abort();
+        let _ = query.await;
+        drop(source);
+        assert_eq!(write.await.unwrap(), 42);
+        assert!(
+            drained.is_ok(),
+            "background work blocked shutdown past 500 ms"
+        );
     }
 
     struct NotifyOnDrop(Option<oneshot::Sender<()>>);

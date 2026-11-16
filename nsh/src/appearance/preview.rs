@@ -18,7 +18,7 @@ pub(crate) fn preview_icon_reactive(icon: Memo<Option<PreviewIcon>>) -> impl Int
             Some(PreviewIcon::Contact) => crate::assets::svg::QUOTE_CONTACT,
             Some(PreviewIcon::Call) => crate::assets::svg::QUOTE_VIDEO_CALL,
             Some(PreviewIcon::Recall) => crate::assets::svg::QUOTE_RECALL,
-            None => return ImageSrc::from(""),
+            None => super::EMPTY_SVG,
         };
         ImageSrc::svg_markup(markup)
     })

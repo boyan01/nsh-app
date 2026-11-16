@@ -31,15 +31,27 @@ pub(crate) fn panes<E: IntoElement + 'static>(
     // The shown chat, then the one waiting to replace it, if any.
     let mounted = signal(Vec::<String>::new());
     let shown = signal(None::<String>);
-    let show = move |id: &str| {
-        if selected_id.with_untracked(|selected| selected.as_deref() == Some(id))
-            && mounted.with_untracked(|ids| ids.iter().any(|mounted| mounted == id))
-        {
-            batch(|| {
-                shown.set(Some(id.to_owned()));
-                mounted.set(vec![id.to_owned()]);
+    let owner = Owner::current();
+    let show = move |id: &str, mount: Owner| {
+        let id = id.to_owned();
+        // Ready may run while NSH is still applying the selection's bindings.
+        // Let the departing pane finish that commit before disposing its state.
+        // The pane manager owns the frame, rather than the notifying effect.
+        owner.run(|| {
+            request_animation_frame(move |_| {
+                // Owner includes the graph generation: the same conversation ID
+                // remounted later must not inherit this mount's readiness.
+                if mount.is_live()
+                    && selected_id.with_untracked(|selected| selected.as_deref() == Some(&id))
+                    && mounted.with_untracked(|ids| ids.contains(&id))
+                {
+                    batch(|| {
+                        shown.set(Some(id.clone()));
+                        mounted.set(vec![id]);
+                    });
+                }
             });
-        }
+        });
     };
     effect(move || {
         let id = selected_id.get();
@@ -57,9 +69,8 @@ pub(crate) fn panes<E: IntoElement + 'static>(
             }
             Some(id) => {
                 let mut ids = shown.get().into_iter().collect::<Vec<_>>();
-                ids.push(id.clone());
+                ids.push(id);
                 mounted.set(ids);
-                set_timeout(READY_BOUND, move || show(&id));
             }
         })
     });
@@ -74,6 +85,12 @@ pub(crate) fn panes<E: IntoElement + 'static>(
             |id: &String| id.clone(),
             move |id, _| {
                 let id = id.get_untracked();
+                let mount = Owner::current();
+                if shown.with_untracked(|shown| shown.as_deref() != Some(id.as_str())) {
+                    let id = id.clone();
+                    // A replacement mount gets its own full readiness deadline.
+                    set_timeout(READY_BOUND, move || show(&id, mount));
+                }
                 let visible = {
                     let id = id.clone();
                     computed(move || shown.with(|shown| shown.as_deref() == Some(id.as_str())))
@@ -83,7 +100,7 @@ pub(crate) fn panes<E: IntoElement + 'static>(
                     .filter(|row| row.conversation_id == id);
                 let ready: Ready = {
                     let id = id.clone();
-                    Rc::new(move || show(&id))
+                    Rc::new(move || show(&id, mount))
                 };
                 view()
                     .absolute()
@@ -110,3 +127,6 @@ pub(crate) fn panes<E: IntoElement + 'static>(
             },
         ))
 }
+
+#[cfg(test)]
+mod tests;

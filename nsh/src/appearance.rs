@@ -13,6 +13,9 @@ use nsh_core::prelude::*;
 
 use crate::runtime;
 
+// Hidden retained SVG bindings still resolve their source before removal.
+const EMPTY_SVG: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>"#;
+
 const AVATAR_KEY: &str = "desktop_ui_message_show_avatar";
 const IDENTITY_KEY: &str = "desktop_ui_message_show_identity_number";
 const FONT_KEY: &str = "desktop_ui_chat_font_size_delta";

@@ -152,7 +152,7 @@ pub(crate) fn identity_badge_reactive(badge: Memo<Option<IdentityBadgeKind>>) ->
         badge
             .get()
             .map(IdentityBadgeKind::source)
-            .unwrap_or_else(|| ImageSrc::from(""))
+            .unwrap_or_else(|| ImageSrc::svg_markup(super::EMPTY_SVG))
     };
     let label = move || badge.get().map_or("", |badge| badge.label(i18n));
     dynamic(move || {
@@ -312,7 +312,7 @@ pub(crate) fn delivery_icon_reactive(status: Memo<Option<String>>) -> AnyElement
                     glyph
                         .get()
                         .map(DeliveryGlyph::source)
-                        .unwrap_or_else(|| ImageSrc::from(""))
+                        .unwrap_or_else(|| ImageSrc::svg_markup(super::EMPTY_SVG))
                 })
                 .w(ui::icon_xs())
                 .h(move || glyph.get().map_or(Points::ZERO, DeliveryGlyph::height))

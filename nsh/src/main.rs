@@ -1,6 +1,17 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 //! Runs Mixin on the machine's native NSH backend.
 #[cfg(target_os = "macos")]
+use nsh_platform_macos as platform;
+
+fn image_cache_options() -> platform::CacheOptions {
+    mixin_desktop_ui::data_directory()
+        .map(|directory| {
+            platform::CacheOptions::at(platform::CacheLocation::Dir(directory.join("cache")))
+        })
+        .unwrap_or_default()
+}
+
+#[cfg(target_os = "macos")]
 fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
     let tokens = nsh_base::tokens_of(Some(include_str!("../theme.json")))?;
     nsh_platform_macos::set_components(mixin_desktop_ui::register_native_components);
@@ -14,6 +25,7 @@ fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
             title: "Mixin".into(),
             app_id: "one.mixin.messenger.desktop".into(),
             size: (1280, 750),
+            cache: image_cache_options(),
             ..Default::default()
         },
     ))
@@ -69,6 +81,7 @@ fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
             title: "Mixin".into(),
             app_id: "one.mixin.messenger.desktop".into(),
             size: (1280, 750),
+            cache: image_cache_options(),
             #[cfg(target_os = "macos")]
             keep_alive_on_close: true,
             ..Default::default()

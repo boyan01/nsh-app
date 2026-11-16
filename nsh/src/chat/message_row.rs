@@ -1,7 +1,7 @@
 //! One timeline row: day and unread separators, then a notice or a bubble.
 use crate::i18n::Key;
 use mixin_desktop_api::{MessageListView, TranscriptSummaryItem};
-use nsh_core::prelude::*;
+use nsh_core::{element::ImageSrc, prelude::*};
 
 use super::{
     message_actions::{self, Actions},
@@ -417,7 +417,14 @@ impl Rows {
                                             target.set(Some(row.message_id));
                                         }
                                     })
-                                    .child(ui::icon(ui::Icon::ArrowLeft))
+                                    .child(
+                                        svg(ImageSrc::svg_markup(
+                                            crate::assets::svg::MESSAGE_PIN_ARROW,
+                                        ))
+                                        .size(ui::icon_sm())
+                                        .flex_shrink_0()
+                                        .accessibility_elements_hidden(true),
+                                    )
                             })),
                     ),
             )

@@ -154,7 +154,7 @@ pub(super) fn scene(actions: Actions) -> View {
                 .into_element()
             }
             Panel::Search => inspector::preview_search(
-                fixtures::messages::text_rows(),
+                search_rows(),
                 fixtures::participants(),
                 signal("Reset"),
                 close,
@@ -171,4 +171,22 @@ pub(super) fn scene(actions: Actions) -> View {
             .into_element(),
         }
     }))
+}
+
+/// Search fixtures cover truncation, literal keyword emphasis and identity changes.
+pub(super) fn search_rows() -> Vec<mixin_desktop_api::MessageListView> {
+    fixtures::messages::text_rows().into_iter().enumerate().map(|(index, mut row)| {
+        row.conversation_category = Some("GROUP".into());
+        row.content = match index {
+            0 => "Design review: 今天一起测试会话搜索".into(),
+            1 => "A longer DESIGN result with emoji 👩‍💻 and 测试, followed by enough text to truncate in the narrow inspector".into(),
+            _ => "确认 design 测试结果与发送者、日期和高亮显示".into(),
+        };
+        if index == 1 {
+            row.sender_is_verified = true;
+            row.sender_name = "A very long sender name for the desktop design review".into();
+        }
+        if index == 3 { row.sender_is_bot = true; }
+        row
+    }).collect()
 }

@@ -49,6 +49,11 @@ pub(crate) fn textarea() -> Input {
 /// The rounded frame of a search field: its icon, with `search_input` and any
 /// clear command added after it.
 pub(crate) fn search_pill() -> View {
+    search_pill_with_leading(icon(Icon::Search).size(icon_sm()).text_color(fg_secondary))
+}
+
+/// Search with a contextual leading slot, such as an inline sender filter.
+pub(crate) fn search_pill_with_leading(leading: impl IntoElement) -> View {
     feedback_transition(view())
         .flex_1()
         .min_w_0()
@@ -60,7 +65,7 @@ pub(crate) fn search_pill() -> View {
         .rounded_full()
         .bg(input_fill)
         .focus_within(ring)
-        .child(icon(Icon::Search).size(icon_sm()).text_color(fg_secondary))
+        .child(leading)
 }
 
 /// Search in floating chrome: the same input and focus treatment on glass.

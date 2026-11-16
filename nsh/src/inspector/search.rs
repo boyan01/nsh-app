@@ -1,6 +1,9 @@
 //! Conversation-scoped search and its bounded, cursor-paged presentation window.
 
-use std::{collections::HashSet, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use futures::StreamExt as _;
 use mixin_desktop_api::{
@@ -10,6 +13,7 @@ use nsh_core::prelude::*;
 
 use crate::presentation::message_window::splice_phase;
 use crate::{
+    appearance,
     i18n::{self, Key, t},
     navigation::ChatNavigation,
     presentation, runtime,
@@ -439,7 +443,7 @@ pub(super) fn screen(
             close();
         }
     };
-    content(results, senders, input, back, target)
+    content(results, senders, input, back, close, target)
 }
 
 fn load_senders(account: Arc<AccountClient>, id: String, senders: Senders) {
@@ -497,33 +501,66 @@ fn filters(
         .px(ui::space_lg())
         .py(ui::space_md())
         .gap(ui::space_sm())
-        .child(when(
-            move || !picker.get() && senders.selected.with(Option::is_some),
-            move || sender_chip(results.sender, senders.selected, input),
-        ))
         .child(
             view()
                 .flex_row()
                 .items_center()
                 .gap_2()
-                .child(ui::search_pill().child(dynamic(move || {
-                    let is_picker = picker.get();
-                    search_field(results, senders, input, is_picker, back)
-                })))
+                .child(
+                    ui::search_pill_with_leading(
+                        when(
+                            move || picker.get() || senders.selected.with(Option::is_some),
+                            move || sender_chip(senders),
+                        )
+                        .otherwise(|| {
+                            ui::icon(ui::Icon::Search)
+                                .size(ui::icon_sm())
+                                .text_color(ui::fg_secondary)
+                        }),
+                    )
+                    .child(dynamic(move || {
+                        search_field(results, senders, input, picker.get(), back)
+                    }))
+                    .child(when(
+                        move || {
+                            picker.get()
+                                || senders.selected.with(Option::is_some)
+                                || !results.query.with(String::is_empty)
+                        },
+                        move || {
+                            ui::round_button()
+                                .size(ui::icon_lg())
+                                .accessibility_label(move || Some(t(Key::Clear).into()))
+                                .on_press(move || {
+                                    batch(|| {
+                                        results.query.set(String::new());
+                                        results.category.set(None);
+                                        results.sender.set(None);
+                                        senders.selected.set(None);
+                                        senders.close();
+                                    });
+                                    input.focus();
+                                })
+                                .child(ui::icon(ui::Icon::Close).size(ui::icon_sm()))
+                        },
+                    )),
+                )
                 .child(when(
-                    move || !picker.get(),
+                    move || !picker.get() && senders.selected.with(Option::is_none),
                     move || {
                         ui::round_button()
-                            .size_8()
+                            .size(ui::button_height())
                             .accessibility_label(move || Some(t(Key::NshChooseASender).into()))
                             .on_press(move || {
                                 dismiss_keyboard();
                                 batch(|| {
+                                    results.query.set(String::new());
+                                    results.category.set(None);
                                     senders.query.set(String::new());
                                     picker.set(true);
                                 });
                             })
-                            .child(ui::icon(ui::Icon::Contacts))
+                            .child(ui::icon(ui::Icon::Person))
                     },
                 )),
         )
@@ -543,37 +580,48 @@ fn filters(
         ))
 }
 
-fn sender_chip(
-    sender: Signal<Option<String>>,
-    selected: Signal<Option<ConversationParticipantItem>>,
-    input: ElementRef,
-) -> impl IntoElement {
-    ui::button(ui::ButtonTone::Secondary, ui::ButtonSize::Regular)
-        .justify_start()
-        .w_full()
-        .accessibility_label(move || Some(t(Key::NshClearSender).into()))
-        .on_press(move || {
-            selected.set(None);
-            sender.set(None);
-            input.focus();
-        })
-        .child(
-            text(move || {
-                format!(
-                    "{}: {}",
-                    t(Key::From),
-                    selected.with(|sender| sender
-                        .as_ref()
-                        .map(|sender| sender.full_name.clone())
-                        .unwrap_or_default())
+fn sender_chip(senders: Senders) -> impl IntoElement {
+    view()
+        .flex_row()
+        .items_center()
+        .gap(ui::space_xs())
+        .flex_shrink_0()
+        .child(text(move || t(Key::From)).text_role(ui::TextRole::Body))
+        .child(when(
+            move || senders.selected.with(Option::is_some),
+            move || {
+                ui::avatar_view(
+                    move || {
+                        senders.selected.with(|sender| {
+                            sender
+                                .as_ref()
+                                .map(|sender| sender.user_id.clone())
+                                .unwrap_or_default()
+                        })
+                    },
+                    move || {
+                        senders
+                            .selected
+                            .with(|sender| {
+                                sender
+                                    .as_ref()
+                                    .map(|sender| sender.full_name.clone())
+                                    .unwrap_or_default()
+                            })
+                            .into()
+                    },
+                    move || {
+                        senders.selected.with(|sender| {
+                            sender
+                                .as_ref()
+                                .map(|sender| sender.avatar_url.clone())
+                                .unwrap_or_default()
+                        })
+                    },
+                    ui::AvatarSize::Small,
                 )
-            })
-            .text_role(ui::TextRole::Body)
-            .number_of_lines(1)
-            .flex_1()
-            .min_w_0(),
-        )
-        .child(ui::icon(ui::Icon::Close))
+            },
+        ))
 }
 
 fn search_field(
@@ -589,7 +637,7 @@ fn search_field(
         if is_picker {
             t(Key::NshSearchSenders)
         } else {
-            i18n.t(Key::NshSearchMessages)
+            i18n.t(Key::Search)
         }
     };
     ui::search_input()
@@ -674,23 +722,60 @@ fn sender_list(results: Results, senders: Senders) -> impl IntoElement {
                     move || rows.with(Vec::len),
                     move |at| {
                         let sender = move || rows.with(|rows| rows.get(at.index()).cloned());
-                        parts::entity_row(
-                            move || sender().map(|sender| sender.user_id).unwrap_or_default(),
-                            move || sender().map(|sender| sender.full_name).unwrap_or_default(),
-                            move || sender().map(|sender| sender.avatar_url).unwrap_or_default(),
-                            String::new,
-                            || false,
-                        )
-                        .on_press(move || {
-                            if let Some(sender) = untracked(sender) {
-                                dismiss_keyboard();
-                                batch(|| {
-                                    results.sender.set(Some(sender.user_id.clone()));
-                                    senders.selected.set(Some(sender));
-                                    senders.close();
-                                });
-                            }
-                        })
+                        let badge = computed(move || {
+                            sender().and_then(|sender| {
+                                appearance::IdentityBadgeKind::from_identity(
+                                    false,
+                                    sender.is_verified,
+                                    sender.is_bot,
+                                    sender.membership.as_deref(),
+                                )
+                            })
+                        });
+                        parts::compact_row()
+                            .child(ui::avatar_view(
+                                move || sender().map(|sender| sender.user_id).unwrap_or_default(),
+                                move || {
+                                    sender()
+                                        .map(|sender| sender.full_name)
+                                        .unwrap_or_default()
+                                        .into()
+                                },
+                                move || {
+                                    sender().map(|sender| sender.avatar_url).unwrap_or_default()
+                                },
+                                ui::AvatarSize::Medium,
+                            ))
+                            .child(
+                                view()
+                                    .flex_row()
+                                    .items_center()
+                                    .gap(ui::space_xs())
+                                    .flex_1()
+                                    .min_w_0()
+                                    .child(
+                                        text(move || {
+                                            sender()
+                                                .map(|sender| sender.full_name)
+                                                .unwrap_or_default()
+                                        })
+                                        .text_role(ui::TextRole::Label)
+                                        .number_of_lines(1)
+                                        .min_w_0()
+                                        .flex_shrink(1.0),
+                                    )
+                                    .child(appearance::identity_badge_reactive(badge)),
+                            )
+                            .on_press(move || {
+                                if let Some(sender) = untracked(sender) {
+                                    dismiss_keyboard();
+                                    batch(|| {
+                                        results.sender.set(Some(sender.user_id.clone()));
+                                        senders.selected.set(Some(sender));
+                                        senders.close();
+                                    });
+                                }
+                            })
                     },
                 )
                 .keys(move || {
@@ -711,6 +796,51 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
     let i18n = i18n::current();
     let navigation = use_context::<ChatNavigation>().expect("Home provides chat navigation");
     let rows = results.rows;
+    let account_id = stored(results.account.with(|account| {
+        account
+            .as_ref()
+            .map(|account| account.account_id())
+            .unwrap_or_default()
+    }));
+    let previews = signal(HashMap::<String, (String, String)>::new());
+    if let Some(account) = results.account.with(|account| account.clone()) {
+        effect(move || {
+            let sources = rows.with(|rows| {
+                rows.iter()
+                    .filter_map(|row| {
+                        let source = account_id
+                            .with(|id| presentation::search_message_preview(i18n, row, id));
+                        source
+                            .contains('@')
+                            .then(|| (row.message_id.clone(), source))
+                    })
+                    .collect::<Vec<_>>()
+            });
+            if sources.is_empty() {
+                previews.set(HashMap::new());
+                return;
+            }
+            let contents = sources.iter().map(|(_, source)| source.clone()).collect();
+            let account = account.clone();
+            // A refresh disposes the previous task; source matching guards recycled rows.
+            spawn(async move {
+                match runtime::run(async move { account.user().replace_mentions(contents).await })
+                    .await
+                {
+                    Ok(values) => previews.set(
+                        sources
+                            .into_iter()
+                            .zip(values)
+                            .map(|((id, source), value)| (id, (source, value)))
+                            .collect(),
+                    ),
+                    Err(error) => {
+                        log::warn!("Could not resolve conversation search mentions: {error}")
+                    }
+                }
+            });
+        });
+    }
     view()
         .flex_1()
         .min_h_0()
@@ -747,11 +877,21 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
                 virtual_list(
                     move || rows.with(Vec::len),
                     move |at| {
-                        let field = move |read: fn(&MessageListView) -> String| {
-                            rows.with(|rows| rows.get(at.index()).map(read).unwrap_or_default())
-                        };
-                        parts::compact_row()
-                            .py(ui::space_sm())
+                        let row = move || rows.with(|rows| rows.get(at.index()).cloned());
+                        let badge = computed(move || {
+                            row().and_then(|row| appearance::IdentityBadgeKind::from_identity(
+                                false, row.sender_is_verified, row.sender_is_bot,
+                                row.sender_membership.as_deref(),
+                            ))
+                        });
+                        ui::list_row()
+                            .selected(move || row().is_some_and(|row| target.get().as_deref() == Some(&row.message_id)))
+                            .child(ui::avatar_view(
+                                move || row().map(|row| row.sender_id).unwrap_or_default(),
+                                move || row().map(|row| row.sender_name).unwrap_or_default().into(),
+                                move || row().map(|row| row.sender_avatar_url).unwrap_or_default(),
+                                ui::AvatarSize::Large,
+                            ))
                             .on_press(move || {
                                 let id = rows.with_untracked(|rows| {
                                     rows.get(at.index()).map(|row| row.message_id.clone())
@@ -773,27 +913,36 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
                                     .flex_1()
                                     .min_w_0()
                                     .child(
-                                        text(move || field(|row| row.sender_name.clone()))
-                                            .text_role(ui::TextRole::Body)
-                                            .number_of_lines(1),
+                                        view()
+                                            .flex_row()
+                                            .items_center()
+                                            .gap(ui::space_xs())
+                                            .child(text(move || row().map(|row| row.sender_name).unwrap_or_default())
+                                                .text_role(ui::TextRole::Label)
+                                                .number_of_lines(1)
+                                                .min_w_0()
+                                                .flex_shrink(1.0))
+                                            .child(appearance::identity_badge_reactive(badge))
+                                            .child(view().flex_1())
+                                            .child(text(move || row().map(|row| presentation::time(i18n, row.created_at_micros / 1000)).unwrap_or_default())
+                                                .text_role(ui::TextRole::Caption)
+                                                .text_color(ui::fg_secondary)
+                                                .flex_shrink_0()),
                                     )
                                     .child(
-                                        text(move || {
-                                            rows.with(|rows| {
-                                                rows.get(at.index())
-                                                    .map(|row| {
-                                                        presentation::preview(
-                                                            i18n,
-                                                            &row.category,
-                                                            &row.content,
-                                                        )
-                                                    })
-                                                    .unwrap_or_default()
-                                            })
-                                        })
-                                        .text_role(ui::TextRole::Caption)
-                                        .number_of_lines(2)
-                                        .text_color(ui::fg_secondary),
+                                        view()
+                                            .flex_row()
+                                            .items_center()
+                                            .gap(ui::space_xs())
+                                            .min_w_0()
+                                            .child(appearance::preview_icon_reactive(computed(move || row().and_then(|row| presentation::preview_icon(Some(&row.status), &row.category, false)))))
+                                            .child(ui::search_preview(
+                                                move || row().map(|row| {
+                                                    let source = account_id.with(|id| presentation::search_message_preview(i18n, &row, id));
+                                                    previews.with(|previews| previews.get(&row.message_id).filter(|(original, _)| *original == source).map(|(_, value)| value.clone()).unwrap_or(source))
+                                                }).unwrap_or_default(),
+                                                move || results.query.get(),
+                                            ).flex_1().min_w_0()),
                                     ),
                             )
                     },
@@ -805,7 +954,7 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
                             .collect::<Vec<_>>()
                     })
                 })
-                .estimated_item_size(parts::row_height())
+                .estimated_item_size(ui::list_row_height())
                 .flex_1()
                 .min_h_0()
                 .on_viewable_items_change(move |event: &ViewableItems| {
@@ -834,8 +983,13 @@ fn category_button(
     kind: &'static str,
     label: impl Fn() -> &'static str + 'static,
 ) -> impl IntoElement {
-    ui::button(ui::ButtonTone::Secondary, ui::ButtonSize::Small)
+    ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
+        .px(ui::space_md())
         .rounded(ui::radius_full())
+        .bg(ui::state_selected)
+        .selected_style(|style| style.bg(ui::accent).text_color(ui::fg_on_accent))
+        .hover(|style| style.selected(|style| style.bg(ui::accent).text_color(ui::fg_on_accent)))
+        .active(|style| style.selected(|style| style.bg(ui::accent).text_color(ui::fg_on_accent)))
         .selected(move || category.get() == Some(kind))
         .on_press(move || {
             category.update(|category| {
@@ -863,29 +1017,32 @@ fn content(
     senders: Senders,
     input: ElementRef,
     back: impl Fn() + Copy + 'static,
+    close: impl Fn() + Copy + 'static,
     target: Signal<Option<String>>,
 ) -> View {
-    let i18n = i18n::current();
     view()
         .flex_1()
         .min_h_0()
-        .child(parts::page_header(
-            move || {
-                if senders.open.get() {
-                    t(Key::NshChooseASender)
-                } else {
-                    i18n.t(Key::NshSearchMessages)
-                }
-            },
-            Some(
-                parts::back_button(back)
-                    .style_when(move || !senders.open.get(), |style| style.hidden()),
-            ),
-            Some(
-                parts::close_button(back)
-                    .style_when(move || senders.open.get(), |style| style.hidden()),
-            ),
-        ))
+        .child(
+            ui::title_bar()
+                .px(ui::space_lg())
+                .gap(ui::space_sm())
+                .child(
+                    view().size(ui::glass_bar_height()).flex_shrink_0().child(
+                        parts::back_button(back)
+                            .style_when(move || !senders.open.get(), |style| style.hidden()),
+                    ),
+                )
+                .child(
+                    view().flex_1().min_w_0().flex_row().justify_center().child(
+                        text(move || t(Key::SearchConversation))
+                            .number_of_lines(1)
+                            .min_w_0()
+                            .text_role(ui::TextRole::Title),
+                    ),
+                )
+                .child(parts::close_button(close)),
+        )
         .child(filters(results, senders, input, back))
         .child(
             when(senders.open, move || sender_list(results, senders))
@@ -900,13 +1057,18 @@ pub(crate) fn preview(
     state: Signal<&'static str>,
     close: impl Fn() + Copy + 'static,
 ) -> View {
+    let fixture_rows = stored(rows);
+    let fixture_members = stored(members);
     let failed = signal(false);
     let sender_failed = signal(false);
     let senders = Senders {
         open: signal(false),
         query: signal(String::new()),
         selected: signal_with(None, SignalEquals::Never),
-        rows: signal_with(members, SignalEquals::Never),
+        rows: signal_with(
+            fixture_members.with(|members| members.clone()),
+            SignalEquals::Never,
+        ),
         busy: signal(false),
         failed: sender_failed,
         retry: signal(0),
@@ -917,7 +1079,7 @@ pub(crate) fn preview(
         query: signal("design".into()),
         sender: signal(None),
         category: signal(None),
-        rows: signal_with(rows, SignalEquals::Never),
+        rows: signal_with(fixture_rows.with(|rows| rows.clone()), SignalEquals::Never),
         pages: stored(Vec::new()),
         cursors: stored(vec![None]),
         request: signal_with(None, SignalEquals::Never),
@@ -932,11 +1094,51 @@ pub(crate) fn preview(
         last: stored(Load::Reset),
     };
     effect(move || {
-        failed.set(state.get() == "Error");
-        sender_failed.set(state.get() == "Sender error");
-        senders
-            .open
-            .set(matches!(state.get(), "Senders" | "Sender error"));
+        let state = state.get();
+        batch(|| {
+            failed.set(state == "Error");
+            sender_failed.set(state == "Sender error");
+            senders.open.set(matches!(
+                state,
+                "Senders" | "Sender error" | "Sender loading" | "Sender empty"
+            ));
+            senders.busy.set(state == "Sender loading");
+            senders.rows.set(
+                if matches!(state, "Sender loading" | "Sender empty" | "Sender error") {
+                    Vec::new()
+                } else {
+                    fixture_members.with(|members| members.clone())
+                },
+            );
+            results.busy.set(state == "Loading");
+            results.query.set(if state == "Idle" {
+                String::new()
+            } else {
+                "design 测试".into()
+            });
+            results.category.set(match state {
+                "Text" => Some("TEXT"),
+                "Post" => Some("POST"),
+                _ => None,
+            });
+            results
+                .rows
+                .set(if matches!(state, "Empty" | "Idle" | "Loading" | "Error") {
+                    Vec::new()
+                } else {
+                    fixture_rows.with(|rows| rows.clone())
+                });
+            senders.selected.set(if state == "Selected sender" {
+                senders.rows.with_untracked(|rows| rows.first().cloned())
+            } else {
+                None
+            });
+            results.sender.set(
+                senders
+                    .selected
+                    .with_untracked(|sender| sender.as_ref().map(|sender| sender.user_id.clone())),
+            );
+        });
     });
-    content(results, senders, element_ref(), close, signal(None))
+    content(results, senders, element_ref(), close, close, signal(None))
 }

@@ -402,3 +402,20 @@ Descriptions preview three source lines and at most 60 graphemes, with an
 explicit expand/collapse command when shortened. The body owns vertical scrolling;
 the 300pt inspector width and shared row controls apply to both group and personal
 previews.
+
+## Conversation search inspector
+
+Search keeps the floating inspector's Liquid Glass surface and centered header,
+with Close at the trailing edge. Its search pill owns the clear command and an
+inline From/avatar filter; the separate sender command appears only before a
+sender is chosen. Text and Post chips appear for a keyword and toggle the category filter. Results
+reuse conversation-sized rows: 50pt avatar, sender and identity badge, trailing
+locale-aware date, and one muted preview line with accent-colored query terms.
+Long names and excerpts truncate while dates and badges retain their own slots.
+
+| Change | Tool and tokens | Reduced motion |
+| --- | --- | --- |
+| Clear, sender, category controls and result hover/pressed/selection | Shared control color transitions, `FEEDBACK_MS`; selected categories use `accent` / `fg_on_accent` | Immediate state styles |
+| Query, From/avatar, category visibility and sender/result state swaps | Immediate updates within the retained search surface, following the conversation-column search policy | Same |
+| Recycled avatar, sender, identity, date and highlighted excerpt | Reactive source rebinding; no row entry animation | Same |
+| Click result to jump and dismiss | Existing chat search highlight and inspector `PANEL_WIDTH` transition | Existing reduced-motion policy |

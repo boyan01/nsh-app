@@ -17,6 +17,7 @@ mod owned;
 pub(crate) mod parts;
 pub(crate) mod picker;
 mod rows;
+mod search_preview;
 mod state;
 mod toast;
 mod tokens;
@@ -42,9 +43,9 @@ pub(crate) use feedback::{
     busy_indicator, count_pill, divider, empty, error_text, placeholder, section, section_label,
 };
 pub(crate) use form::{
-    NO_LABEL, checkbox, field, glass_search_pill, search_input, search_pill, select,
-    select_trigger, slider, slider_compact, slider_media, slider_over_scale, slider_over_wave, tab,
-    textarea,
+    NO_LABEL, checkbox, field, glass_search_pill, search_input, search_pill,
+    search_pill_with_leading, select, select_trigger, slider, slider_compact, slider_media,
+    slider_over_scale, slider_over_wave, tab, textarea,
 };
 pub(crate) use icon::{Icon, icon, inscription_background, logo, wallpaper};
 pub(crate) use markdown::{markdown, markdown_reader};
@@ -55,6 +56,7 @@ pub(crate) use overlay::{
 };
 pub(crate) use owned::owned;
 pub(crate) use rows::{list_row, nav_row, option_row};
+pub(crate) use search_preview::search_preview;
 pub(crate) use state::ring;
 pub(crate) use toast::Toasts;
 pub(crate) use tokens::*;

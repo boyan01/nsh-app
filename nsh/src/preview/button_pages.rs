@@ -457,7 +457,20 @@ pub(super) const SNAPSHOT_ACTIONS: &[&str] = &[
     "Content error",
     "Reset",
 ];
-pub(super) const SEARCH_ACTIONS: &[&str] = &["Senders", "Error", "Sender error", "Reset"];
+pub(super) const SEARCH_ACTIONS: &[&str] = &[
+    "Idle",
+    "Loading",
+    "Empty",
+    "Text",
+    "Post",
+    "Senders",
+    "Selected sender",
+    "Sender loading",
+    "Sender empty",
+    "Error",
+    "Sender error",
+    "Reset",
+];
 pub(super) const CHAT_ACTIONS: &[&str] = &[
     "Draft error",
     "Unread error",
@@ -672,7 +685,7 @@ pub(super) fn pinned_messages(actions: Actions) -> View {
 pub(super) fn message_search(actions: Actions) -> View {
     prepare();
     host(crate::inspector::preview_search(
-        fixtures::messages::text_rows(),
+        super::inspector::search_rows(),
         fixtures::participants(),
         mode(actions, SEARCH_ACTIONS),
         || {},

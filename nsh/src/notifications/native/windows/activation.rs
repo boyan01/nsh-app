@@ -43,7 +43,7 @@ pub(super) fn identity() -> Option<String> {
         .ok()?;
     let value = String::from_utf16(value.get(..length.checked_sub(1)? as usize)?).ok()?;
     // Never clear history or register an activation object for an unrelated package.
-    (value.starts_with("one.mixin.messenger.nsh_") && value.ends_with("!MixinMessenger"))
+    (value.starts_with("one.mixin.messenger.desktop_") && value.ends_with("!MixinMessenger"))
         .then_some(value)
 }
 

@@ -78,6 +78,8 @@ fn identifier(key: &str) -> Result<Retained<NSUUID>, ()> {
     let directory = mixin_desktop_api::data_directory().map_err(|_| ())?;
     let canonical = std::fs::canonicalize(directory).map_err(|_| ())?;
     let mut digest = Sha256::new();
+    // Keep the legacy hash domain so app renames preserve stored browser data
+    // and account-exit cleanup continues to target the same profile.
     digest.update(b"one.mixin.messenger.nsh.web-profile\0");
     digest.update(canonical.as_os_str().as_encoded_bytes());
     digest.update([0]);

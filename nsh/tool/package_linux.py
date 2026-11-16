@@ -13,7 +13,7 @@ import sys
 import tarfile
 import tempfile
 
-IDENTITY = "one.mixin.messenger.nsh"
+IDENTITY = "one.mixin.messenger.desktop"
 
 
 def elf_architecture(path):

@@ -79,11 +79,11 @@ pub(super) fn surface(handle: Handle) -> impl IntoElement {
                     let count = handle.badge.get();
                     if count > 0 {
                         format!(
-                            "Mixin Messenger · {count} {}",
+                            "Mixin · {count} {}",
                             crate::i18n::current().text(crate::i18n::Key::Unread)
                         )
                     } else {
-                        "Mixin Messenger".into()
+                        "Mixin".into()
                     }
                 })
                 .on_native_event(move |event: &NativeEvent| {

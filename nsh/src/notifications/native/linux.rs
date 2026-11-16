@@ -282,7 +282,7 @@ impl Bus {
         };
         let title: String = notification.title.chars().take(256).collect();
         let hints = HashMap::from([
-            ("desktop-entry", Value::from("one.mixin.messenger.nsh")),
+            ("desktop-entry", Value::from("one.mixin.messenger.desktop")),
             ("category", Value::from("im.received")),
             ("sound-name", Value::from("message-new-instant")),
         ]);
@@ -290,16 +290,7 @@ impl Bus {
             self.proxy
                 .call(
                     "Notify",
-                    &(
-                        "Mixin Messenger",
-                        0_u32,
-                        "",
-                        title,
-                        body,
-                        actions,
-                        hints,
-                        -1_i32,
-                    ),
+                    &("Mixin", 0_u32, "", title, body, actions, hints, -1_i32),
                 )
                 .await
         })

@@ -8,7 +8,7 @@ from pathlib import Path
 import struct
 import unicodedata
 
-IDENTITY = "one.mixin.messenger.nsh"
+IDENTITY = "one.mixin.messenger.desktop"
 
 
 def quoted_attachment(path):

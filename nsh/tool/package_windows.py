@@ -13,7 +13,7 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
-IDENTITY = "one.mixin.messenger.nsh"
+IDENTITY = "one.mixin.messenger.desktop"
 APPLICATION = "MixinMessenger"
 ACTIVATOR = "C7DFB9DF-1F4C-48D8-A3D5-8BDA631A17EC"
 FOUNDATION = "http://schemas.microsoft.com/appx/manifest/foundation/windows10"

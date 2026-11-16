@@ -7,12 +7,12 @@ fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
     Ok(nsh_platform_macos::run_app(
         nsh_platform_macos::AppSource::Rust(
             nsh_platform_macos::Root::of::<mixin_desktop_ui::App>()
-                .app_id("one.mixin.messenger.nsh")
+                .app_id("one.mixin.messenger.desktop")
                 .tokens(tokens),
         ),
         nsh_platform_macos::AppOptions {
-            title: "Mixin Messenger".into(),
-            app_id: "one.mixin.messenger.nsh".into(),
+            title: "Mixin".into(),
+            app_id: "one.mixin.messenger.desktop".into(),
             size: (1280, 750),
             ..Default::default()
         },
@@ -59,15 +59,15 @@ fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
     })?;
     let tokens = nsh_base::tokens_of(Some(include_str!("../theme.json")))?;
     let root = platform::Root::of::<mixin_desktop_ui::App>()
-        .app_id("one.mixin.messenger.nsh")
+        .app_id("one.mixin.messenger.desktop")
         .tokens(tokens);
     #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     platform::set_components(mixin_desktop_ui::register_native_components);
     let result = platform::run_app(
         platform::AppSource::Rust(root),
         platform::AppOptions {
-            title: "Mixin Messenger".into(),
-            app_id: "one.mixin.messenger.nsh".into(),
+            title: "Mixin".into(),
+            app_id: "one.mixin.messenger.desktop".into(),
             size: (1280, 750),
             #[cfg(target_os = "macos")]
             keep_alive_on_close: true,

@@ -45,7 +45,7 @@ native execution remains part of package acceptance.
 
 The generated manifest declares:
 
-- Identity `one.mixin.messenger.nsh` and application `MixinMessenger`.
+- Identity `one.mixin.messenger.desktop` and application `MixinMessenger`.
 - The `mixin:` protocol without choosing it as the user's default.
 - Toast activator CLSID `C7DFB9DF-1F4C-48D8-A3D5-8BDA631A17EC` and the fixed
   `--mixin-toast-activation` COM server argument. The same executable receives the
@@ -96,13 +96,13 @@ headers. The app and extension are staged together:
 MixinMessenger.AppDir/
   AppRun
   Print-AppArmor-Profile.py               # optional, prints policy without loading it
-  one.mixin.messenger.nsh.desktop
+  one.mixin.messenger.desktop.desktop
   usr/bin/mixin-nsh
   usr/bin/ffprobe                         # only when explicitly bundled
   usr/bin/mixin-webkit-extension/libmixin-webkit-extension.so
-  usr/share/applications/one.mixin.messenger.nsh.desktop
-  usr/share/pixmaps/one.mixin.messenger.nsh.png
-  usr/share/doc/one.mixin.messenger.nsh/   # notices and dependency inventory
+  usr/share/applications/one.mixin.messenger.desktop.desktop
+  usr/share/pixmaps/one.mixin.messenger.desktop.png
+  usr/share/doc/one.mixin.messenger.desktop/   # notices and dependency inventory
 ```
 
 Launch `AppRun` from any working directory. A distributor may later install the

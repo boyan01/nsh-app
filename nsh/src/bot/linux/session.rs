@@ -225,6 +225,8 @@ fn profile_folder(key: &str) -> Result<PathBuf, &'static str> {
         mixin_desktop_api::data_directory().map_err(|_| "Missing application data directory")?;
     let root = std::fs::canonicalize(root).map_err(|_| "Invalid application data directory")?;
     let mut hash = Sha256::new();
+    // Keep the legacy hash domain so app renames preserve stored browser data
+    // and account-exit cleanup continues to target the same profile.
     hash.update(b"one.mixin.messenger.nsh.web-profile\0");
     hash.update(root.as_os_str().as_encoded_bytes());
     hash.update([0]);

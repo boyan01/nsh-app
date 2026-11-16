@@ -8,7 +8,11 @@ use std::sync::Arc;
 use mixin_desktop_api::AccountClient;
 use nsh_core::prelude::*;
 
-use crate::{conversation, navigation::Panel, ui};
+use crate::{
+    conversation,
+    navigation::{ChatNavigation, Panel},
+    ui,
+};
 
 pub(crate) fn screen(
     account: Arc<AccountClient>,
@@ -38,11 +42,13 @@ pub(crate) fn screen(
 pub(crate) use {pinned::preview as preview_pinned, search::preview as preview_search};
 
 /// An inspector over the chat toolbar. Outside presses dismiss and are consumed;
-/// the timeline keeps its full width throughout opening and closing.
+/// the timeline keeps its full width throughout opening and closing. A return
+/// session retains the same content owner offscreen, including native scroll state.
 pub(crate) fn overlay(
-    destination: Signal<Option<Panel>>,
+    navigation: ChatNavigation,
     content: impl Fn(Panel) -> AnyElement + Copy + 'static,
 ) -> View {
+    let destination = navigation.panel;
     let progress = crate::motion::Tween::new(if destination.get_untracked().is_some() {
         1.0
     } else {
@@ -59,7 +65,9 @@ pub(crate) fn overlay(
     });
     let shown = signal(destination.get_untracked());
     effect(move || {
-        if let Some(mode) = destination.get() {
+        if let Some(mode) = destination.get()
+            && shown.get_untracked() != Some(mode)
+        {
             shown.set(Some(mode));
         }
     });
@@ -77,15 +85,22 @@ pub(crate) fn overlay(
                     .absolute()
                     .inset_0()
                     .label("Dismiss chat panel")
-                    .on_press(move || destination.set(None))
+                    .on_press(move || navigation.dismiss_inspector())
             },
         ))
         .child(when(
-            move || destination.get().is_some() || progress.get() > 0.0,
+            move || {
+                destination.get().is_some()
+                    || navigation.inspector_return().is_some()
+                    || progress.get() > 0.0
+            },
             move || {
                 let panel = element_ref();
                 let focused = stored(false);
                 effect(move || {
+                    if destination.get().is_none() {
+                        focused.replace(false);
+                    }
                     if progress.get() >= 1.0
                         && destination.get().is_some()
                         && destination.get() != Some(Panel::Search)
@@ -114,6 +129,12 @@ pub(crate) fn overlay(
                     .translate_x(move || {
                         px((ui::sidebar_width().0 + ui::space_sm().0) * (1.0 - progress.get()))
                     })
+                    // Visibility keeps the list's measured layout while excluding every
+                    // descendant from native keyboard focus after the exit finishes.
+                    .style_when(
+                        move || destination.get().is_none() && progress.get() == 0.0,
+                        |style| style.invisible(),
+                    )
                     .accessibility_elements_hidden(move || destination.get().is_none())
                     .pointer_events(move || {
                         if destination.get().is_some() {

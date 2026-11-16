@@ -1253,5 +1253,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "nshReturnToSearch": "Volver a la búsqueda",
+  "nshReturnToPinned": "Volver a los fijados",
+  "nshDismissInspectorReturn": "Cerrar el acceso de regreso al panel"
 }

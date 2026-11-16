@@ -1396,5 +1396,8 @@
   "nshZIPKeepsOriginalsTurnOffZIPToChangeQuality": "ZIP 保留原檔案，關閉打包後可切換畫質",
   "nshZIPPassword": "ZIP 密碼",
   "nshZIPPasswordOptional": "ZIP 密碼（可選）",
-  "nshAttachments": "個附件"
+  "nshAttachments": "個附件",
+  "nshReturnToSearch": "返回搜尋",
+  "nshReturnToPinned": "返回置頂",
+  "nshDismissInspectorReturn": "關閉面板返回入口"
 }

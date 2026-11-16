@@ -9,6 +9,10 @@ pub(super) const ACTIONS: &[&str] = &[
     "Open search",
     "Open pinned",
     "Close",
+    "Jump from search",
+    "Jump from pinned",
+    "Return to inspector",
+    "Dismiss return",
     "Fold pin",
     "Expand pin",
     "Remove pin",
@@ -35,15 +39,45 @@ pub(super) fn scene(actions: Actions) -> View {
     ] {
         actions.on(
             action,
-            move || panel.set(None),
+            move || navigation.dismiss_inspector(),
             move || panel.set(Some(destination)),
         );
     }
     actions.on(
         "Close",
         move || panel.set(Some(Panel::Info)),
-        move || panel.set(None),
+        move || navigation.dismiss_inspector(),
     );
+    for (action, mode) in [
+        ("Jump from search", Panel::Search),
+        ("Jump from pinned", Panel::Pinned),
+    ] {
+        actions.on(
+            action,
+            move || {
+                navigation.dismiss_inspector();
+                panel.set(Some(mode));
+            },
+            move || navigation.suspend_inspector(mode),
+        );
+    }
+    for (action, resume) in [("Return to inspector", true), ("Dismiss return", false)] {
+        actions.on(
+            action,
+            move || {
+                navigation.dismiss_inspector();
+                panel.set(Some(Panel::Search));
+                navigation.suspend_inspector(Panel::Search);
+            },
+            move || {
+                if resume {
+                    navigation.resume_inspector();
+                } else {
+                    navigation.dismiss_inspector();
+                }
+            },
+        );
+    }
     let pin = signal(Some("Ava pinned \"Release at 5 pm\"".into()));
     let shown = signal(true);
     provide_context(chat::pinned::PreviewVisibility(shown));
@@ -118,7 +152,7 @@ pub(super) fn scene(actions: Actions) -> View {
             );
             spawn(chat::blink(list.highlight_opacity));
         }
-        panel.set(None);
+        navigation.suspend_inspector(Panel::Pinned);
     };
     messages::timeline_view(chat::preview_chrome(
         row,
@@ -134,7 +168,7 @@ pub(super) fn scene(actions: Actions) -> View {
         },
         super::composer::editor_with_escape(false, actions, move || navigation.back_panel()),
     ))
-    .child(inspector::overlay(panel, move |destination| {
+    .child(inspector::overlay(navigation, move |destination| {
         let close = move || navigation.back_panel();
         match destination {
             Panel::Info => {

@@ -1231,5 +1231,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "nshReturnToSearch": "Вернуться к поиску",
+  "nshReturnToPinned": "Вернуться к закреплённым",
+  "nshDismissInspectorReturn": "Закрыть возврат к панели"
 }

@@ -195,12 +195,13 @@ pub(super) fn quoted(
         .on_press(move || {
             actions.close_preview();
             if let Some(target) = target {
-                batch(|| {
-                    navigation.cancel_pending();
-                    navigation.panel.set(None);
-                    navigation.return_target.set(origin.clone());
-                    target.set(Some(id.clone()));
-                });
+                jump_to_target(
+                    navigation,
+                    target,
+                    id.clone(),
+                    origin.clone(),
+                    actions.pinned_page,
+                );
             } else if !navigation.jump_in_selected(&conversation, id.clone(), origin.clone()) {
                 navigation.open_conversation(
                     actions.account.with(|account| account.clone()),
@@ -212,6 +213,25 @@ pub(super) fn quoted(
         })
         .child(card)
         .into_element()
+}
+
+/// Pinned owns its target relay and suspends the inspector after receiving the
+/// quote's destination. Closing here would discard that relay's source panel.
+fn jump_to_target(
+    navigation: crate::navigation::ChatNavigation,
+    target: Signal<Option<String>>,
+    id: String,
+    origin: Option<String>,
+    pinned_page: bool,
+) {
+    batch(|| {
+        navigation.cancel_pending();
+        if !pinned_page {
+            navigation.panel.set(None);
+        }
+        navigation.return_target.set(origin);
+        target.set(Some(id));
+    });
 }
 
 pub(super) fn reply_bar(
@@ -565,4 +585,78 @@ fn category_icon(category: &str) -> AnyElement {
         .mr_1()
         .text_color(ui::message_secondary)
         .into_element()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::navigation::{ChatNavigation, Panel};
+    use nsh_core::element::{Runtime, create_root};
+
+    #[test]
+    fn pinned_quote_when_located_reaches_the_relay_before_suspending_and_can_return() {
+        let runtime = Runtime::default();
+        let _entered = runtime.enter();
+        let (root, (navigation, target, timeline)) = create_root(|| {
+            let navigation = ChatNavigation::new(signal(None), signal(None), signal(false));
+            let target = signal(None);
+            let timeline = signal(None);
+            // Pinned's message rows relay their local target to the chat timeline.
+            effect(move || {
+                if let Some(id) = target.get() {
+                    untracked(|| {
+                        timeline.set(Some(id));
+                        navigation.suspend_inspector(Panel::Pinned);
+                    });
+                }
+            });
+            (navigation, target, timeline)
+        });
+        navigation.toggle_panel(Panel::Pinned);
+        jump_to_target(
+            navigation,
+            target,
+            "quoted".into(),
+            Some("pin".into()),
+            true,
+        );
+        assert_eq!(timeline.get_untracked().as_deref(), Some("quoted"));
+        assert_eq!(
+            navigation.return_target.get_untracked().as_deref(),
+            Some("pin")
+        );
+        assert_eq!(navigation.panel.get_untracked(), None);
+        assert_eq!(navigation.inspector_return(), Some(Panel::Pinned));
+        navigation.resume_inspector();
+        assert_eq!(navigation.panel.get_untracked(), Some(Panel::Pinned));
+        root.dispose();
+    }
+
+    #[test]
+    fn timeline_quote_when_located_closes_the_panel_and_keeps_the_message_return_target() {
+        let runtime = Runtime::default();
+        let _entered = runtime.enter();
+        let (root, (navigation, target)) = create_root(|| {
+            (
+                ChatNavigation::new(signal(None), signal(None), signal(false)),
+                signal(None),
+            )
+        });
+        navigation.toggle_panel(Panel::Info);
+        jump_to_target(
+            navigation,
+            target,
+            "quoted".into(),
+            Some("source".into()),
+            false,
+        );
+        assert_eq!(target.get_untracked().as_deref(), Some("quoted"));
+        assert_eq!(
+            navigation.return_target.get_untracked().as_deref(),
+            Some("source")
+        );
+        assert_eq!(navigation.panel.get_untracked(), None);
+        assert_eq!(navigation.inspector_return(), None);
+        root.dispose();
+    }
 }

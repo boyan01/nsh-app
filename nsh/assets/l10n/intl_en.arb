@@ -1399,5 +1399,8 @@
       }
     }
   },
-  "nshPosts": "Posts"
+  "nshPosts": "Posts",
+  "nshReturnToSearch": "Return to Search",
+  "nshReturnToPinned": "Return to Pinned",
+  "nshDismissInspectorReturn": "Dismiss return to inspector"
 }

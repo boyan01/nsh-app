@@ -346,6 +346,16 @@ pub(super) fn screen(
         retry: signal(0),
     };
     let input = element_ref();
+    let navigation = use_context::<ChatNavigation>().expect("Home provides chat navigation");
+    effect(move || {
+        if navigation.panel.get() == Some(crate::navigation::Panel::Search) {
+            request_animation_frame(move |_| {
+                if navigation.panel.get_untracked() == Some(crate::navigation::Panel::Search) {
+                    input.focus();
+                }
+            });
+        }
+    });
     let results = Results {
         account: stored(Some(account.clone())),
         conversation: stored(id.clone()),
@@ -897,13 +907,14 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
                                     rows.get(at.index()).map(|row| row.message_id.clone())
                                 });
                                 if let Some(id) = id {
+                                    dismiss_keyboard();
                                     batch(|| {
                                         navigation.highlight_search(
                                             results.conversation.with(|value| value.clone()),
                                             results.query.get_untracked(),
                                         );
                                         target.set(Some(id));
-                                        navigation.panel.set(None);
+                                        navigation.suspend_inspector(crate::navigation::Panel::Search);
                                     });
                                 }
                             })

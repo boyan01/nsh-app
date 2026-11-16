@@ -420,3 +420,25 @@ Long names and excerpts truncate while dates and badges retain their own slots.
 | Query, From/avatar, category visibility and sender/result state swaps | Immediate updates within the retained search surface, following the conversation-column search policy | Same |
 | Recycled avatar, sender, identity, date and highlighted excerpt | Reactive source rebinding; no row entry animation | Same |
 | Click result to jump and dismiss | Existing chat search highlight and inspector `PANEL_WIDTH` transition | Existing reduced-motion policy |
+
+## Inspector return capsule
+
+A Search result, a pinned message's Locate command or its quote jump closes the inspector and
+replaces the trailing chat actions with one Liquid Glass capsule. Its leading
+command returns to the retained Search or Pinned view; its separate Close command
+ends that return session. Normal inspector dismissal and conversation changes also
+end the session. Only the active conversation retains an inspector, including its
+query, filters, bounded results and native list position.
+
+```text
+[Conversation]       [Latest pin]       [< Return to Search | x]
+                                     [< Return to Pinned | x]
+```
+
+| Change | Tool and tokens | Reduced motion |
+| --- | --- | --- |
+| Return and Close hover, focus and press | Shared `nav_row` / `round_button` feedback and `FEEDBACK_MS` | Existing immediate state styles |
+| Trailing actions swap with return capsule | Immediate replacement in the same trailing slot; no entry motion for toolbar commands | Same |
+| Locate and return open/close inspector | Existing `PANEL_WIDTH` tween; retain the same inspector and virtual list while hidden; apply visibility hidden at the exit end to exclude descendants from keyboard focus without changing layout; focus the return command on suspension | Existing reduced-motion policy |
+| Search filters, results and pinned selection while returning | Retain existing state and live event subscriptions; no reset or row entry animation | Same |
+| Close session or switch conversation | Release retained inspector with its owner; normal toolbar returns immediately | Same |

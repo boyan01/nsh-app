@@ -1397,5 +1397,8 @@
       }
     }
   },
-  "nshPosts": "文章"
+  "nshPosts": "文章",
+  "nshReturnToSearch": "返回搜索",
+  "nshReturnToPinned": "返回置顶",
+  "nshDismissInspectorReturn": "关闭面板返回入口"
 }

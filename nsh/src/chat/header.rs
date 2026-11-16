@@ -38,6 +38,7 @@ pub(super) fn bar(
     let badge =
         computed(move || row.with(|row| (row.is_verified, row.is_bot, row.membership.clone())));
     let rail = use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
+    let return_width = move || px((width.get() * 0.45).min(ui::card_width().0));
     let layout = computed(move || {
         let leading = if narrow() {
             ui::title_bar_leading(rail.width()).0
@@ -47,11 +48,13 @@ pub(super) fn bar(
         let bot = row.with(|row| !group && row.is_bot && !row.owner_id.is_empty());
         // Reserve fixed controls and their gaps before sharing the remaining
         // space. The title can truncate, but never takes the pin's whole slot.
-        let controls = 2.0 + f32::from(bot) + f32::from(narrow());
-        let gaps = 3.0 + f32::from(bot) + f32::from(narrow());
+        let returning = navigation.inspector_return().is_some();
+        let controls = if returning { 0.0 } else { 2.0 + f32::from(bot) } + f32::from(narrow());
+        let gaps = 3.0 + f32::from(!returning && bot) + f32::from(narrow());
         let available = (width.get()
             - leading
             - ui::space_md().0
+            - if returning { return_width().0 } else { 0.0 }
             - controls * ui::glass_bar_height().0
             - gaps * ui::space_sm().0)
             .max(0.0);
@@ -59,6 +62,8 @@ pub(super) fn bar(
         let inline = available - identity >= ui::glass_inline_pin_width().0;
         let identity = if inline {
             identity
+        } else if returning {
+            available.min(ui::card_width().0)
         } else {
             // The compact pin needs just one button; give its unused summary
             // space back to the conversation title.
@@ -183,56 +188,69 @@ pub(super) fn bar(
                     .accessibility_elements_hidden(move || !inline_pin.get()),
             ),
         )
-        .child(when(
-            move || !group && row.with(|row| row.is_bot && !row.owner_id.is_empty()),
-            move || {
-                let open = move || i18n.t(Key::NshOpenApp);
+        .child(
+            when(
+                move || navigation.inspector_return().is_some(),
+                move || return_capsule(navigation).w(return_width),
+            )
+            .otherwise(move || {
                 view()
                     .flex_none()
-                    .tooltip(ui::hint(move || open().to_owned()))
-                    .child(ui::glass_button(
-                        ui::round_button()
-                            .accessibility_label(move || Some(open().into()))
-                            .on_press(move || {
-                                let (owner, conversation) = row.with_untracked(|row| {
-                                    (row.owner_id.clone(), row.conversation_id.clone())
-                                });
-                                links.open(
-                                    format!("mixin://apps/{owner}?action=open"),
-                                    Some(conversation),
-                                );
-                            })
-                            .child(ui::icon(ui::Icon::Bot)),
+                    .flex_row()
+                    .items_center()
+                    .gap_2()
+                    .child(when(
+                        move || !group && row.with(|row| row.is_bot && !row.owner_id.is_empty()),
+                        move || {
+                            let open = move || i18n.t(Key::NshOpenApp);
+                            view()
+                                .flex_none()
+                                .tooltip(ui::hint(move || open().to_owned()))
+                                .child(ui::glass_button(
+                                    ui::round_button()
+                                        .accessibility_label(move || Some(open().into()))
+                                        .on_press(move || {
+                                            let (owner, conversation) = row.with_untracked(|row| {
+                                                (row.owner_id.clone(), row.conversation_id.clone())
+                                            });
+                                            links.open(
+                                                format!("mixin://apps/{owner}?action=open"),
+                                                Some(conversation),
+                                            );
+                                        })
+                                        .child(ui::icon(ui::Icon::Bot)),
+                                ))
+                        },
                     ))
-            },
-        ))
-        .child(
-            view()
-                .flex_none()
-                .flex_row()
-                .items_center()
-                .child(pinned.compact_button(compact_pin))
-                .child(panel_toggle(
-                    navigation,
-                    ui::Icon::Search,
-                    Key::NshSearchMessages,
-                    Panel::Search,
-                )),
-        )
-        .child(
-            view()
-                .flex_none()
-                .tooltip(
-                    ui::hint(move || i18n.t(Key::NshChatDetails).to_owned())
-                        .disabled(move || navigation.panel.get() == Some(Panel::Info)),
-                )
-                .child(ui::glass_button(
-                    ui::round_button()
-                        .accessibility_label(move || Some(i18n.t(Key::More).into()))
-                        .selected(move || navigation.panel.get() == Some(Panel::Info))
-                        .on_press(move || navigation.toggle_panel(Panel::Info))
-                        .child(ui::icon(ui::Icon::More)),
-                )),
+                    .child(
+                        view()
+                            .flex_none()
+                            .flex_row()
+                            .items_center()
+                            .child(pinned.compact_button(compact_pin))
+                            .child(panel_toggle(
+                                navigation,
+                                ui::Icon::Search,
+                                Key::NshSearchMessages,
+                                Panel::Search,
+                            )),
+                    )
+                    .child(
+                        view()
+                            .flex_none()
+                            .tooltip(
+                                ui::hint(move || i18n.t(Key::NshChatDetails).to_owned())
+                                    .disabled(move || navigation.panel.get() == Some(Panel::Info)),
+                            )
+                            .child(ui::glass_button(
+                                ui::round_button()
+                                    .accessibility_label(move || Some(i18n.t(Key::More).into()))
+                                    .selected(move || navigation.panel.get() == Some(Panel::Info))
+                                    .on_press(move || navigation.toggle_panel(Panel::Info))
+                                    .child(ui::icon(ui::Icon::More)),
+                            )),
+                    )
+            }),
         )
 }
 
@@ -250,4 +268,66 @@ fn panel_toggle(
             .on_press(move || navigation.toggle_panel(mode))
             .child(ui::icon(icon)),
     )
+}
+
+/// Two sibling commands share one material, so Close never triggers Return.
+fn return_capsule(navigation: ChatNavigation) -> View {
+    let return_button = element_ref();
+    effect(move || {
+        if navigation.panel.get().is_none() && navigation.inspector_return().is_some() {
+            request_animation_frame(move |_| {
+                if navigation.panel.get_untracked().is_none()
+                    && navigation.inspector_return().is_some()
+                {
+                    return_button.focus();
+                }
+            });
+        }
+    });
+    let i18n = i18n::current();
+    let label = move || {
+        i18n.t(if navigation.inspector_return() == Some(Panel::Pinned) {
+            Key::NshReturnToPinned
+        } else {
+            Key::NshReturnToSearch
+        })
+    };
+    ui::glass_pill()
+        .tooltip(ui::hint(move || label().to_owned()))
+        .child(
+            ui::nav_row()
+                .element_ref(&return_button)
+                .flex_1()
+                .min_w_0()
+                .h_full()
+                .py_0()
+                .rounded(ui::glass_radius())
+                .accessibility_label(move || Some(label().into()))
+                .on_press(move || navigation.resume_inspector())
+                .child(ui::icon(ui::Icon::ArrowLeft).flex_shrink_0())
+                .child(
+                    text(label)
+                        .min_w_0()
+                        .flex_shrink(1.0)
+                        .number_of_lines(1)
+                        .text_role(ui::TextRole::Body),
+                ),
+        )
+        .child(
+            view()
+                .flex_none()
+                .tooltip(ui::hint(move || {
+                    i18n.t(Key::NshDismissInspectorReturn).to_owned()
+                }))
+                .child(
+                    ui::round_button()
+                        .size(ui::glass_bar_height())
+                        .flex_shrink_0()
+                        .accessibility_label(move || {
+                            Some(i18n.t(Key::NshDismissInspectorReturn).into())
+                        })
+                        .on_press(move || navigation.dismiss_inspector())
+                        .child(ui::icon(ui::Icon::Close)),
+                ),
+        )
 }

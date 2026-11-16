@@ -1120,5 +1120,8 @@
     }
   },
   "participantsCount": "Anggota: {arg0}",
-  "@participantsCount": {"placeholders": {"arg0": {"type": "String"}}}
+  "@participantsCount": {"placeholders": {"arg0": {"type": "String"}}},
+  "nshReturnToSearch": "Kembali ke Pencarian",
+  "nshReturnToPinned": "Kembali ke Pesan Disematkan",
+  "nshDismissInspectorReturn": "Tutup akses kembali ke panel"
 }

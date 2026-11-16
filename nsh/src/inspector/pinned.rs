@@ -262,9 +262,13 @@ fn reader(
         owner: Owner::current(),
     };
     state.preview.mount_mentions(state.rows);
+    let navigation =
+        use_context::<crate::navigation::ChatNavigation>().expect("Home provides chat navigation");
     let locate = move |id| {
-        target.set(Some(id));
-        close();
+        batch(|| {
+            target.set(Some(id));
+            navigation.suspend_inspector(crate::navigation::Panel::Pinned);
+        });
     };
     spawn(async move {
         let mut changes = Box::pin(runtime::observe(account.conversation_changes()));

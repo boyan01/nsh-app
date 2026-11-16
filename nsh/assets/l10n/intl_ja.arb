@@ -1232,5 +1232,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "nshReturnToSearch": "検索に戻る",
+  "nshReturnToPinned": "ピン留めに戻る",
+  "nshDismissInspectorReturn": "パネルに戻るボタンを閉じる"
 }

@@ -82,7 +82,7 @@ impl Navigation {
 }
 
 /// The right-hand inspector destination for the open chat.
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Panel {
     Info,
     Search,
@@ -101,6 +101,7 @@ pub(crate) struct ChatNavigation {
     search_highlight: Signal<Option<(String, String)>>,
     search_from_info: Signal<bool>,
     pub panel: Signal<Option<Panel>>,
+    inspector_return: Signal<Option<Panel>>,
     pub return_target: Signal<Option<String>>,
 }
 
@@ -120,6 +121,7 @@ impl ChatNavigation {
         let recent = signal(Vec::<String>::new());
         let search_highlight = signal(None::<(String, String)>);
         let panel = signal(None);
+        let inspector_return = signal(None);
         let search_from_info = signal(false);
         let selected_id = computed(move || {
             selected.with(|row| row.as_ref().map(|row| row.conversation_id.clone()))
@@ -134,7 +136,17 @@ impl ChatNavigation {
             }
         });
         effect(move || {
+            let destination = panel.get();
+            let returning = inspector_return.get();
+            // Existing entry points such as the inline latest pin set the destination directly.
+            if destination.is_some() && returning.is_some() && destination != returning {
+                inspector_return.set(None);
+            }
+        });
+        effect(move || {
             let id = selected_id.get();
+            panel.set(None);
+            inspector_return.set(None);
             if search_highlight.with_untracked(|value| {
                 value
                     .as_ref()
@@ -169,6 +181,7 @@ impl ChatNavigation {
             search_highlight,
             search_from_info,
             panel,
+            inspector_return,
             return_target: signal(None),
         }
     }
@@ -179,6 +192,7 @@ impl ChatNavigation {
 
     pub(crate) fn open_search_from_info(self) {
         batch(|| {
+            self.clear_inspector_return();
             self.search_from_info.set(true);
             self.panel.set(Some(Panel::Search));
         });
@@ -186,6 +200,7 @@ impl ChatNavigation {
 
     pub(crate) fn back_panel(self) {
         batch(|| {
+            self.clear_inspector_return();
             let next = if self.panel.get_untracked() == Some(Panel::Search)
                 && self.search_from_info.get_untracked()
             {
@@ -203,10 +218,46 @@ impl ChatNavigation {
             self.back_panel();
         } else {
             batch(|| {
+                self.clear_inspector_return();
                 self.search_from_info.set(false);
                 self.panel.set(Some(mode));
             });
         }
+    }
+
+    pub(crate) fn inspector_return(self) -> Option<Panel> {
+        self.inspector_return.get()
+    }
+
+    /// Keep the current inspector's owner and native list alive during a timeline jump.
+    pub(crate) fn suspend_inspector(self, mode: Panel) {
+        if matches!(mode, Panel::Search | Panel::Pinned) && self.panel.get_untracked() == Some(mode)
+        {
+            batch(|| {
+                self.search_from_info.set(false);
+                self.inspector_return.set(Some(mode));
+                self.panel.set(None);
+            });
+        }
+    }
+
+    pub(crate) fn resume_inspector(self) {
+        if let Some(mode) = self.inspector_return.get_untracked() {
+            self.panel.set(Some(mode));
+        }
+    }
+
+    fn clear_inspector_return(self) {
+        self.inspector_return.set(None);
+    }
+
+    /// Outside dismissal always closes the inspector, including Search opened from Info.
+    pub(crate) fn dismiss_inspector(self) {
+        batch(|| {
+            self.clear_inspector_return();
+            self.search_from_info.set(false);
+            self.panel.set(None);
+        });
     }
 
     pub(crate) fn search_term(self, conversation_id: &str) -> String {
@@ -237,6 +288,7 @@ impl ChatNavigation {
             self.cancel_pending();
             self.settings.set(false);
             self.panel.set(None);
+            self.clear_inspector_return();
             self.search_highlight.set(None);
             self.return_target.set(origin);
             self.target.set(Some(message_id));
@@ -281,6 +333,7 @@ impl ChatNavigation {
                             self.selected.set(None);
                             self.target.set(None);
                             self.panel.set(None);
+                            self.clear_inspector_return();
                             self.return_target.set(None);
                         });
                     }
@@ -294,6 +347,7 @@ impl ChatNavigation {
             self.cancel_pending();
             self.target.set(None);
             self.panel.set(None);
+            self.clear_inspector_return();
             self.return_target.set(None);
             self.search_highlight.set(None);
             self.settings.set(false);
@@ -381,6 +435,7 @@ impl ChatNavigation {
                         batch(|| {
                             self.settings.set(false);
                             self.panel.set(None);
+                            self.clear_inspector_return();
                             self.return_target.set(None);
                             self.search_highlight.set(
                                 search_term
@@ -440,6 +495,158 @@ impl ChatNavigation {
                     Err(_) => failed.set(true),
                 }
             });
+        });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nsh_core::element::{Runtime, create_root};
+
+    fn with_navigation(run: impl FnOnce(ChatNavigation)) {
+        let runtime = Runtime::default();
+        let _entered = runtime.enter();
+        let (root, navigation) =
+            create_root(|| ChatNavigation::new(signal(None), signal(None), signal(false)));
+        run(navigation);
+        root.dispose();
+    }
+
+    #[test]
+    fn open_search_or_pinned_when_suspended_can_return_repeatedly_to_the_same_panel() {
+        for mode in [Panel::Search, Panel::Pinned] {
+            with_navigation(|navigation| {
+                navigation.toggle_panel(mode);
+                for _ in 0..2 {
+                    navigation.suspend_inspector(mode);
+                    assert_eq!(navigation.panel.get_untracked(), None);
+                    assert_eq!(navigation.inspector_return(), Some(mode));
+                    navigation.resume_inspector();
+                    assert_eq!(navigation.panel.get_untracked(), Some(mode));
+                    assert_eq!(navigation.inspector_return(), Some(mode));
+                }
+            });
+        }
+    }
+
+    #[test]
+    fn return_session_when_dismissed_open_or_closed_cannot_reopen_the_inspector() {
+        for mode in [Panel::Search, Panel::Pinned] {
+            for reopen in [false, true] {
+                with_navigation(|navigation| {
+                    navigation.toggle_panel(mode);
+                    navigation.suspend_inspector(mode);
+                    if reopen {
+                        navigation.resume_inspector();
+                    }
+                    navigation.dismiss_inspector();
+                    navigation.resume_inspector();
+                    assert_eq!(navigation.panel.get_untracked(), None);
+                    assert_eq!(navigation.inspector_return(), None);
+                });
+            }
+        }
+    }
+
+    #[test]
+    fn returned_panel_when_closed_normally_or_replaced_clears_the_return_session() {
+        for mode in [Panel::Search, Panel::Pinned] {
+            with_navigation(|navigation| {
+                navigation.toggle_panel(mode);
+                navigation.suspend_inspector(mode);
+                navigation.resume_inspector();
+                navigation.back_panel();
+                assert_eq!(navigation.panel.get_untracked(), None);
+                assert_eq!(navigation.inspector_return(), None);
+
+                navigation.toggle_panel(mode);
+                navigation.suspend_inspector(mode);
+                navigation.panel.set(Some(Panel::Info));
+                assert_eq!(navigation.panel.get_untracked(), Some(Panel::Info));
+                assert_eq!(navigation.inspector_return(), None);
+            });
+        }
+    }
+
+    #[test]
+    fn search_opened_from_info_when_suspended_and_returned_closes_without_returning_to_info() {
+        with_navigation(|navigation| {
+            navigation.open_search_from_info();
+            navigation.suspend_inspector(Panel::Search);
+            navigation.resume_inspector();
+            navigation.back_panel();
+            assert_eq!(navigation.panel.get_untracked(), None);
+            assert_eq!(navigation.inspector_return(), None);
+        });
+    }
+
+    #[test]
+    fn active_conversation_when_updated_keeps_return_but_switching_conversations_resets_it() {
+        with_navigation(|navigation| {
+            let row = conversation("first");
+            navigation.selected.set(Some(row.clone()));
+            navigation.toggle_panel(Panel::Search);
+            navigation.suspend_inspector(Panel::Search);
+
+            let mut updated = row;
+            updated.name = "Updated name".into();
+            navigation.selected.set(Some(updated));
+            assert_eq!(navigation.inspector_return(), Some(Panel::Search));
+
+            navigation.selected.set(Some(conversation("second")));
+            navigation.resume_inspector();
+            assert_eq!(navigation.panel.get_untracked(), None);
+            assert_eq!(navigation.inspector_return(), None);
+        });
+    }
+
+    fn conversation(id: &str) -> ConversationListData {
+        ConversationListData {
+            conversation_id: id.into(),
+            owner_id: String::new(),
+            name: String::new(),
+            avatar_url: String::new(),
+            category: "GROUP".into(),
+            draft: String::new(),
+            status: 2,
+            last_read_message_id: None,
+            last_message: String::new(),
+            last_message_category: None,
+            last_message_status: None,
+            last_message_sender_id: None,
+            last_message_sender_name: None,
+            last_message_action: None,
+            last_message_participant_id: None,
+            last_message_participant_name: None,
+            updated_at_millis: 0,
+            unseen_count: 0,
+            mention_count: 0,
+            is_muted: false,
+            is_verified: false,
+            is_scam: false,
+            is_bot: false,
+            is_bot_group: false,
+            membership: None,
+            is_pinned: false,
+            pin_time_millis: 0,
+            relationship: String::new(),
+            identity_number: String::new(),
+            circle_ids: Vec::new(),
+            participant_count: 0,
+            group_avatars: Vec::new(),
+            expire_in: 0,
+        }
+    }
+
+    #[test]
+    fn info_or_a_different_panel_when_suspended_does_not_create_a_return_session() {
+        with_navigation(|navigation| {
+            navigation.toggle_panel(Panel::Info);
+            navigation.suspend_inspector(Panel::Info);
+            navigation.suspend_inspector(Panel::Search);
+            assert_eq!(navigation.panel.get_untracked(), Some(Panel::Info));
+            assert_eq!(navigation.inspector_return(), None);
         });
     }
 }

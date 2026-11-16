@@ -422,7 +422,7 @@ pub(crate) fn screen(
         ))
         .child(message_forward::forwarding(actions))
         .child(message_detail::preview(actions))
-        .child(inspector::overlay(side, move |mode| {
+        .child(inspector::overlay(chat_navigation, move |mode| {
             inspector::screen(
                 detail_account.with(|account| account.clone()),
                 detail_id.with(|id| id.clone()),

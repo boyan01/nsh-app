@@ -171,8 +171,8 @@ fn account_header(profile: Signal<AccountProfile>) -> impl IntoElement {
         )
 }
 
-/// `profile_draft` is held by the session: this screen unmounts when a narrow window
-/// returns to the settings list, and an unsaved profile edit must survive that.
+/// `profile_draft` is held by the session so an unsaved profile edit survives
+/// closing Settings or switching to another settings page.
 pub(crate) fn screen(
     account: Arc<AccountClient>,
     page: Signal<Page>,

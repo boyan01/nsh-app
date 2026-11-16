@@ -32,8 +32,10 @@ pub(super) fn scene(actions: Actions) -> View {
         .flex_1()
         .flex_row()
         .bg(ui::surface_pane)
-        .child(view().w(move || nav.width()).flex_shrink_0().child(
-            rail.content_with_feedback(when(failed, || crate::sidebar::preference_error(|| {}))),
-        ))
-        .child(view().flex_1())
+        .child(rail.surface_with_feedback(when(failed, || crate::sidebar::preference_error(|| {}))))
+        .child(
+            view()
+                .flex_1()
+                .child(ui::title_bar().child(crate::sidebar::trigger(nav))),
+        )
 }

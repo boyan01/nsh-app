@@ -32,7 +32,8 @@ Conversation-column motion inventory:
 | Connection notice arrives/leaves | Existing `Presence::fade`, `PANEL_WIDTH` layout animation; measured inset follows the notice | Immediate visibility and inset |
 | Account-health notice changes | Immediate exceptional status feedback; measured inset follows its wrapped height | Same |
 | Create menu and navigation drawer open/close | Existing popup/drawer motion; no new motion owner | Existing reduced-motion policy |
-| Rail collapse and narrow layout | Existing rail motion; header leading follows `nav.width()` | Existing reduced-motion policy |
+| Rail collapse command | Existing rail width motion and `RAIL_LABELS_ENTER_MS` / `RAIL_LABELS_EXIT_MS` opacity; retain avatar and circle views | Immediate width and labels |
+| Window width breakpoints | Immediate layout and label visibility; retain rail, settings, inline pin and shared-media list; header leading follows `nav.width()` | Same |
 | Playback progress and commands | Existing playback controls; no new animation or blur | Same |
 | Drag/swipe release | None added; native list scrolling retains platform physics | Platform behavior |
 

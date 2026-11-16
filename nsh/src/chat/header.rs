@@ -176,12 +176,12 @@ pub(super) fn bar(
         )
         // The center flexes between the bounded identity and fixed actions.
         .child(
-            view()
-                .flex_1()
-                .min_w_0()
-                .flex_row()
-                .justify_center()
-                .child(when(move || inline_pin.get(), move || pinned.view(1))),
+            view().flex_1().min_w_0().flex_row().justify_center().child(
+                pinned
+                    .view(1)
+                    .style_when(move || !inline_pin.get(), |s| s.hidden())
+                    .accessibility_elements_hidden(move || !inline_pin.get()),
+            ),
         )
         .child(when(
             move || !group && row.with(|row| row.is_bot && !row.owner_id.is_empty()),

@@ -40,7 +40,7 @@ struct Home {
     create_action: Signal<Option<create::Action>>,
     settings_page: Signal<settings::Page>,
     settings_detail: Signal<bool>,
-    /// Outlives the settings screen, which a narrow window unmounts on Back.
+    /// Keeps an unsaved profile edit when Settings closes or changes pages.
     profile_draft: Signal<Option<(String, String)>>,
 }
 
@@ -282,6 +282,14 @@ impl Home {
             selected,
             ..
         } = self;
+        let hidden = move || {
+            self.narrow()
+                && if nav.settings.get() {
+                    settings_detail.get()
+                } else {
+                    selected.with(Option::is_some)
+                }
+        };
         view()
             .w(ui::sidebar_width)
             .flex_shrink_0()
@@ -294,19 +302,10 @@ impl Home {
                     s
                 }
             })
-            .style_when(
-                move || {
-                    self.narrow()
-                        && if nav.settings.get() {
-                            settings_detail.get()
-                        } else {
-                            selected.with(Option::is_some)
-                        }
-                },
-                |s| s.hidden(),
-            )
+            .style_when(hidden, |s| s.hidden())
+            .accessibility_elements_hidden(hidden)
             .child(when(
-                move || nav.settings.get() && (!self.narrow() || !settings_detail.get()),
+                move || nav.settings.get(),
                 move || {
                     settings::navigation(
                         self.client(),
@@ -320,7 +319,8 @@ impl Home {
             // Stays mounted under Settings: returning keeps the list's scroll position.
             .child(
                 self.conversations(playback)
-                    .style_when(move || nav.settings.get(), |s| s.hidden()),
+                    .style_when(move || nav.settings.get(), |s| s.hidden())
+                    .accessibility_elements_hidden(move || nav.settings.get()),
             )
     }
 
@@ -443,21 +443,20 @@ impl Home {
             profile_draft,
             ..
         } = self;
+        let hidden = move || {
+            self.narrow()
+                && if nav.settings.get() {
+                    !settings_detail.get()
+                } else {
+                    selected.with(Option::is_none)
+                }
+        };
         view()
             .flex_1()
             .min_w_0()
             .min_h_0()
-            .style_when(
-                move || {
-                    self.narrow()
-                        && if nav.settings.get() {
-                            !settings_detail.get()
-                        } else {
-                            selected.with(Option::is_none)
-                        }
-                },
-                |s| s.hidden(),
-            )
+            .style_when(hidden, |s| s.hidden())
+            .accessibility_elements_hidden(hidden)
             // Stays mounted under Settings: returning keeps the timeline position and draft.
             .child(
                 view()
@@ -465,6 +464,7 @@ impl Home {
                     .min_w_0()
                     .min_h_0()
                     .style_when(move || nav.settings.get(), |s| s.hidden())
+                    .accessibility_elements_hidden(move || nav.settings.get())
                     .child(chat::panes(
                         selected,
                         selected_id,
@@ -499,8 +499,9 @@ impl Home {
                     .min_w_0()
                     .min_h_0()
                     .style_when(move || !nav.settings.get(), |s| s.hidden())
+                    .accessibility_elements_hidden(move || !nav.settings.get())
                     .child(when(
-                        move || nav.settings.get() && (!self.narrow() || settings_detail.get()),
+                        move || nav.settings.get(),
                         move || {
                             settings::screen(
                                 self.client(),

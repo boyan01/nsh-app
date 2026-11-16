@@ -402,7 +402,7 @@ fn panel_view(state: State, target: Signal<Option<String>>, shared: Shared) -> V
     let kind = shared.kind;
     let navigation =
         use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
-    // A memo, so resizing the window rebuilds the list only when the count changes.
+    // Reflow the retained list when its column count changes; keep loaded thumbnails and scroll state.
     let columns = computed(move || {
         let content = window().width.0 - navigation.width().0;
         let panel = if content < 620.0 {
@@ -410,7 +410,7 @@ fn panel_view(state: State, target: Signal<Option<String>>, shared: Shared) -> V
         } else {
             content - ui::sidebar_width().0
         };
-        if panel < 620.0 { 4 } else { 3 }
+        if panel < 620.0 { 4_u32 } else { 3 }
     });
     view()
         .flex_1()
@@ -450,113 +450,107 @@ fn panel_view(state: State, target: Signal<Option<String>>, shared: Shared) -> V
         .child(when(
             move || !shared.rows.with(Vec::is_empty),
             move || {
-                dynamic(move || {
-                    let kind = shared.kind;
-                    let columns = if kind == "media" { columns.get() } else { 1 };
-                    untracked(move || {
-                        let first = shared
-                            .first
-                            .with(|anchor| {
-                                anchor.as_ref().and_then(|anchor| {
-                                    shared.rows.with(|rows| {
-                                        rows.iter().position(|row| &row.message_id == anchor)
-                                    })
-                                })
-                            })
-                            .unwrap_or_default();
-                        virtual_list(
-                            move || shared.rows.with(Vec::len),
-                            move |at| {
-                                let message =
-                                    move || shared.rows.with(|rows| rows.get(at.index()).cloned());
-                                item_menu(
-                                    message,
-                                    state,
-                                    shared,
-                                    target,
-                                    if kind == "media" {
-                                        media(message, shared).into_element()
-                                    } else {
-                                        view()
-                                            .min_w_0()
-                                            .w_full()
-                                            .px(ui::space_md())
-                                            .py(ui::space_sm())
-                                            .gap(ui::space_sm())
-                                            .child(dynamic(move || {
-                                                let message = message();
-                                                untracked(move || match message {
-                                                    Some(message) => view()
-                                                        .p(ui::space_sm())
-                                                        .min_w_0()
-                                                        .style_when(
-                                                            move || kind == "post",
-                                                            |style| {
-                                                                style
-                                                                    .bg(ui::surface_card)
-                                                                    .rounded(ui::radius_md())
-                                                                    .max_h_80()
-                                                                    .overflow_hidden()
-                                                            },
+                let first = shared
+                    .first
+                    .with(|anchor| {
+                        anchor.as_ref().and_then(|anchor| {
+                            shared
+                                .rows
+                                .with(|rows| rows.iter().position(|row| &row.message_id == anchor))
+                        })
+                    })
+                    .unwrap_or_default();
+                virtual_list(
+                    move || shared.rows.with(Vec::len),
+                    move |at| {
+                        let message =
+                            move || shared.rows.with(|rows| rows.get(at.index()).cloned());
+                        item_menu(
+                            message,
+                            state,
+                            shared,
+                            target,
+                            if kind == "media" {
+                                media(message, shared).into_element()
+                            } else {
+                                view()
+                                    .min_w_0()
+                                    .w_full()
+                                    .px(ui::space_md())
+                                    .py(ui::space_sm())
+                                    .gap(ui::space_sm())
+                                    .child(dynamic(move || {
+                                        let message = message();
+                                        untracked(move || match message {
+                                            Some(message) => view()
+                                                .p(ui::space_sm())
+                                                .min_w_0()
+                                                .style_when(
+                                                    move || kind == "post",
+                                                    |style| {
+                                                        style
+                                                            .bg(ui::surface_card)
+                                                            .rounded(ui::radius_md())
+                                                            .max_h_80()
+                                                            .overflow_hidden()
+                                                    },
+                                                )
+                                                .child(shared.preview.content(message))
+                                                .into_element(),
+                                            None => view().hidden().into_element(),
+                                        })
+                                    }))
+                                    .child(
+                                        text(move || {
+                                            message()
+                                                .map(|row| {
+                                                    format!(
+                                                        "{} · {}",
+                                                        row.sender_name,
+                                                        presentation::time(
+                                                            i18n,
+                                                            row.created_at_micros / 1000
                                                         )
-                                                        .child(shared.preview.content(message))
-                                                        .into_element(),
-                                                    None => view().hidden().into_element(),
+                                                    )
                                                 })
-                                            }))
-                                            .child(
-                                                text(move || {
-                                                    message()
-                                                        .map(|row| {
-                                                            format!(
-                                                                "{} · {}",
-                                                                row.sender_name,
-                                                                presentation::time(
-                                                                    i18n,
-                                                                    row.created_at_micros / 1000
-                                                                )
-                                                            )
-                                                        })
-                                                        .unwrap_or_default()
-                                                })
-                                                .text_role(ui::TextRole::Caption)
-                                                .number_of_lines(1)
-                                                .text_color(ui::fg_secondary),
-                                            )
-                                            .into_element()
-                                    },
-                                )
+                                                .unwrap_or_default()
+                                        })
+                                        .text_role(ui::TextRole::Caption)
+                                        .number_of_lines(1)
+                                        .text_color(ui::fg_secondary),
+                                    )
+                                    .into_element()
                             },
                         )
-                        .keys(move || {
-                            shared.rows.with(|rows| {
-                                rows.iter()
-                                    .map(|row| row.message_id.clone())
-                                    .collect::<Vec<_>>()
-                            })
-                        })
-                        .columns(columns)
-                        .row_gap(ui::space_xs())
-                        .column_gap(ui::space_xs())
-                        .estimated_item_size(ui::list_row_height())
-                        .on_viewable_items_change(move |items: &ViewableItems| {
-                            shared.first.replace(items.viewable.and_then(|(first, _)| {
-                                shared
-                                    .rows
-                                    .with(|rows| rows.get(first).map(|row| row.message_id.clone()))
-                            }));
-                        })
-                        .on_load_more(move || shared.page(true))
-                        .on_load_more_at_start(move || shared.page(false))
-                        .load_more_threshold(0.5)
-                        .load_more_at_start_threshold(0.5)
-                        .element_ref(&shared.list)
-                        .initial_scroll_index(first)
-                        .flex_1()
-                        .min_w_0()
-                        .min_h_0()
+                    },
+                )
+                .keys(move || {
+                    shared.rows.with(|rows| {
+                        rows.iter()
+                            .map(|row| row.message_id.clone())
+                            .collect::<Vec<_>>()
                     })
                 })
+                .columns(move || if kind == "media" { columns.get() } else { 1 })
+                .row_gap(ui::space_xs())
+                .column_gap(ui::space_xs())
+                .estimated_item_size(ui::list_row_height())
+                .on_viewable_items_change(move |items: &ViewableItems| {
+                    shared.first.replace(items.viewable.and_then(|(first, _)| {
+                        shared
+                            .rows
+                            .with(|rows| rows.get(first).map(|row| row.message_id.clone()))
+                    }));
+                })
+                .on_load_more(move || shared.page(true))
+                .on_load_more_at_start(move || shared.page(false))
+                .load_more_threshold(0.5)
+                .load_more_at_start_threshold(0.5)
+                .element_ref(&shared.list)
+                .initial_scroll_index(first)
+                .flex_1()
+                .min_w_0()
+                .min_h_0()
             },
         ))
 }

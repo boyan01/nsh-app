@@ -272,13 +272,17 @@ impl Pinned {
             })
             .overflow_hidden()
             .child(when(
-                move || {
-                    self.content.with(Option::is_some)
-                        && (compact.get() || self.expansion.get() < 1.0)
-                },
+                move || self.content.with(Option::is_some),
                 move || {
                     view()
                         .pr_2()
+                        .style_when(
+                            move || !compact.get() && self.expansion.get() >= 1.0,
+                            |s| s.hidden(),
+                        )
+                        .accessibility_elements_hidden(move || {
+                            !compact.get() && self.expansion.get() >= 1.0
+                        })
                         .tooltip(ui::hint(move || {
                             self.i18n.t(Key::NshPinnedMessages).to_owned()
                         }))

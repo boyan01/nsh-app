@@ -47,26 +47,7 @@ pub(crate) fn screen(
             preference: preference::Preference::new(nav),
         }),
     };
-    effect(move || {
-        if !nav.drawer() {
-            nav.close_drawer();
-        }
-    });
-    view()
-        .w(move || nav.width())
-        .flex_shrink_0()
-        .child(dynamic(move || {
-            let drawer = nav.drawer();
-            // Resizing out of drawer mode disposes the native modal immediately.
-            // The account subscriptions above remain owned by this session.
-            untracked(|| {
-                if drawer {
-                    rail.drawer().into_element()
-                } else {
-                    rail.content().into_element()
-                }
-            })
-        }))
+    rail.surface_with_feedback(view().hidden())
         .child(circles.surface())
 }
 
@@ -100,13 +81,23 @@ impl Labels {
         };
         let generation = stored(0_u64);
         let compact = computed(move || nav.compact());
+        let layout = computed(move || (nav.drawer(), nav.forced_compact()));
+        let previous_layout = stored(layout.get());
         effect(move || {
             let compact = compact.get();
-            // Runs again when Reduce Motion changes.
-            let _ = reduce_motion();
+            let layout = layout.get();
+            let reduced_motion = reduce_motion();
+            let immediate = previous_layout.replace(layout) != layout || reduced_motion;
             untracked(|| {
                 let change = generation.get().wrapping_add(1);
                 generation.replace(change);
+                // Window breakpoints change width immediately. Settle labels in the
+                // same pass and invalidate an earlier collapse animation's completion.
+                if immediate {
+                    labels.opacity.set(if compact { 0.0 } else { 1.0 });
+                    labels.visible.set(!compact);
+                    return;
+                }
                 if !compact {
                     labels.visible.set(true);
                 }
@@ -165,6 +156,25 @@ pub(crate) struct Rail {
 }
 
 impl Rail {
+    pub(crate) fn surface_with_feedback(self, feedback: impl IntoElement) -> View {
+        let nav = self.nav;
+        effect(move || {
+            if !nav.drawer() {
+                nav.close_drawer();
+            }
+        });
+        view()
+            .w(move || nav.width())
+            .flex_shrink_0()
+            .child(
+                self.content_with_feedback(feedback)
+                    .style_when(move || nav.drawer(), |s| s.hidden())
+                    .accessibility_elements_hidden(move || nav.drawer()),
+            )
+            // Only the modal changes owners at the breakpoint; the rail keeps its images.
+            .child(when(move || nav.drawer(), move || self.drawer()))
+    }
+
     /// A rail over the given sources, without account services, for the preview.
     #[cfg(debug_assertions)]
     pub(crate) fn detached(

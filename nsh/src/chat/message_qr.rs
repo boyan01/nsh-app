@@ -1,4 +1,5 @@
 //! Local QR preview for a selected text range or the original complete message.
+use crate::i18n::Key;
 use crate::{
     i18n,
     ui::{self, Typography},
@@ -21,16 +22,11 @@ pub(super) fn screen(content: String) -> impl IntoElement {
                     .size_72()
                     .max_w(percentage(1.0))
                     .object_fit(ResizeMode::Contain)
-                    .label(move || i18n.tr("QR code", "二维码"))
+                    .label(move || i18n.t(Key::NshQRCode))
                     .into_element(),
-                None => ui::error_text(move || {
-                    i18n.tr(
-                        "Text is too long for a QR code.",
-                        "文本过长，无法生成二维码。",
-                    )
-                })
-                .text_center()
-                .into_element(),
+                None => ui::error_text(move || i18n.t(Key::NshTextIsTooLongForAQRCode))
+                    .text_center()
+                    .into_element(),
             })
             .child(
                 text(move || content.with(|value| value.clone()))
@@ -41,7 +37,7 @@ pub(super) fn screen(content: String) -> impl IntoElement {
                     .select_text(),
             )
             .child(ui::action(
-                move || i18n.tr("Copy", "复制"),
+                move || i18n.t(Key::Copy),
                 move || {
                     set_clipboard(content.with(|value| value.clone()));
                 },

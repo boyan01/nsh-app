@@ -1,12 +1,11 @@
 use super::{Editor, Tool, geometry::Crop, raster_color};
+use crate::i18n::Key;
 use crate::ui::{self, Typography as _};
 use mixin_desktop_api::ImageEdit;
 use nsh_base::{SelectItem, SliderValue, dialog};
 use nsh_core::prelude::*;
 
-fn tr(en: &'static str, zh: &'static str) -> &'static str {
-    crate::i18n::tr(en, zh)
-}
+use crate::i18n::t;
 
 pub(super) fn screen(
     editor: Editor,
@@ -64,7 +63,7 @@ fn ratios(editor: Editor) -> impl IntoElement {
                     SelectItem::new(
                         *name,
                         if *name == "free" {
-                            tr("Original image", "原图")
+                            t(Key::NshOriginalImage)
                         } else {
                             name
                         },
@@ -86,9 +85,9 @@ fn ratios(editor: Editor) -> impl IntoElement {
             ))
         })
         .disabled(editor.loading)
-        .accessibility_label(move || Some(tr("Crop ratio", "裁剪比例").into()))
+        .accessibility_label(move || Some(t(Key::NshCropRatio).into()))
         .trigger(
-            ui::select_trigger(move || SharedString::from(tr("Aspect ratio", "比例")))
+            ui::select_trigger(move || SharedString::from(t(Key::NshAspectRatio)))
                 .min_h(ui::button_height()),
         )
         .on_change(move |value: &Option<SharedString>| {
@@ -105,15 +104,15 @@ fn ratios(editor: Editor) -> impl IntoElement {
 
 fn colors(editor: Editor) -> impl IntoElement {
     // Palette values are user-selected raster data, not application theme colors.
-    const COLORS: [([u8; 4], &str, &str); 8] = [
-        ([255, 255, 255, 255], "White", "白色"),
-        ([0, 0, 0, 255], "Black", "黑色"),
-        ([142, 142, 147, 255], "Gray", "灰色"),
-        ([232, 77, 61, 255], "Red", "红色"),
-        ([248, 205, 62, 255], "Yellow", "黄色"),
-        ([100, 211, 79, 255], "Green", "绿色"),
-        ([48, 119, 255, 255], "Blue", "蓝色"),
-        ([172, 104, 222, 255], "Purple", "紫色"),
+    const COLORS: [([u8; 4], Key); 8] = [
+        ([255, 255, 255, 255], Key::NshWhite),
+        ([0, 0, 0, 255], Key::NshBlack),
+        ([142, 142, 147, 255], Key::NshGray),
+        ([232, 77, 61, 255], Key::NshRed),
+        ([248, 205, 62, 255], Key::NshYellow),
+        ([100, 211, 79, 255], Key::NshGreen),
+        ([48, 119, 255, 255], Key::NshBlue),
+        ([172, 104, 222, 255], Key::NshPurple),
     ];
     let custom = signal(false);
     let initial: nsh_core::color::Hsla = raster_color(editor.color.get_untracked()).into();
@@ -137,7 +136,7 @@ fn colors(editor: Editor) -> impl IntoElement {
                     }
                     custom.update(|custom| *custom = !*custom);
                 })
-                .child(text(move || tr("Custom color…", "自定义颜色…"))),
+                .child(text(move || t(Key::NshCustomColor))),
         )
         .child(when(
             move || !custom.get(),
@@ -146,7 +145,7 @@ fn colors(editor: Editor) -> impl IntoElement {
                     .flex_row()
                     .flex_wrap()
                     .gap_2()
-                    .children(COLORS.into_iter().map(move |(color, en, zh)| {
+                    .children(COLORS.into_iter().map(move |(color, key)| {
                         ui::command()
                             .size_8()
                             .px_1()
@@ -155,7 +154,7 @@ fn colors(editor: Editor) -> impl IntoElement {
                             .selected(move || editor.color.get() == color)
                             // A swatch's fill is its content, so selection is its accent frame.
                             .selected_style(|style| style.border_2().border_color(ui::accent))
-                            .accessibility_label(move || Some(tr(en, zh).into()))
+                            .accessibility_label(move || Some(t(key).into()))
                             .on_press(move || editor.color.set(color))
                             .child(
                                 view()
@@ -213,9 +212,7 @@ fn colors(editor: Editor) -> impl IntoElement {
                         .step(1.0)
                         .value(move || Some(SliderValue::Single(hue.get())))
                         .disabled(editor.loading)
-                        .accessibility_label(move || {
-                            Some(tr("Custom drawing color", "自定义画笔颜色").into())
-                        })
+                        .accessibility_label(move || Some(t(Key::NshCustomDrawingColor).into()))
                         .on_change(move |value: &SliderValue| {
                             if let SliderValue::Single(value) = value {
                                 hue.set(*value);
@@ -268,7 +265,7 @@ pub(super) fn body(
                             canvas(move || super::preview::image(editor))
                                 .w_full()
                                 .h_full()
-                                .label(move || tr("Image preview", "图片预览")),
+                                .label(move || t(Key::NshImagePreview)),
                         )
                         .child(
                             canvas(move || super::preview::foreground(editor))
@@ -283,12 +280,9 @@ pub(super) fn body(
                                 .on_blur(move || editor.focused.set(false))
                                 .label(move || {
                                     if editor.tool.get() == Tool::Crop {
-                                        tr(
-                                            "Drag crop corners or move the crop",
-                                            "拖动裁剪角点或移动裁剪框",
-                                        )
+                                        t(Key::NshDragCropCornersOrMoveTheCrop)
                                     } else {
-                                        tr("Draw on the image", "在图片上绘画")
+                                        t(Key::NshDrawOnTheImage)
                                     }
                                 })
                                 .claim_touches(TouchClaim::on_start())
@@ -308,7 +302,7 @@ pub(super) fn body(
                 ),
         )
         .child(when(editor.loading, || {
-            text(move || tr("Preparing image…", "正在准备图片…"))
+            text(move || t(Key::NshPreparingImage))
                 .text_role(ui::TextRole::Body)
                 .text_center()
                 .text_color(ui::fg_secondary)
@@ -318,18 +312,15 @@ pub(super) fn body(
                 .items_center()
                 .gap_2()
                 .child(ui::error_text(move || {
-                    tr(
-                        "Couldn’t edit this image. Undo the last edit or try again.",
-                        "无法编辑此图片，请撤销上一步或重试。",
-                    )
+                    t(Key::NshCouldnTEditThisImageUndoTheLastEditOrTryAgain)
                 }))
-                .child(ui::link(move || tr("Retry", "重试"), done))
+                .child(ui::link(move || t(Key::Retry), done))
         }))
         .child(when(
             move || editor.tool.get() == Tool::Crop,
             move || {
                 view().items_center().mt(ui::space_xl()).child(
-                    ui::action(move || tr("Reset", "重置"), move || editor.reset())
+                    ui::action(move || t(Key::Reset), move || editor.reset())
                         .disabled(editor.loading),
                 )
             },
@@ -346,7 +337,7 @@ pub(super) fn body(
                 .justify_center()
                 .mt_2()
                 .gap_2()
-                .child(ui::action(move || tr("Cancel", "取消"), cancel))
+                .child(ui::action(move || t(Key::Cancel), cancel))
                 .child(when(
                     move || editor.tool.get() == Tool::Crop,
                     move || {
@@ -356,25 +347,22 @@ pub(super) fn body(
                             .gap_2()
                             .child(
                                 ui::action(
-                                    move || tr("Rotate", "旋转"),
+                                    move || t(Key::NshRotate),
                                     move || editor.edit(ImageEdit::RotateCounterClockwise),
                                 )
                                 .disabled(editor.loading),
                             )
                             .child(
                                 ui::action(
-                                    move || tr("Flip", "翻转"),
+                                    move || t(Key::NshFlip),
                                     move || editor.edit(ImageEdit::FlipHorizontal),
                                 )
                                 .disabled(editor.loading),
                             )
                             .child(ratios(editor))
                             .child(
-                                ui::action(
-                                    move || tr("Draw", "画笔"),
-                                    move || editor.enter_drawing(),
-                                )
-                                .disabled(editor.loading),
+                                ui::action(move || t(Key::NshDraw), move || editor.enter_drawing())
+                                    .disabled(editor.loading),
                             )
                     },
                 ))
@@ -390,23 +378,23 @@ pub(super) fn body(
                                     .selected(move || editor.tool.get() == Tool::Brush)
                                     .disabled(editor.loading)
                                     .on_press(move || editor.tool.set(Tool::Brush))
-                                    .child(text(move || tr("Brush", "画笔"))),
+                                    .child(text(move || t(Key::NshBrush))),
                             )
                             .child(
                                 ui::command()
                                     .selected(move || editor.tool.get() == Tool::Eraser)
                                     .disabled(editor.loading)
                                     .on_press(move || editor.tool.set(Tool::Eraser))
-                                    .child(text(move || tr("Eraser", "橡皮"))),
+                                    .child(text(move || t(Key::NshEraser))),
                             )
                             .child(
-                                ui::action(move || tr("Undo", "撤销"), move || editor.undo())
+                                ui::action(move || t(Key::NshUndo), move || editor.undo())
                                     .disabled(move || {
                                         editor.loading.get() || !editor.has_drawing()
                                     }),
                             )
                             .child(
-                                ui::action(move || tr("Redo", "重做"), move || editor.redo())
+                                ui::action(move || t(Key::NshRedo), move || editor.redo())
                                     .disabled(move || {
                                         editor.loading.get() || editor.redo.with(Vec::is_empty)
                                     }),
@@ -417,7 +405,7 @@ pub(super) fn body(
                     ui::primary()
                         .on_press(done)
                         .disabled(editor.loading)
-                        .child(text(move || tr("Done", "完成"))),
+                        .child(text(move || t(Key::Done))),
                 ),
         )
         .child(view().h_14())

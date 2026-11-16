@@ -1,4 +1,5 @@
 //! Copy one selection from authoritative rows without retaining a second message window.
+use crate::i18n::Key;
 use std::sync::Arc;
 
 use chrono::{DateTime, Local};
@@ -106,14 +107,10 @@ fn timestamp(micros: i64, locale: &str) -> String {
 
 fn content(row: &MessageListView, i18n: I18n) -> String {
     if row.status == "UNKNOWN" || !message_system::supported(&row.category) {
-        return i18n
-            .tr("This message type is not supported.", "暂不支持此类消息。")
-            .into();
+        return i18n.t(Key::NshThisMessageTypeIsNotSupported).into();
     }
     if row.status == "FAILED" {
-        return i18n
-            .tr("Waiting for this message.", "正在等待此消息。")
-            .into();
+        return i18n.t(Key::WaitingForThisMessage).into();
     }
     if row.category.ends_with("_TEXT") {
         return row.content.clone();
@@ -139,7 +136,7 @@ fn content(row: &MessageListView, i18n: I18n) -> String {
             .as_ref()
             .and_then(|value| value.get("title"))
             .and_then(serde_json::Value::as_str);
-        return format!("[{}]", title.unwrap_or_else(|| i18n.tr("Card", "卡片")));
+        return format!("[{}]", title.unwrap_or_else(|| i18n.t(Key::Card)));
     }
     if row.category == "APP_BUTTON_GROUP" {
         return serde_json::from_str::<Vec<serde_json::Value>>(&row.content)
@@ -151,16 +148,13 @@ fn content(row: &MessageListView, i18n: I18n) -> String {
             .join("");
     }
     if row.category == "MESSAGE_RECALL" {
-        return format!(
-            "[{}]",
-            i18n.tr("This message was deleted", "这条消息已被删除")
-        );
+        return format!("[{}]", i18n.t(Key::ThisMessageWasDeleted));
     }
     if row.category.ends_with("_LIVE") {
-        return format!("[{}]", i18n.tr("Live", "直播"));
+        return format!("[{}]", i18n.t(Key::Live));
     }
     if row.category == "SYSTEM_SAFE_INSCRIPTION" {
-        return format!("[{}]", i18n.tr("Collectible", "藏品"));
+        return format!("[{}]", i18n.t(Key::Collectible));
     }
     format!(
         "[{}]",

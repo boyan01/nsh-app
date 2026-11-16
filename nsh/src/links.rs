@@ -10,7 +10,7 @@ use nsh_core::prelude::*;
 use std::{future::Future, rc::Rc, sync::Arc};
 use url::Url;
 
-use crate::{i18n::tr, navigation::ChatNavigation, runtime};
+use crate::{i18n::t, navigation::ChatNavigation, runtime};
 use parse::Target;
 
 #[derive(Clone)]

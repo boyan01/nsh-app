@@ -496,5 +496,906 @@
 "withdrawalHash" : "提现哈希",
 "you" : "你",
 "youDeletedThisMessage" : "你撤回了一条消息",
-"zoom" : "缩放"
+"zoom" : "缩放",
+  "nsh1Day": "1 天",
+  "nsh1Hour": "1 小时",
+  "nsh1Week": "1 周",
+  "nsh1Year": "1 年",
+  "nsh10Minutes": "10 分钟",
+  "nsh2Hours": "2 小时",
+  "nsh30Seconds": "30 秒",
+  "nsh8Hours": "8 小时",
+  "nshAGroupMember": "群成员",
+  "nshScreenPasscodeDescription": "锁屏密码可隐藏账号内容。锁屏后，Mixin 仍会在后台同步消息。",
+  "nshAboutMixinMessenger": "关于",
+  "nshAccountContentWillNoLongerBeHiddenWhenMixinLocks": "关闭后，将不再隐藏账号内容。",
+  "nshAction": "操作",
+  "nshActivities": "活动",
+  "nshActualFit": "适应窗口",
+  "nshAddHTTPProxy": "添加 HTTP 代理",
+  "nshAddACaption": "添加说明",
+  "nshAddAProxyBeforeEnablingIt": "请先添加代理，再开启代理连接。",
+  "nshAddAlbum": "添加贴纸专辑",
+  "nshAddAttachment": "添加附件",
+  "nshAddContact": "添加联系人",
+  "nshAddContactMessage": "添加联系人",
+  "nshAddFiles": "添加文件…",
+  "nshAddGroupDescription": "添加群公告…",
+  "nshAddParticipants": "添加成员",
+  "nshAddParticipantsMessage": "添加成员",
+  "nshAddProxy": "添加代理",
+  "nshAddSticker": "添加贴纸",
+  "nshAddingChat": "正在添加聊天…",
+  "nshAll": "全部",
+  "nshAllChats": "全部聊天",
+  "nshAllow": "允许",
+  "nshAllowNotifications": "允许通知",
+  "nshAllowNotificationsToReceiveNewMessageAlerts": "允许通知后，可接收新消息提醒。",
+  "nshAllowThisDeviceToSendChatHistoryToYourPhone": "允许此设备向手机同步聊天记录吗？",
+  "nshAllowYourPhoneToSendChatHistoryToThisDevice": "允许手机向此设备同步聊天记录吗？",
+  "nshAmount": "金额",
+  "nshAnimalsAndNature": "动物与自然",
+  "nshAnyoneWithThisLinkCanJoinTheGroup": "获得此链接的任何人都可以加入群组。",
+  "nshAspectRatio": "比例",
+  "nshAsset": "资产",
+  "nshAssetID": "资产 ID",
+  "nshAutomaticLock": "自动锁定",
+  "nshAutomaticMediaDownload": "自动下载媒体",
+  "nshAutomaticallyDownloadMediaWhenMessagesArrive": "收到消息时自动下载媒体文件。",
+  "nshBack": "返回",
+  "nshBackToLatest": "回到最新",
+  "nshBasicMember": "基础会员",
+  "nshBiometricUnlock": "生物识别解锁",
+  "nshBlack": "黑色",
+  "nshBlockThisUser": "屏蔽此用户？",
+  "nshBlock": "屏蔽用户",
+  "nshBlue": "蓝色",
+  "nshBot": "机器人",
+  "nshBotWindowsUnavailable": "无法打开机器人窗口",
+  "nshBrush": "画笔",
+  "nshCalculatingStorage": "正在计算存储用量…",
+  "nshCancelDownload": "取消下载",
+  "nshCancelReply": "取消回复",
+  "nshCancelReplyEsc": "取消回复 · Esc",
+  "nshCancelTransfer": "取消传输",
+  "nshCaption": "图片说明",
+  "nshChangeAvatar": "更换头像…",
+  "nshChangeGroupPhoto": "更换群头像",
+  "nshChatBackupAndRestore": "聊天记录备份与恢复",
+  "nshChatBackupAndRestoreMessage": "聊天记录备份与恢复",
+  "nshChatDetails": "聊天详情",
+  "nshChatHistory": "聊天记录",
+  "nshChatInfo": "聊天详情",
+  "nshChatPreferences": "聊天偏好",
+  "nshChatTextSize": "聊天字体大小",
+  "nshChatsAreTemporarilyUnavailable": "暂时无法加载聊天",
+  "nshChatsInThisCircleWillRemainAvailableInAllChats": "圈子中的聊天仍会保留在“全部聊天”中。",
+  "nshCheckTheLinkAndYourConnectionThenTryAgain": "请检查链接和网络连接后重试。",
+  "nshCheckYourConnectionAndTryAgain": "请检查网络连接后重试。",
+  "nshCheckYourSystemClockAndTryAgain": "系统时间不准确，请校准后重试。",
+  "nshCheckingNotificationPermission": "正在检查通知权限…",
+  "nshCheckingScreenPrivacy": "正在检查锁屏设置…",
+  "nshChooseASender": "选择发送者",
+  "nshChooseCirclesForThisChat": "选择此聊天所属的圈子。",
+  "nshChooseRecipient": "选择接收方",
+  "nshChooseRecipientMessage": "选择接收方…",
+  "nshCircleCreatedButThisChatCouldnTBeAddedRetryAddingIt": "圈子已创建，但未能添加此聊天。请重试添加。",
+  "nshCircleName": "圈子名称",
+  "nshClearCache": "清除缓存",
+  "nshClearMediaCacheDescription": "清除此设备上的媒体缓存，会话中的消息会保留。",
+  "nshClearChat": "清空聊天记录？",
+  "nshClearChatMessage": "清除聊天记录",
+  "nshClearFilters": "清除筛选",
+  "nshClearSelectedCache": "清除选中的缓存…",
+  "nshClearSender": "清除发送者",
+  "nshClearTheSelectedMediaCache": "清除选中的媒体缓存？",
+  "nshClearingCache": "正在清除缓存…",
+  "nshClosingBalance": "期末余额",
+  "nshCollectionHash": "合集哈希",
+  "nshCombineAndForward": "合并转发",
+  "nshCombineIntoZIP": "打包 ZIP",
+  "nshCompleteThisPaymentInMixinOnYourPhone": "请在手机 Mixin 中完成付款。",
+  "nshCompressImages": "压缩图片",
+  "nshCompressedImagesClickToSendOriginals": "当前压缩发送，点击发送原图",
+  "nshConfirmYourPasscode": "确认锁屏密码",
+  "nshContactCard": "联系人",
+  "nshContactPreviewUnavailable": "无法预览联系人",
+  "nshContactsAreTemporarilyUnavailable": "暂时无法加载联系人",
+  "nshContact": "联系人",
+  "nshContentType": "内容类型",
+  "nshContentUnavailable": "内容不可用",
+  "nshConversationInfo": "聊天信息",
+  "nshConversations": "会话",
+  "nshConversationsAddedToThisCircleWillAppearHere": "加入此圈子的会话会显示在这里。",
+  "nshConversationsWithBotsWillAppearHere": "与机器人的会话会显示在这里。",
+  "nshStrangerConversationsEmptyDescription": "与非联系人的会话会显示在这里。",
+  "nshConversationsWithYourContactsWillAppearHere": "与联系人的会话会显示在这里。",
+  "nshCopied": "已复制",
+  "nshCopyCode": "复制代码",
+  "nshCopyImage": "复制图片",
+  "nshCopyInviteLink": "复制邀请链接",
+  "nshCopyLink": "复制链接",
+  "nshCouldnTAddTheseFilesTryAgain": "无法添加这些文件，请重试。",
+  "nshCouldnTClearBrowserDataTryAgain": "无法清除浏览器数据，请重试。",
+  "nshCouldnTCompleteThisActionTryAgain": "操作失败，请重试。",
+  "nshCouldnTCreateASignInCode": "无法获取登录二维码",
+  "nshCouldnTCreateTheCircleTryAgain": "无法创建圈子，请重试。",
+  "nshCouldnTCreateTheGroupTryAgain": "未能创建群组，可以再次尝试",
+  "nshCouldnTDisplayThisPhoto": "无法显示此图片。",
+  "nshCouldnTDownloadThisFileTryAgain": "无法下载此文件，请重试。",
+  "nshCouldnTEditThisImageUndoTheLastEditOrTryAgain": "无法编辑此图片，请撤销上一步或重试。",
+  "nshCouldnTFindThisContactCheckTheIDAndTryAgain": "未找到联系人，请检查 ID 后重试。",
+  "nshCouldnTForwardChooseAChatToTryAgain": "转发失败，请重新选择聊天重试。",
+  "nshCouldnTJoinThisGroupTryAgain": "无法加入群组，请重试。",
+  "nshCouldnTLoadChats": "无法加载聊天。",
+  "nshCouldnTLoadChatsTryAgain": "聊天加载失败，请重试。",
+  "nshCouldnTLoadContent": "无法加载内容",
+  "nshCouldnTLoadConversations": "无法加载会话",
+  "nshCouldnTLoadMembersTypeAgainToRetry": "无法加载群成员，请重新输入重试。",
+  "nshCouldnTLoadMessages": "无法加载消息",
+  "nshCouldnTLoadQuickSearch": "快速搜索加载失败",
+  "nshCouldnTLoadRecentEmoji": "无法加载最近使用的表情。",
+  "nshCouldnTLoadRecipients": "无法加载接收方。",
+  "nshCouldnTLoadSenders": "无法加载发送者",
+  "nshCouldnTLoadThisRecipient": "无法加载此接收方。",
+  "nshCouldnTLoadUnreadMessages": "无法加载未读消息。",
+  "nshCouldnTLoadTryAgain": "加载失败，请重试。",
+  "nshCouldnTOpenMixin": "无法打开 Mixin",
+  "nshCouldnTOpenContent": "无法打开内容",
+  "nshCouldnTOpenConversation": "无法打开会话",
+  "nshCouldnTOpenTheBrowser": "无法打开浏览器。",
+  "nshCouldnTOpenThePage": "无法打开页面",
+  "nshCouldnTOpenThisLink": "无法打开此链接",
+  "nshCouldnTOpenThisResultCheckItAndTryAgain": "无法打开此结果，请检查后重试。",
+  "nshCouldnTOpenThisResultTryAgain": "无法打开此结果，请重试。",
+  "nshCouldnTPlayThisVideo": "暂时无法播放此视频",
+  "nshCouldnTPrepareThePhotoTryAgain": "无法处理头像，请重试。",
+  "nshCouldnTPrepareThisFileRemoveItOrSendAsFiles": "无法准备此文件。可以将其移除，或改为文件发送。",
+  "nshCouldnTPrepareThisMediaSendAsFilesOrChooseOtherFiles": "无法准备此媒体。可以改为文件发送，或选择其他文件。",
+  "nshScreenPrivacyLoadFailed": "无法读取锁屏设置，账号内容将保持隐藏。",
+  "nshCouldnTRefreshSavedChangesReloadBeforeSavingAgain": "无法刷新已保存的更改，请先重新加载。",
+  "nshCouldnTRefreshYourProfileYourSavedProfileIsShown": "无法刷新个人资料，当前显示已保存的资料。",
+  "nshCouldnTResetTheLinkTryAgain": "无法重置邀请链接，请重试。",
+  "nshCouldnTRespondToTheTransferRequestTryAgain": "无法回应同步请求，请重试。",
+  "nshCouldnTSaveEmojiPreferences": "无法保存表情偏好。",
+  "nshCouldnTSaveOrLoadChatPreferencesTryAgain": "无法保存或读取聊天偏好，请重试。",
+  "nshCouldnTSaveSidebarSettings": "侧栏设置保存失败",
+  "nshCouldnTSaveTheLanguageTryAgain": "无法保存语言，请重试。",
+  "nshCouldnTSaveYourDraftTryAgain": "无法保存草稿，请重试。",
+  "nshCouldnTSaveTryAgain": "保存失败，请重试。",
+  "nshCouldnTSendThisMessageTryAgain": "无法发送此消息，请重试。",
+  "nshCouldnTSendYourMessageIsStillHereTryAgain": "发送失败，消息已保留，请重试。",
+  "nshCouldnTUnlockCheckYourPasscodeAndTryAgain": "无法解锁，请检查锁屏密码后重试。",
+  "nshCouldnTUpdateCirclesTryAgain": "更新圈子失败，请重试。",
+  "nshCouldnTUpdateStickers": "暂时无法更新贴纸",
+  "nshCouldnTUpdateTryAgain": "更新失败，请重试。",
+  "nshNotificationsUnavailable": "无法使用系统通知，请检查系统权限后重试。",
+  "nshCreateCircle": "新建圈子",
+  "nshCreatedBy": "开发者",
+  "nshCreatingCircleAndAddingChat": "正在创建圈子并添加聊天…",
+  "nshCreating": "正在创建…",
+  "nshCropPhoto": "裁剪头像",
+  "nshCropPreviewDragOrUseArrowKeysToMoveThePhoto": "头像裁剪预览。拖动或使用方向键移动图片。",
+  "nshCropRatio": "裁剪比例",
+  "nshCustomColor": "自定义颜色…",
+  "nshCustomDrawingColor": "自定义画笔颜色",
+  "nshCustomTime": "自定义时间",
+  "nshCut": "剪切",
+  "nshDataAndStorage": "数据与存储空间",
+  "nshDate": "时间",
+  "nshDays": "天",
+  "nshDeleteChat": "删除聊天",
+  "nshDeleteForEveryone": "为所有人删除消息？",
+  "nshDeleteForEveryoneMessage": "撤回",
+  "nshDeleteForMe": "为我删除消息？",
+  "nshDeleteGroup": "删除群组？",
+  "nshDeleteGroupMessage": "删除群组…",
+  "nshDeleteName": "删除“{name}”？",
+  "@nshDeleteName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nshDelete": "删除",
+  "nshDelivered": "已送达",
+  "nshDepositHash": "充值哈希",
+  "nshDescription": "群公告",
+  "nshDisappearingMessages": "限时消息",
+  "nshDiscardImageEdits": "放弃图片修改？",
+  "nshDiscardRecording": "放弃录音",
+  "nshDiscardRecordingMessage": "放弃录音？",
+  "nshDismiss": "关闭",
+  "nshDismissAsAdmin": "撤销管理员身份",
+  "nshDownloadPhoto": "下载图片",
+  "nshDragCropCornersOrMoveTheCrop": "拖动裁剪角点或移动裁剪框",
+  "nshDragToMoveUseTheSliderToZoomImagesUpTo10MB": "拖动调整位置，使用滑块缩放。图片最大 10 MB。",
+  "nshDraw": "画笔",
+  "nshDrawOnTheImage": "在图片上绘画",
+  "nshDropFilesToSend": "拖拽文件到此处",
+  "nshEarlierMessages": "更早的消息",
+  "nshEditConversations": "管理圈子",
+  "nshEditGroup": "编辑群组",
+  "nshEditGroupDescription": "编辑群公告…",
+  "nshEditGroupMessage": "编辑群组…",
+  "nshEditImage": "编辑图片…",
+  "nshEditName": "修改昵称",
+  "nshEditNameMessage": "修改昵称",
+  "nshEditProfile": "编辑资料",
+  "nshEmoji": "表情",
+  "nshEmojiAndStickers": "表情与贴纸",
+  "nshEnterAKeywordToSearch": "输入关键词搜索",
+  "nshEnterATimeBetween1SecondAnd4Weeks": "请输入 1 秒至 4 周之间的时间。",
+  "nshEnterAWholeNumberFrom1ToMaximum": "请输入 1 到 {maximum} 之间的整数。",
+  "@nshEnterAWholeNumberFrom1ToMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "nshEraser": "橡皮",
+  "nshExitFullScreen": "退出全屏",
+  "nshExitGroup": "退出群组？",
+  "nshExitGroupMessage": "退出群组",
+  "nshExpand": "展开",
+  "nshExpired": "已过期",
+  "nshFilesSavedOnlyOnThisDeviceMayNotBeDownloadableAgain": "仅保存在此设备上的文件可能无法再次下载。",
+  "nshFiles": "文档",
+  "nshFlip": "翻转",
+  "nshFollowSystem": "跟随系统",
+  "nshFoodAndDrink": "食物与饮料",
+  "nshForwardMessages": "转发消息",
+  "nshForward": "转发",
+  "nshFullScreen": "全屏",
+  "nshGray": "灰色",
+  "nshGreen": "绿色",
+  "nshGroup": "群组",
+  "nshGroupConversationsWillAppearHere": "群组会话会显示在这里。",
+  "nshGroupDescription": "群公告",
+  "nshGroupInviteLink": "群邀请链接",
+  "nshGroupInviteLinkMessage": "群邀请链接…",
+  "nshGroupName": "群组名称",
+  "nshGroupParticipants": "群成员",
+  "nshGroupsInCommon": "共同群组",
+  "nshHash": "哈希",
+  "nshHelpCenter": "帮助中心",
+  "nshHi": "你好！",
+  "nshHistory": "聊天记录",
+  "nshHours": "小时",
+  "nshHowAreYou": "最近怎么样？",
+  "nshImageCopied": "图片已复制",
+  "nshImagePreview": "图片预览",
+  "nshImportSticker": "导入贴纸…",
+  "nshInscription": "铭文",
+  "nshInscriptionDetails": "铭文详情",
+  "nshInscriptionDetailsAreNotAvailableYet": "铭文详情暂不可用。",
+  "nshInscriptionHash": "铭文哈希",
+  "nshInvalidCard": "无法读取卡片",
+  "nshInvalidInvitation": "无效邀请",
+  "nshInvalidLocation": "无法读取位置",
+  "nshInvitationIsUnavailable": "邀请链接暂不可用。",
+  "nshInviteToGroup": "邀请加入群组",
+  "nshInviteToGroupMessage": "邀请加入群组…",
+  "nshJoinGroup": "加入群组",
+  "nshJoined": "加入时间",
+  "nshKeepBothDevicesConnectedUntilTheTransferFinishes": "同步完成前请保持两台设备联网。",
+  "nshTransferNetworkInstructions": "请将两台设备连接到同一网络，并打开手机上的 Mixin。在另一台设备上确认同步请求。",
+  "nshLanguage": "语言",
+  "nshLearnMore": "了解更多",
+  "nshListenToRecording": "试听录音",
+  "nshLoadingContacts": "正在加载联系人…",
+  "nshLoadingContent": "正在加载内容…",
+  "nshLoadingConversations": "正在加载会话…",
+  "nshLoadingDetails": "正在加载详情…",
+  "nshLoadingMembers": "正在加载群成员…",
+  "nshLoadingMessages": "正在加载消息…",
+  "nshLoadingProxies": "正在加载代理…",
+  "nshLoadingRecipient": "正在加载接收方…",
+  "nshLoadingSenders": "正在加载发送者…",
+  "nshLoadingStickers": "正在加载贴纸…",
+  "nshLoadingTransfer": "正在加载转账…",
+  "nshLoadingVideo": "正在加载视频…",
+  "nshLoading": "正在加载...",
+  "nshLocateInChat": "前往聊天",
+  "nshAutomaticLockDescription": "Mixin 失去焦点后开始计时。在到期前返回应用，可取消自动锁屏。",
+  "nshLockNow": "立即锁屏",
+  "nshLockingMixin": "正在锁定 Mixin…",
+  "nshManageSubscriptions": "管理已订阅",
+  "nshMessage": "消息",
+  "nshMessagePreview": "消息预览",
+  "nshMessagesFromThisUserWillBeBlocked": "将不再接收此用户的消息。",
+  "nshMessagesInThisChatWillBeRemovedFromThisDevice": "将从此设备移除这段聊天的消息。",
+  "nshMessagesInThisConversationAreEndToEndEncrypted": "此对话中的消息使用端对端加密。",
+  "nshMinutes": "分钟",
+  "nshMixinIDOrPhoneNumber": "Mixin ID 或手机号",
+  "nshGroupInviteDescription": "Mixin 用户可以通过此链接加入群组，请仅与信任的人分享。",
+  "nshMoveDown": "下移",
+  "nshMoveUp": "上移",
+  "nshMuteNotifications": "通知静音",
+  "nshMuted": "已静音",
+  "nshMutedUntilArg0": "静音至 {arg0}",
+  "@nshMutedUntilArg0": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshMute": "静音",
+  "nshMyStickers": "我的贴纸",
+  "nshNewCircle": "新建圈子",
+  "nshNewCircleName": "新圈子名称",
+  "nshNewCircleMessage": "新建圈子",
+  "nshNewConversation": "新建会话",
+  "nshNewGroup": "新建群组",
+  "nshNewMessagesDisappearAfterTheSelectedTime": "新消息将在所选时间后自动消失。",
+  "nshNextPage": "下一页",
+  "nshNextPhoto": "下一张",
+  "nshNextUnreadMention": "下一条未读提及",
+  "nshNoAppPermissionPromptIsRequiredOnThisSystem": "此系统无需单独授权应用通知。",
+  "nshNoAvailableContacts": "没有可添加的联系人",
+  "nshNoBotConversations": "暂无机器人会话",
+  "nshNoChatsFound": "没有找到聊天",
+  "nshNoCirclesYet": "暂无圈子",
+  "nshNoContactConversations": "暂无联系人会话",
+  "nshNoContactsFound": "没有找到联系人",
+  "nshNoConversationsFound": "未找到会话",
+  "nshNoConversationsInThisCircle": "此圈子暂无会话",
+  "nshNoConversationsYet": "暂无会话",
+  "nshNoEmojiFound": "未找到表情",
+  "nshNoFiles": "暂无文件",
+  "nshNoGroupConversations": "暂无群组会话",
+  "nshNoGroupsInCommon": "没有共同群组",
+  "nshNoMessagesFound": "未找到消息",
+  "nshNoParticipantsFound": "未找到群成员",
+  "nshNoPosts": "暂无文章",
+  "nshNoRecentEmoji": "暂无最近使用的表情",
+  "nshNoRecipientsFound": "没有找到接收方",
+  "nshNoResults": "未找到相关结果",
+  "nshNoSendersFound": "未找到发送者",
+  "nshNoSharedApps": "暂无共享应用",
+  "nshNoSharedMedia": "暂无共享媒体",
+  "nshNoStickerAlbumsAvailable": "暂无贴纸专辑",
+  "nshNoStickersYet": "暂无贴纸",
+  "nshNoStoredMedia": "暂无媒体缓存",
+  "nshNoStrangerConversations": "暂无陌生人会话",
+  "nshNoSubscribedStickerAlbums": "还没有订阅表情专辑",
+  "nshNoUnreadConversations": "暂无未读会话",
+  "nshNotAdded": "未添加",
+  "nshNotificationsPackagedAppRequired": "请通过打包后的 Mixin 应用使用系统通知。",
+  "nshNotificationsAreDisabledInSystemSettings": "系统设置中已关闭通知",
+  "nshNotificationsAreEnabled": "已允许通知",
+  "nshNotificationsAreNotAvailableOnThisPlatformYet": "此平台暂不支持系统通知。",
+  "nshOK": "好",
+  "nshOff": "关闭",
+  "nshOpenMixinOnYourPhone": "打开手机上的 Mixin Messenger。",
+  "nshOpenAnotherApp": "打开其他应用？",
+  "nshOpenApp": "打开应用",
+  "nshOpenChat": "打开聊天",
+  "nshOpenContent": "打开内容",
+  "nshOpenHomePage": "打开主页",
+  "nshOpenInBrowser": "在浏览器中打开",
+  "nshOpenLink": "打开链接",
+  "nshOpenLogDirectory": "打开日志文件夹",
+  "nshOpenNavigation": "打开导航",
+  "nshOpenNotificationSettings": "打开系统通知设置",
+  "nshOpenProfile": "打开个人资料",
+  "nshOpenThisBotOnYourPhone": "请在手机端打开此机器人。",
+  "nshOpenThisLinkInMixinOnYourPhone": "请在手机 Mixin 中打开此链接",
+  "nshOpenWithDefaultApp": "使用默认应用打开",
+  "nshOpeningMixin": "正在打开 Mixin…",
+  "nshOpeningBalance": "期初余额",
+  "nshOriginalImage": "原图",
+  "nshOriginalImagesClickToCompress": "原图发送已开启，点击改为压缩图片",
+  "nshPNGJPEGGIFWebPOrBMPUpTo10MB": "PNG、JPEG、GIF、WebP 或 BMP · 最大 10 MB",
+  "nshParticipantActions": "群成员操作",
+  "nshPasswordOptional": "密码（可选）",
+  "nshPaste": "粘贴",
+  "nshPause": "暂停",
+  "nshPaymentDetails": "付款详情",
+  "nshPendingConfirmation": "等待确认",
+  "nshPhoneNumber": "手机号码",
+  "nshPhoto": "图像",
+  "nshPhotoZoom": "头像缩放",
+  "nshPhotosAndVideos": "图片和视频",
+  "nshPicturesAndVideos": "图片和视频",
+  "nshPicturesAndVideosMessage": "图像 & 视频",
+  "nshPinned": "已置顶",
+  "nshPinnedMessages": "置顶消息",
+  "nshPlay": "播放",
+  "nshPlaybackFailed": "播放失败",
+  "nshPlaybackPosition": "播放进度",
+  "nshPlaybackSpeed": "播放速度",
+  "nshPost": "文章",
+  "nshPremiumMember": "高级会员",
+  "nshPreparingFiles": "正在准备文件…",
+  "nshPreparingImage": "正在准备图片…",
+  "nshPreparingYourCode": "正在生成二维码…",
+  "nshPreparing": "正在处理…",
+  "nshPrevious": "上一页",
+  "nshPreviousPage": "上一页",
+  "nshPreviousPhoto": "上一张",
+  "nshPreviousResults": "上一页结果",
+  "nshPrivacyPolicy": "隐私政策",
+  "nshProfile": "个人资料",
+  "nshPurple": "紫色",
+  "nshQRCode": "二维码",
+  "nshQuantity": "数量",
+  "nshQuickSearch": "快速搜索",
+  "nshQuickSearchMessage": "快速搜索",
+  "nshRead": "已读",
+  "nshReceivers": "接收方",
+  "nshRecentChats": "最近聊天",
+  "nshRecentlyUsed": "最近使用",
+  "nshReconnect": "重新连接",
+  "nshReconnecting": "正在重新连接…",
+  "nshRecordAVoiceMessage": "录制语音消息",
+  "nshRecordAgain": "重录",
+  "nshRecordVoiceMessage": "录制语音消息",
+  "nshRecordingPlaybackPosition": "录音试听进度",
+  "nshRecording": "正在录音…",
+  "nshRed": "红色",
+  "nshRedo": "重做",
+  "nshRefreshPermission": "刷新权限状态",
+  "nshReload": "重新加载",
+  "nshReloadList": "重新加载列表",
+  "nshReloadRecipient": "重新加载接收方",
+  "nshRemove": "移除",
+  "nshRemoveAlbum": "移除贴纸专辑",
+  "nshRemoveBot": "移除机器人…",
+  "nshRemoveContact": "移除联系人？",
+  "nshRemoveContactMessage": "删除联系人",
+  "nshRemoveFromGroup": "移出群组…",
+  "nshRemoveParticipant": "移除群成员？",
+  "nshRemoveProxy": "移除代理？",
+  "nshRemoveSelectedFile": "移除选中文件",
+  "nshRemoveMessage": "移除…",
+  "nshRenameCircle": "编辑名称",
+  "nshReplyToMessage": "回复的消息",
+  "nshReportAndBlock": "举报并屏蔽…",
+  "nshResetInvitationLink": "重置邀请链接？",
+  "nshResetInviteLink": "重置邀请链接",
+  "nshResetLink": "重置邀请链接",
+  "nshRetryAddingChat": "重试添加聊天",
+  "nshRetryPreview": "重试预览",
+  "nshReturnToMessage": "返回消息",
+  "nshRotate": "旋转",
+  "nshSCAM": "诈骗风险",
+  "nshSaveAs": "另存为",
+  "nshSaveTheseChangesBeforeSelectingMoreThan200Chats": "每次最多更改 200 个聊天，请先保存。",
+  "nshSaved": "已保存",
+  "nshSaving": "正在保存…",
+  "nshScanTheQRCodeAndConfirmSignIn": "扫描屏幕上的二维码，确认登录。",
+  "nshScanToSignIn": "通过二维码登录 Mixin Messenger",
+  "nshScreenPasscode": "锁屏密码",
+  "nshScreenPrivacy": "锁屏保护",
+  "nshScreenPrivacyIsNotAvailableOnThisPlatformYet": "此平台暂不支持锁屏保护。",
+  "nshSearchMixinID": "搜索 Mixin ID",
+  "nshSearchChats": "搜索聊天记录",
+  "nshSearchContacts": "搜索用户",
+  "nshSearchContact": "搜索用户",
+  "nshSearchConversationsAndContacts": "搜索会话和联系人",
+  "nshSearchEmoji": "搜索表情",
+  "nshSearchEmojiMessage": "搜索表情…",
+  "nshSearchMessages": "搜索消息",
+  "nshSearchMessagesInThisConversation": "搜索此会话中的消息",
+  "nshSearchParticipants": "搜索群成员",
+  "nshSearchSenders": "搜索发送者",
+  "nshSearching": "正在搜索…",
+  "nshSearch": "搜索…",
+  "nshSeconds": "秒",
+  "nshSeconds12419200": "秒数（1–2419200）",
+  "nshSecondsUpTo4Weeks": "秒数（最长 4 周）",
+  "nshSelectAll": "全选",
+  "nshSelectAConversationToStartMessaging": "选择一个对话，开始发送信息",
+  "nshSelectMessage": "选择消息",
+  "nshSelectedContactsCount": "已选 {count} 人",
+  "@nshSelectedContactsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSend1File": "发送 1 个文件",
+  "nshSendWithoutNotification": "静音发送",
+  "nshSendAMessageToSayHello": "发一条消息，打个招呼。",
+  "nshSendAMessageToStartUsingThisBot": "发送消息以开始使用此机器人。",
+  "nshSendAsPost": "发送为文章",
+  "nshSendFile": "添加文件",
+  "nshSendMessage": "发送消息",
+  "nshSendOriginalImages": "发送原图",
+  "nshSendVoiceMessage": "发送语音",
+  "nshSendWithoutNotificationMessage": "静音发送",
+  "nshSendCountFiles": "发送 {count} 个文件",
+  "@nshSendCountFiles": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSender": "发送者",
+  "nshSenders": "发送方",
+  "nshSending": "发送中",
+  "nshSendingMessage": "正在发送…",
+  "nshSent": "已发送",
+  "nshSequence": "序号",
+  "nshSetASixDigitPasscode": "设置六位锁屏密码",
+  "nshSettings": "偏好设置",
+  "nshSettingsMessage": "偏好设置",
+  "nshShareContact": "分享联系人",
+  "nshShareContactMessage": "分享联系人",
+  "nshShareInviteLink": "分享邀请链接",
+  "nshSharedApps": "分享的应用",
+  "nshSharedMedia": "媒体内容",
+  "nshSharedMediaPreview": "共享媒体预览",
+  "nshShowMixinID": "显示 ID",
+  "nshShowInFolder": "在文件夹中显示",
+  "nshShowLess": "收起",
+  "nshNotificationPreviewDescription": "在通知中显示消息内容。关闭后，通知仅显示通用消息提示。",
+  "nshShowMore": "展开",
+  "nshShowTransfer": "查看同步进度",
+  "nshShowingTheFirst8192Characters": "仅显示前 8,192 个字符",
+  "nshSignOut": "退出登录",
+  "nshSignOutAndRemoveThisAccountSLocalData": "退出登录并移除此账号的本地数据？",
+  "nshSignOutMessage": "退出登录",
+  "nshSigningOut": "正在退出…",
+  "nshSixDigitScreenPasscode": "六位锁屏密码",
+  "nshSmileysAndPeople": "表情符号与人物",
+  "nshSnapshotHash": "快照哈希",
+  "nshSomeChangesCouldNotBeSavedCheckTheRemainingSelections": "部分更改未能保存，请检查剩余选择。",
+  "nshSomeFilesCouldnTBeSentTheRemainingFilesAreStillHere": "部分文件发送失败，尚未发送的文件已保留。",
+  "nshSomeResultsCouldNotBeLoadedTryAgain": "部分搜索结果加载失败，请重试。",
+  "nshStandardMember": "标准会员",
+  "nshStartTheConversation": "开始聊天",
+  "nshState": "状态",
+  "nshStickerAdded": "已添加贴纸",
+  "nshStickerPreviewUnavailable": "无法预览贴纸",
+  "nshStickerStore": "表情商店",
+  "nshStickers": "贴纸",
+  "nshStickersYouSendAppearHere": "发送过的贴纸会显示在这里",
+  "nshStop": "停止",
+  "nshStopAndPreview": "停止并试听",
+  "nshStorage": "存储",
+  "nshStorageUsage": "储存空间",
+  "nshSubscribedStickers": "已订阅的表情",
+  "nshTranscriptSummaryNotice": "仅保留消息摘要，无法查看原始消息和附件。",
+  "nshSyncFromPhone": "从其他设备同步",
+  "nshSyncToPhone": "同步到其他设备",
+  "nshSystemLanguage": "跟随系统",
+  "nshTermsOfService": "服务条款",
+  "nshTextContent": "文本内容",
+  "nshTextIsTooLongForAQRCode": "文本过长，无法生成二维码。",
+  "nshTheAccountIsTemporarilyUnavailable": "账号暂时不可用。",
+  "nshTheCircleWasCreatedRetryAddingTheRemainingChats": "圈子已创建，请重试添加剩余聊天。",
+  "nshTransferVersionMismatch": "两台设备的同步协议版本不同，请更新应用后重试。",
+  "nshTheGroupWasCreatedRetryOpeningIt": "群组已创建，请重试打开。",
+  "nshTheImageInTheSendPreviewWillStayUnchanged": "发送预览中的图片会保留原样。",
+  "nshThePasscodesDidnTMatchTryAgain": "两次输入的密码不一致，请重试。",
+  "nshThePreviousLinkWillStopWorking": "此前的邀请链接将失效。",
+  "nshTheSystemReturnedAnUnknownNotificationPermission": "系统返回了未知的通知权限状态。",
+  "nshThereAreNoUnreadConversationsInThisCategory": "当前分类中没有未读会话。",
+  "nshThereAreNoUnreadConversationsInThisCircle": "此圈子中没有未读会话。",
+  "nshDeleteForEveryoneDescription": "这些消息将从此会话所有人的聊天记录中删除。",
+  "nshTheseMessagesWillBeRemovedFromThisDevice": "这些消息将从此设备的聊天记录中删除。",
+  "nshThisAccountWillBeReportedAndBlocked": "将举报并屏蔽此账号。",
+  "nshForwardedSummaryNotice": "这条转发消息只保留了摘要，无法查看原始消息和附件。",
+  "nshThisForwardedSummaryIsUnavailable": "无法读取这条转发摘要。",
+  "nshThisMessageIsNoLongerAvailable": "此消息已不可用。",
+  "nshThisMessageTypeIsNotSupported": "暂不支持此类消息。",
+  "nshThisPersonIsNotInYourContacts": "对方不在你的联系人中。",
+  "nshThisRecordingWillBeDeleted": "这段录音将被删除。",
+  "nshThisRemovesTheChatAndItsMessageHistoryFromThisDevice": "此操作将从此设备删除会话及其聊天记录。",
+  "nshThisUserWillBeRemovedFromYourContacts": "此用户将从联系人中移除。",
+  "nshThreshold": "签名阈值",
+  "nshTimeUnit": "时间单位",
+  "nshTransactionID": "交易编号",
+  "nshTransactionHash": "交易哈希",
+  "nshTransferID": "转账 ID",
+  "nshTransferCancelled": "同步已取消",
+  "nshTransferDetails": "转账详情",
+  "nshTransferFailedCheckBothDevicesAndTryAgain": "同步失败，请检查两台设备后重试。",
+  "nshTransferringChats": "同步聊天记录中",
+  "nshTransferring": "正在传输…",
+  "nshTravelAndPlaces": "旅行与地点",
+  "nshTryAgain": "重试",
+  "nshTryAgainInSecondsS": "请在 {seconds} 秒后重试",
+  "@nshTryAgainInSecondsS": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "nshTryAnotherNameOrClearYourFilters": "试试其他名称，或清除筛选条件。",
+  "nshTurnOff": "关闭",
+  "nshTurnOffScreenPasscode": "关闭锁屏密码？",
+  "nshUnblockThisUser": "取消屏蔽此用户？",
+  "nshUnblock": "解除屏蔽",
+  "nshUndo": "撤销",
+  "nshUnknownCollection": "未知合集",
+  "nshUnlockWithPasscode": "输入锁屏密码解锁",
+  "nshUnlocking": "正在解锁…",
+  "nshUnread": "未读",
+  "nshUnreadMention": "未读提及",
+  "nshUpdateMixinMessengerToContinue": "当前版本需要更新。",
+  "nshUseBiometrics": "使用生物识别",
+  "nshUsernameOptional": "用户名（可选）",
+  "nshValueNow": "当前价值",
+  "nshValueThen": "当时价值",
+  "nshVerified": "已认证",
+  "nshViewProfile": "查看资料",
+  "nshVoiceMessage": "语音消息",
+  "nshVoiceMessagePosition": "语音播放进度",
+  "nshVolume": "音量",
+  "nshWaitingForTheOtherDevice": "等待其他设备连接。",
+  "nshEncryptedSessionWaiting": "等待{sender}上线后建立加密会话。",
+  "@nshEncryptedSessionWaiting": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshWatchLive": "观看直播",
+  "nshWebpage": "网页",
+  "nshWeeks": "周",
+  "nshWhite": "白色",
+  "nshWithdrawalHash": "提现哈希",
+  "nshWorking": "处理中…",
+  "nshWriteAMessage": "输入消息",
+  "nshWriteAPost": "撰写文章",
+  "nshWriteInMarkdown": "使用 Markdown 撰写…",
+  "nshYellow": "黄色",
+  "nshYesterday": "昨天",
+  "nshYouHaveNoUnreadConversations": "当前没有未读会话。",
+  "nshYouWillLeaveThisGroupAndRemoveItsLocalConversation": "你将退出此群组并移除本地会话。",
+  "nshYourAlbums": "我的贴纸专辑",
+  "nshYourConversationsWillAppearHereAsTheySync": "同步后的会话会显示在这里。",
+  "nshZIPArchive": "ZIP 压缩包",
+  "nshZIPEnabledClickToSendSeparately": "ZIP 打包已开启，点击分别发送",
+  "nshZIPKeepsOriginalsTurnOffZIPToChangeQuality": "ZIP 保留原文件，关闭打包后可切换画质",
+  "nshZIPPassword": "ZIP 密码",
+  "nshZIPPasswordOptional": "ZIP 密码（可选）",
+  "nshZoomIn": "放大",
+  "nshZoomOut": "缩小",
+  "nshAttachments": "个附件",
+  "nshTheSender": "发送者",
+  "nshYourLinkedDevice": "你的关联设备",
+  "nshCountChats": "{count} 个聊天",
+  "@nshCountChats": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDay": "{count} 天",
+  "@nshCountDay": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDays": "{count} 天",
+  "@nshCountDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHour": "{count} 小时",
+  "@nshCountHour": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHours": "{count} 小时",
+  "@nshCountHours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMembers": "{count} 位成员",
+  "@nshCountMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinute": "{count} 分钟",
+  "@nshCountMinute": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinutes": "{count} 分钟",
+  "@nshCountMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSecond": "{count} 秒",
+  "@nshCountSecond": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSeconds": "{count} 秒",
+  "@nshCountSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSelected": "已选择 {count} 条消息",
+  "@nshCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeek": "{count} 周",
+  "@nshCountWeek": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeeks": "{count} 周",
+  "@nshCountWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshHoursH": "{hours} 小时",
+  "@nshHoursH": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "nshMinutesMin": "{minutes} 分钟",
+  "@nshMinutesMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nshNamePinnedMessage": "{name}置顶了{message}",
+  "@nshNamePinnedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantBecameAnAdmin": "{participant}成为了管理员",
+  "@nshParticipantBecameAnAdmin": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantJoinedTheGroup": "{participant}加入了群组",
+  "@nshParticipantJoinedTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantLeftTheGroup": "{participant}退出了群组",
+  "@nshParticipantLeftTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderAddedParticipant": "{sender}添加了{participant}",
+  "@nshSenderAddedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderChangedDisappearingMessageSettings": "{sender}修改了消息自动销毁设置",
+  "@nshSenderChangedDisappearingMessageSettings": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderCreatedThisGroup": "{sender}创建了群组",
+  "@nshSenderCreatedThisGroup": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderDisabledDisappearingMessages": "{sender}关闭了消息自动销毁",
+  "@nshSenderDisabledDisappearingMessages": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderPinnedMessage": "{sender}置顶了{message}",
+  "@nshSenderPinnedMessage": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderRemovedParticipant": "{sender}移除了{participant}",
+  "@nshSenderRemovedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderSetDisappearingMessagesToDuration": "{sender}将消息自动销毁时间设置为{duration}",
+  "@nshSenderSetDisappearingMessagesToDuration": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSelectEnterOpenEscClose": "↑↓ 选择 · Enter 打开 · Esc 关闭",
+  "nshMixinIdLabel": "Mixin ID：{arg0}",
+  "@nshMixinIdLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshPosts": "文章"
 }

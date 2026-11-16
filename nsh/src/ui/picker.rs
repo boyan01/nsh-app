@@ -1,9 +1,10 @@
 //! Shared contact/chat selection surfaces. Callers own selection and commands.
+use crate::i18n::Key;
 use nsh_base::{ButtonElement, Input};
 use nsh_core::prelude::*;
 
 use super::{self as ui, Typography as _};
-use crate::i18n::tr;
+use crate::i18n::t;
 
 pub(crate) fn dialog() -> View {
     ui::dialog_card(ui::DialogWidth::Regular)
@@ -48,7 +49,7 @@ pub(crate) fn header(
 pub(crate) fn close(close: impl Fn() + 'static) -> ButtonElement {
     ui::round_button()
         .size_8()
-        .accessibility_label(|| Some(tr("Close", "关闭").into()))
+        .accessibility_label(|| Some(t(Key::Close).into()))
         .child(ui::icon(ui::Icon::Close).size(ui::icon_lg()))
         .on_press(close)
 }
@@ -184,7 +185,7 @@ pub(crate) fn selected_person(
                         .bg(ui::fg_secondary)
                         .text_color(ui::fg_on_accent)
                         .accessibility_label(move || {
-                            Some(format!("{} {}", tr("Remove", "移除"), name()).into())
+                            Some(format!("{} {}", t(Key::NshRemove), name()).into())
                         })
                         .on_press(remove)
                         .child(ui::icon(ui::Icon::Close).size(ui::icon_xs())),

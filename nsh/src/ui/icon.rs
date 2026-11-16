@@ -83,101 +83,70 @@ pub(crate) fn icon(icon: Icon) -> Svg {
             .size(icon_md())
             .flex_shrink_0()
     };
-    let stroke = |path: &str| {
-        asset(&format!(
-            "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'>{path}</svg>"
-        ))
-    };
     match icon {
-        Icon::Chat => asset(include_str!("../../assets/chat.svg")),
-        Icon::Contacts => asset(include_str!("../../assets/slide_contacts.svg")),
-        Icon::Groups => asset(include_str!("../../assets/group.svg")),
-        Icon::Bot => asset(include_str!("../../assets/bot.svg")),
-        Icon::Strangers => asset(include_str!("../../assets/strangers.svg")),
-        Icon::Circle => asset(include_str!("../../assets/circle.svg")),
-        Icon::Collapse => asset(include_str!("../../assets/collapse.svg")),
-        Icon::Expand => asset(include_str!("../../assets/expanded.svg")),
-        Icon::Filter => asset(include_str!("../../assets/filter_unseen.svg")),
-        Icon::Add => asset(include_str!("../../assets/ic_add.svg")),
-        Icon::Search => asset(include_str!("../../assets/ic_search_small.svg")),
-        Icon::Sticker => asset(include_str!("../../assets/ic_sticker.svg")),
-        Icon::StickerStore => asset(include_str!("../../assets/sticker_store.svg")),
-        Icon::StickerFavorite => asset(include_str!("../../assets/personal_sticker.svg")),
-        Icon::Original => stroke(
-            "<path d='M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5'/><path d='m6 17 5-6 4 4 3-3'/><circle cx='8' cy='8' r='1'/>",
-        ),
-        Icon::Archive => stroke(
-            "<path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z'/><path d='M14 3v6h6M10 3v2m2 0v2m-2 0v2m2 0v2m-2 0v2'/><rect x='9' y='15' width='4' height='3' rx='1'/>",
-        ),
-        Icon::Attachment => stroke(
-            "<path d='m21 11-8.5 8.5a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8L15 6'/>",
-        ),
-        Icon::File => stroke(
-            "<path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z'/><path d='M14 3v6h6'/>",
-        ),
-        Icon::Image => stroke(
-            "<rect x='3' y='3' width='18' height='18' rx='3'/><circle cx='8.5' cy='8.5' r='1.5'/><path d='m21 15-5-5L5 21'/>",
-        ),
-        Icon::Post => stroke(
-            "<path d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z'/><path d='M14 3v6h6M8 13h8M8 17h5'/>",
-        ),
-        Icon::Stop => stroke("<rect x='6' y='6' width='12' height='12' rx='2'/>"),
-        Icon::Volume => stroke(
-            "<path d='M11 5 6 9H3v6h3l5 4Z'/><path d='M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14'/>",
-        ),
-        Icon::VolumeOff => stroke("<path d='M11 5 6 9H3v6h3l5 4Z'/><path d='m16 9 5 6m0-6-5 6'/>"),
-        Icon::FullScreen => stroke("<path d='M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5'/>"),
-        Icon::ExitFullScreen => stroke("<path d='M3 8h5V3M21 8h-5V3M8 21v-5H3M16 21v-5h5'/>"),
-        Icon::Pause => stroke("<path d='M9 5v14M15 5v14'/>"),
-        Icon::Microphone => asset(include_str!("../../assets/microphone.svg")),
-        Icon::Forward => asset(include_str!("../../assets/menu/forward.svg")),
-        Icon::Share => asset(include_str!("../../assets/profile_share.svg")),
-        Icon::Conversation => asset(include_str!("../../assets/profile_chat.svg")),
-        Icon::Profile => asset(include_str!("../../assets/profile_info.svg")),
-        Icon::ChevronDown => stroke("<path d='m6 9 6 6 6-6'/>"),
-        Icon::ChevronRight => stroke("<path d='m9 6 6 6-6 6'/>"),
-        Icon::ChevronLeft => stroke("<path d='m15 6-6 6 6 6'/>"),
-        Icon::Rotate => stroke("<path d='M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7'/>"),
-        Icon::ZoomIn => {
-            stroke("<circle cx='11' cy='11' r='7'/><path d='m20 20-4-4M8 11h6M11 8v6'/>")
-        }
-        Icon::ZoomOut => stroke("<circle cx='11' cy='11' r='7'/><path d='m20 20-4-4M8 11h6'/>"),
-        Icon::Copy => stroke(
-            "<rect x='9' y='9' width='11' height='11' rx='2'/><path d='M5 15V6a2 2 0 0 1 2-2h9'/>",
-        ),
-        Icon::ArrowLeft => asset(include_str!("../../assets/ic_back.svg")),
-        Icon::More => stroke(
-            "<circle cx='5' cy='12' r='1'/><circle cx='12' cy='12' r='1'/><circle cx='19' cy='12' r='1'/>",
-        ),
-        Icon::Menu => stroke("<path d='M4 6h16M4 12h16M4 18h16'/>"),
-        Icon::Play => stroke("<path d='m8 5 11 7-11 7Z'/>"),
-        Icon::Download => stroke("<path d='M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4'/>"),
-        Icon::Upload => stroke("<path d='M12 16V4m-5 5 5-5 5 5M5 17v4h14v-4'/>"),
-        Icon::Disappearing => asset(include_str!(
-            "../../assets/disappearing_message_indicator.svg"
-        )),
-        Icon::Backup => asset(include_str!("../../assets/ic_backup.svg")),
-        Icon::CloseCircle => stroke("<circle cx='12' cy='12' r='9'/><path d='m9 9 6 6m0-6-6 6'/>"),
-        Icon::Close => asset(include_str!("../../assets/ic_close.svg")),
+        Icon::Chat => asset(crate::assets::svg::CHAT),
+        Icon::Contacts => asset(crate::assets::svg::SLIDE_CONTACTS),
+        Icon::Groups => asset(crate::assets::svg::GROUP),
+        Icon::Bot => asset(crate::assets::svg::BOT),
+        Icon::Strangers => asset(crate::assets::svg::STRANGERS),
+        Icon::Circle => asset(crate::assets::svg::CIRCLE),
+        Icon::Collapse => asset(crate::assets::svg::COLLAPSE),
+        Icon::Expand => asset(crate::assets::svg::EXPANDED),
+        Icon::Filter => asset(crate::assets::svg::FILTER_UNSEEN),
+        Icon::Add => asset(crate::assets::svg::IC_ADD),
+        Icon::Search => asset(crate::assets::svg::IC_SEARCH_SMALL),
+        Icon::Sticker => asset(crate::assets::svg::IC_STICKER),
+        Icon::StickerStore => asset(crate::assets::svg::STICKER_STORE),
+        Icon::StickerFavorite => asset(crate::assets::svg::PERSONAL_STICKER),
+        Icon::Original => asset(crate::assets::svg::ICONS_ORIGINAL),
+        Icon::Archive => asset(crate::assets::svg::ICONS_ARCHIVE),
+        Icon::Attachment => asset(crate::assets::svg::ICONS_ATTACHMENT),
+        Icon::File => asset(crate::assets::svg::ICONS_FILE),
+        Icon::Image => asset(crate::assets::svg::ICONS_IMAGE),
+        Icon::Post => asset(crate::assets::svg::ICONS_POST),
+        Icon::Stop => asset(crate::assets::svg::ICONS_STOP),
+        Icon::Volume => asset(crate::assets::svg::ICONS_VOLUME),
+        Icon::VolumeOff => asset(crate::assets::svg::ICONS_VOLUME_OFF),
+        Icon::FullScreen => asset(crate::assets::svg::ICONS_FULL_SCREEN),
+        Icon::ExitFullScreen => asset(crate::assets::svg::ICONS_EXIT_FULL_SCREEN),
+        Icon::Pause => asset(crate::assets::svg::ICONS_PAUSE),
+        Icon::Microphone => asset(crate::assets::svg::MICROPHONE),
+        Icon::Forward => asset(crate::assets::svg::MENU_FORWARD),
+        Icon::Share => asset(crate::assets::svg::PROFILE_SHARE),
+        Icon::Conversation => asset(crate::assets::svg::PROFILE_CHAT),
+        Icon::Profile => asset(crate::assets::svg::PROFILE_INFO),
+        Icon::ChevronDown => asset(crate::assets::svg::ICONS_CHEVRON_DOWN),
+        Icon::ChevronRight => asset(crate::assets::svg::ICONS_CHEVRON_RIGHT),
+        Icon::ChevronLeft => asset(crate::assets::svg::ICONS_CHEVRON_LEFT),
+        Icon::Rotate => asset(crate::assets::svg::ICONS_ROTATE),
+        Icon::ZoomIn => asset(crate::assets::svg::ICONS_ZOOM_IN),
+        Icon::ZoomOut => asset(crate::assets::svg::ICONS_ZOOM_OUT),
+        Icon::Copy => asset(crate::assets::svg::ICONS_COPY),
+        Icon::ArrowLeft => asset(crate::assets::svg::IC_BACK),
+        Icon::More => asset(crate::assets::svg::ICONS_MORE),
+        Icon::Menu => asset(crate::assets::svg::ICONS_MENU),
+        Icon::Play => asset(crate::assets::svg::ICONS_PLAY),
+        Icon::Download => asset(crate::assets::svg::ICONS_DOWNLOAD),
+        Icon::Upload => asset(crate::assets::svg::ICONS_UPLOAD),
+        Icon::Disappearing => asset(crate::assets::svg::DISAPPEARING_MESSAGE_INDICATOR),
+        Icon::Backup => asset(crate::assets::svg::IC_BACKUP),
+        Icon::CloseCircle => asset(crate::assets::svg::ICONS_CLOSE_CIRCLE),
+        Icon::Close => asset(crate::assets::svg::IC_CLOSE),
         // Center the plane's visual mass, which otherwise reads high and right.
         // The inset keeps the shifted strokes inside the icon's view box.
-        Icon::Send => stroke(
-            "<g transform='translate(-0.5 2.9) scale(0.9)'><path d='m22 2-7 20-4-9-9-4Z'/><path d='M22 2 11 13'/></g>",
-        ),
-        Icon::Globe => asset(include_str!("../../assets/proxy.svg")),
-        Icon::Lock => stroke(
-            "<rect x='5' y='10' width='14' height='11' rx='2'/><path d='M8 10V7a4 4 0 0 1 8 0v3'/>",
-        ),
-        Icon::Clock => stroke("<circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/>"),
+        Icon::Send => asset(crate::assets::svg::ICONS_SEND),
+        Icon::Globe => asset(crate::assets::svg::PROXY),
+        Icon::Lock => asset(crate::assets::svg::ICONS_LOCK),
+        Icon::Clock => asset(crate::assets::svg::ICONS_CLOCK),
 
-        Icon::Check => stroke("<path d='m5 12 4 4L19 6'/>"),
-        Icon::Pin => stroke("<path d='m16 3 5 5-4 1-4 4-1 5-3-3-6 6 6-6-3-3 5-1 4-4Z'/>"),
-        Icon::Person => asset(include_str!("../../assets/ic_profile.svg")),
-        Icon::Bell => asset(include_str!("../../assets/ic_notification.svg")),
-        Icon::Database => asset(include_str!("../../assets/ic_storage_usage.svg")),
-        Icon::Shield => asset(include_str!("../../assets/shield.svg")),
-        Icon::Brush => asset(include_str!("../../assets/ic_appearance.svg")),
-        Icon::InfoCircle => asset(include_str!("../../assets/ic_about.svg")),
+        Icon::Check => asset(crate::assets::svg::ICONS_CHECK),
+        Icon::Pin => asset(crate::assets::svg::ICONS_PIN),
+        Icon::Person => asset(crate::assets::svg::IC_PROFILE),
+        Icon::Bell => asset(crate::assets::svg::IC_NOTIFICATION),
+        Icon::Database => asset(crate::assets::svg::IC_STORAGE_USAGE),
+        Icon::Shield => asset(crate::assets::svg::SHIELD),
+        Icon::Brush => asset(crate::assets::svg::IC_APPEARANCE),
+        Icon::InfoCircle => asset(crate::assets::svg::IC_ABOUT),
     }
 }
 

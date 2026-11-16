@@ -54,9 +54,9 @@ editing and cancel/return states. Do not touch real groups or contacts.
 
 ### Localization refresh
 
-New strings (for example circle-create progress and partial-failure messages) are
-missing from `assets/l10n/supplemental.json`. Re-audit all locales for
-placeholders, text expansion and date/time formats.
+Desktop strings now live directly in `assets/l10n/intl_*.arb` and use generated
+typed keys. Review regional wording, English fallback in incomplete locales,
+text expansion and date/time formats.
 
 ### Conditional content states
 

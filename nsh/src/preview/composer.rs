@@ -158,7 +158,7 @@ pub(super) fn editor_with_escape(
             view().hidden(),
             tray,
             input.view(
-                move || i18n.text(Key::EncryptedPlaceholder).to_owned(),
+                move || i18n.t(Key::ChatHintE2e).to_owned(),
                 computed(|| false),
                 signal(false),
                 Rc::new(|_| {}),
@@ -172,7 +172,7 @@ pub(super) fn editor_with_escape(
             composer::surface::primary_action(
                 computed(move || files || draft.with(|s| !s.trim().is_empty())),
                 composer::surface::send_button()
-                    .accessibility_label(move || Some(i18n.text(Key::Send).into()))
+                    .accessibility_label(move || Some(i18n.t(Key::Send).into()))
                     .child(ui::icon(ui::Icon::Send)),
                 tool(ui::Icon::Microphone, "Record voice message").on_press(move || {
                     snapshot.set(voice_snapshot(false));
@@ -351,7 +351,7 @@ pub(super) fn reply_scene(actions: Actions) -> View {
                     crate::chat::preview_reply(fixtures::USER_ID.into(), quote, input),
                     tray,
                     input.view(
-                        move || i18n.text(Key::MessagePlaceholder).to_owned(),
+                        move || i18n.t(Key::NshWriteAMessage).to_owned(),
                         computed(|| false),
                         signal(false),
                         Rc::new(|_| {}),
@@ -365,7 +365,7 @@ pub(super) fn reply_scene(actions: Actions) -> View {
                     composer::surface::primary_action(
                         computed(move || files.get() || draft.with(|s| !s.trim().is_empty())),
                         composer::surface::send_button()
-                            .accessibility_label(move || Some(i18n.text(Key::Send).into()))
+                            .accessibility_label(move || Some(i18n.t(Key::Send).into()))
                             .child(ui::icon(ui::Icon::Send)),
                         tool(ui::Icon::Microphone, "Record voice message"),
                     ),
@@ -529,7 +529,7 @@ fn details(actions: Actions, bottom: bool) -> View {
                 })))
                 .child(controls),
             input.view(
-                move || i18n.text(Key::EncryptedPlaceholder).to_owned(),
+                move || i18n.t(Key::ChatHintE2e).to_owned(),
                 computed(|| false),
                 signal(false),
                 Rc::new(|_| {}),
@@ -615,7 +615,7 @@ fn fixture_thumbnails(
                     .flex_shrink_0()
                     .rounded(ui::radius_thumb())
                     .bg(ui::input_fill)
-                    .accessibility_label(move || Some(i18n::tr("Add files…", "添加文件…").into()))
+                    .accessibility_label(move || Some(i18n::t(Key::NshAddFiles).into()))
                     .on_press(move || count.update(|total| *total += 1))
                     .child(ui::icon(ui::Icon::Add).size(ui::icon_lg())),
             ),

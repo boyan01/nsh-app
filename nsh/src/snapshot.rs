@@ -123,18 +123,18 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
     view()
         .gap_2()
-        .child(ui::error_text(move || i18n.text(Key::CommandFailed)))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || {
+            i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)
+        }))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 pub(crate) fn content_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
     view()
         .gap_2()
-        .child(ui::error_text(move || {
-            i18n.tr("Couldn’t load content", "无法加载内容")
-        }))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || i18n.t(Key::NshCouldnTLoadContent)))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 /// The same compact detail surface is used by chat, links and native previews.
@@ -173,9 +173,9 @@ fn content(
                         if detail.with(|value| {
                             value.as_ref().is_some_and(|v| v.inscription_hash.is_some())
                         }) {
-                            i18n.tr("Inscription details", "铭文详情")
+                            i18n.t(Key::NshInscriptionDetails)
                         } else {
-                            i18n.tr("Transfer details", "转账详情")
+                            i18n.t(Key::NshTransferDetails)
                         }
                     })
                     .flex_1()
@@ -190,7 +190,7 @@ fn content(
                     .pb_6()
                     .child(when(loading, move || {
                         view().px_6().py_8().child(
-                            text(move || i18n.tr("Loading details…", "正在加载详情…"))
+                            text(move || i18n.t(Key::NshLoadingDetails))
                                 .text_role(ui::TextRole::Body)
                                 .text_color(ui::fg_secondary),
                         )
@@ -215,9 +215,10 @@ fn content(
                         })
                     }))
                     .child(when(open_failed, move || {
-                        view().px_6().pt_3().child(ui::error_text(move || {
-                            i18n.tr("Couldn’t open content", "无法打开内容")
-                        }))
+                        view()
+                            .px_6()
+                            .pt_3()
+                            .child(ui::error_text(move || i18n.t(Key::NshCouldnTOpenContent)))
                     })),
             ),
         )
@@ -245,7 +246,7 @@ fn field(title: &'static str, value: String, copy: bool) -> View {
                     ui::round_button()
                         .size_6()
                         .accessibility_label(move || {
-                            Some(format!("{} {title}", i18n.tr("Copy", "复制")).into())
+                            Some(format!("{} {title}", i18n.t(Key::Copy)).into())
                         })
                         .on_press(move || set_clipboard(value.get()))
                         .child(
@@ -317,11 +318,8 @@ fn transfer_detail(value: SnapshotDetailItem) -> View {
         );
     // Price estimates are display-only USD values; the exact asset amount stays a string.
     for (title, price) in [
-        (i18n.tr("Value now", "当前价值"), value.price_usd.as_deref()),
-        (
-            i18n.tr("Value then", "当时价值"),
-            value.ticker_price_usd.as_deref(),
-        ),
+        (i18n.t(Key::NshValueNow), value.price_usd.as_deref()),
+        (i18n.t(Key::NshValueThen), value.ticker_price_usd.as_deref()),
     ] {
         if let Some(estimate) = usd_value(&value.amount, price) {
             summary = summary.child(
@@ -335,10 +333,10 @@ fn transfer_detail(value: SnapshotDetailItem) -> View {
     let mut fields = view().px_6().pt_5().gap_4();
     if kind == "pending" {
         fields = fields.child(field(
-            i18n.tr("Status", "状态"),
+            i18n.t(Key::Status),
             format!(
                 "{} · {} / {}",
-                i18n.tr("Pending confirmation", "等待确认"),
+                i18n.t(Key::NshPendingConfirmation),
                 value.confirmations.unwrap_or(0),
                 value.asset_confirmations
             ),
@@ -346,33 +344,33 @@ fn transfer_detail(value: SnapshotDetailItem) -> View {
         ));
     }
     fields = fields.child(field(
-        i18n.tr("Transaction ID", "交易编号"),
+        i18n.t(Key::NshTransactionID),
         value.snapshot_id,
         true,
     ));
     fields = optional_field(
         fields,
-        i18n.tr("Transaction hash", "交易哈希"),
+        i18n.t(Key::NshTransactionHash),
         value.transaction_hash,
         true,
     );
     fields = optional_field(
         fields,
-        i18n.tr("Snapshot hash", "快照哈希"),
+        i18n.t(Key::NshSnapshotHash),
         value.snapshot_hash,
         true,
     );
     if !value.is_safe {
-        fields = fields.child(field(i18n.tr("Asset", "资产"), value.asset_name, false));
+        fields = fields.child(field(i18n.t(Key::NshAsset), value.asset_name, false));
     }
     match kind {
         "transfer" if value.is_safe => {
             fields = optional_field(
                 fields,
                 if outgoing {
-                    i18n.tr("To", "转给")
+                    i18n.t(Key::To)
                 } else {
-                    i18n.tr("From", "来自")
+                    i18n.t(Key::From)
                 },
                 value.opponent_name.or(value.opponent_id),
                 false,
@@ -390,31 +388,31 @@ fn transfer_detail(value: SnapshotDetailItem) -> View {
                     Some(value.current_user_name),
                 )
             };
-            fields = optional_field(fields, i18n.tr("From", "来自"), sender, false);
-            fields = optional_field(fields, i18n.tr("To", "转给"), receiver, false);
+            fields = optional_field(fields, i18n.t(Key::From), sender, false);
+            fields = optional_field(fields, i18n.t(Key::To), receiver, false);
         }
         "withdrawal" => {
             fields = optional_field(
                 fields,
-                i18n.tr("To", "转给"),
+                i18n.t(Key::To),
                 value.withdrawal_receiver.or(value.receiver),
                 true,
             );
             fields = optional_field(
                 fields,
-                i18n.tr("Withdrawal hash", "提现哈希"),
+                i18n.t(Key::NshWithdrawalHash),
                 value.withdrawal_hash,
                 true,
             );
         }
         _ => {
-            fields = optional_field(fields, i18n.tr("From", "来自"), value.sender, true);
-            fields = optional_field(fields, i18n.tr("To", "转给"), value.receiver, true);
+            fields = optional_field(fields, i18n.t(Key::From), value.sender, true);
+            fields = optional_field(fields, i18n.t(Key::To), value.receiver, true);
         }
     }
     fields = optional_field(
         fields,
-        i18n.tr("Deposit hash", "充值哈希"),
+        i18n.t(Key::NshDepositHash),
         value.deposit_hash,
         true,
     );
@@ -425,16 +423,16 @@ fn transfer_detail(value: SnapshotDetailItem) -> View {
             memo
         }
     });
-    fields = optional_field(fields, i18n.tr("Memo", "备注"), memo, true);
+    fields = optional_field(fields, i18n.t(Key::Memo), memo, true);
     fields = optional_field(
         fields,
-        i18n.tr("Opening balance", "期初余额"),
+        i18n.t(Key::NshOpeningBalance),
         value.opening_balance,
         false,
     );
     fields = optional_field(
         fields,
-        i18n.tr("Closing balance", "期末余额"),
+        i18n.t(Key::NshClosingBalance),
         value.closing_balance,
         false,
     );
@@ -445,7 +443,7 @@ fn transfer_detail(value: SnapshotDetailItem) -> View {
                 .to_string()
         })
         .unwrap_or_default();
-    fields = fields.child(field(i18n.tr("Time", "时间"), time, false));
+    fields = fields.child(field(i18n.t(Key::Time), time, false));
     view()
         .child(summary)
         .child(view().h_2().bg(ui::surface_chat))
@@ -546,9 +544,9 @@ fn inscription_detail(
         let url = value.inscription_content_url.clone().unwrap_or_default();
         artwork = artwork
             .child(when(failed, || {
-                svg(nsh_core::element::ImageSrc::svg_markup(include_str!(
-                    "../assets/inscription/inscription_placeholder.svg"
-                )))
+                svg(nsh_core::element::ImageSrc::svg_markup(
+                    crate::assets::svg::INSCRIPTION_INSCRIPTION_PLACEHOLDER,
+                ))
                 .absolute()
                 .inset_0()
                 .w_full()
@@ -572,12 +570,12 @@ fn inscription_detail(
         .px_6()
         .pt_5()
         .gap_4()
-        .child(field(i18n.tr("Hash", "哈希"), hash, true));
+        .child(field(i18n.t(Key::NshHash), hash, true));
     if let Some(sequence) = value.inscription_sequence {
-        fields = fields.child(field(i18n.tr("ID", "编号"), format!("#{sequence}"), false));
+        fields = fields.child(field(i18n.t(Key::Id), format!("#{sequence}"), false));
     }
     let mut collection = view().gap_2().child(
-        text(i18n.tr("Collection", "合集"))
+        text(i18n.t(Key::Collection))
             .text_role(ui::TextRole::Caption)
             .text_color(ui::fg_secondary),
     );
@@ -591,7 +589,7 @@ fn inscription_detail(
                 text(
                     value
                         .inscription_name
-                        .unwrap_or_else(|| i18n.tr("Unknown collection", "未知合集").into()),
+                        .unwrap_or_else(|| i18n.t(Key::NshUnknownCollection).into()),
                 )
                 .flex_1()
                 .min_w_0()
@@ -602,13 +600,13 @@ fn inscription_detail(
     fields = fields.child(collection);
     fields = optional_field(
         fields,
-        i18n.tr("Collection hash", "合集哈希"),
+        i18n.t(Key::NshCollectionHash),
         value.inscription_collection_hash,
         true,
     );
     fields = optional_field(
         fields,
-        i18n.tr("Content type", "内容类型"),
+        i18n.t(Key::NshContentType),
         value.inscription_content_type,
         false,
     );
@@ -625,7 +623,7 @@ fn inscription_detail(
                     });
                 })
                 .child(ui::icon(ui::Icon::Globe).size(ui::icon_sm()))
-                .child(text(move || i18n.tr("Open content", "打开内容"))),
+                .child(text(move || i18n.t(Key::NshOpenContent))),
         );
     }
     view()
@@ -642,9 +640,9 @@ fn collection_icon(source: Option<String>) -> View {
         .rounded(ui::radius_md())
         .overflow_hidden()
         .child(
-            svg(nsh_core::element::ImageSrc::svg_markup(include_str!(
-                "../assets/inscription/collection_placeholder.svg"
-            )))
+            svg(nsh_core::element::ImageSrc::svg_markup(
+                crate::assets::svg::INSCRIPTION_COLLECTION_PLACEHOLDER,
+            ))
             .absolute()
             .inset_0()
             .w_full()
@@ -746,7 +744,7 @@ fn text_view(
     view()
         .gap_2()
         .child(when(loading, move || {
-            text(move || i18n.tr("Loading content…", "正在加载内容…"))
+            text(move || i18n.t(Key::NshLoadingContent))
                 .text_role(ui::TextRole::Body)
                 .text_color(ui::viewer_secondary)
         }))
@@ -764,9 +762,9 @@ fn text_view(
                     .gap_2()
                     .child(
                         text(move || {
-                            content.get().unwrap_or_else(|| {
-                                i18n.tr("Content unavailable", "内容不可用").into()
-                            })
+                            content
+                                .get()
+                                .unwrap_or_else(|| i18n.t(Key::NshContentUnavailable).into())
                         })
                         .text_role(ui::TextRole::Headline)
                         .text_color(ui::inscription_ink)
@@ -775,14 +773,9 @@ fn text_view(
                         .select_text(),
                     )
                     .child(when(truncated, move || {
-                        text(move || {
-                            i18n.tr(
-                                "Showing the first 8,192 characters",
-                                "仅显示前 8,192 个字符",
-                            )
-                        })
-                        .text_role(ui::TextRole::Caption)
-                        .text_color(ui::fg_secondary)
+                        text(move || i18n.t(Key::NshShowingTheFirst8192Characters))
+                            .text_role(ui::TextRole::Caption)
+                            .text_color(ui::fg_secondary)
                     }))
             },
         ))

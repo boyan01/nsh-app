@@ -196,9 +196,11 @@ fn surface(
                 };
             if let Some(ok) = result {
                 if ok {
-                    actions.toasts.success(i18n.tr("Saved", "已保存"));
+                    actions.toasts.success(i18n.t(Key::NshSaved));
                 } else {
-                    actions.toasts.error(i18n.text(Key::CommandFailed));
+                    actions
+                        .toasts
+                        .error(i18n.t(Key::NshCouldnTCompleteThisActionTryAgain));
                 }
             }
             busy.set(false);
@@ -234,7 +236,7 @@ fn surface(
                 move || {
                     media_viewer::button(
                         ui::Icon::Forward,
-                        move || i18n.tr("Forward…", "转发…"),
+                        move || i18n.t(Key::NshForward),
                         move || {
                             if !can_forward.get_untracked() || actions.account.client().is_none() {
                                 return;
@@ -251,7 +253,7 @@ fn surface(
             ))
             .child(media_viewer::button(
                 ui::Icon::Download,
-                move || i18n.tr("Save as…", "另存为…"),
+                move || i18n.t(Key::NshSaveAs),
                 save,
                 move || busy.get(),
             ))
@@ -283,7 +285,7 @@ fn surface(
                 .flex_1()
                 .min_h_0()
                 .w_full()
-                .label(move || i18n.tr("Video", "视频"))
+                .label(move || i18n.t(Key::Video))
                 .on_load_start(move || {
                     state.loaded.set(false);
                     state.buffering.set(true);
@@ -341,7 +343,7 @@ fn surface(
                 .step(0.1)
                 .value(move || Some(SliderValue::Single(state.position.get())))
                 .disabled(move || !state.ready() || state.duration.get() <= 0.0)
-                .accessibility_label(move || Some(i18n.tr("Playback position", "播放进度").into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshPlaybackPosition).into()))
                 .on_change(move |value: &SliderValue| {
                     if let SliderValue::Single(seconds) = *value {
                         seek(seconds);
@@ -366,7 +368,7 @@ fn surface(
                             move || {
                                 media_viewer::button(
                                     ui::Icon::Play,
-                                    move || i18n.tr("Play", "播放"),
+                                    move || i18n.t(Key::NshPlay),
                                     toggle,
                                     move || !state.ready(),
                                 )
@@ -375,7 +377,7 @@ fn surface(
                         .otherwise(move || {
                             media_viewer::button(
                                 ui::Icon::Pause,
-                                move || i18n.tr("Pause", "暂停"),
+                                move || i18n.t(Key::NshPause),
                                 toggle,
                                 move || !state.ready(),
                             )
@@ -406,7 +408,7 @@ fn surface(
                                 move || {
                                     media_viewer::button(
                                         ui::Icon::VolumeOff,
-                                        move || i18n.tr("Unmute", "取消静音"),
+                                        move || i18n.t(Key::Unmute),
                                         mute,
                                         || false,
                                     )
@@ -415,7 +417,7 @@ fn surface(
                             .otherwise(move || {
                                 media_viewer::button(
                                     ui::Icon::Volume,
-                                    move || i18n.tr("Mute", "静音"),
+                                    move || i18n.t(Key::Mute),
                                     mute,
                                     || false,
                                 )
@@ -438,7 +440,7 @@ fn surface(
                                         f64::from(state.volume.get())
                                     }))
                                 })
-                                .accessibility_label(move || Some(i18n.tr("Volume", "音量").into()))
+                                .accessibility_label(move || Some(i18n.t(Key::NshVolume).into()))
                                 .on_change(move |value: &SliderValue| {
                                     if let SliderValue::Single(volume) = *value {
                                         state.volume.set(volume as f32);
@@ -454,7 +456,7 @@ fn surface(
                         move || {
                             media_viewer::button(
                                 ui::Icon::ExitFullScreen,
-                                move || i18n.tr("Exit full screen", "退出全屏"),
+                                move || i18n.t(Key::NshExitFullScreen),
                                 toggle.clone(),
                                 || false,
                             )
@@ -463,7 +465,7 @@ fn surface(
                     .otherwise(move || {
                         media_viewer::button(
                             ui::Icon::FullScreen,
-                            move || i18n.tr("Full screen", "全屏"),
+                            move || i18n.t(Key::NshFullScreen),
                             toggle_fullscreen.clone(),
                             || false,
                         )
@@ -492,7 +494,7 @@ fn surface(
                             .justify_center()
                             .pointer_events(PointerEvents::None)
                             .child(
-                                text(move || i18n.tr("Loading video…", "正在加载视频…"))
+                                text(move || i18n.t(Key::NshLoadingVideo))
                                     .text_role(ui::TextRole::Body)
                                     .text_color(ui::media_overlay_foreground),
                             )
@@ -506,11 +508,9 @@ fn surface(
                         .justify_center()
                         .gap(ui::space_md())
                         .child(
-                            text(move || {
-                                i18n.tr("Couldn’t play this video.", "暂时无法播放此视频")
-                            })
-                            .text_role(ui::TextRole::Body)
-                            .text_color(ui::media_overlay_foreground),
+                            text(move || i18n.t(Key::NshCouldnTPlayThisVideo))
+                                .text_role(ui::TextRole::Body)
+                                .text_color(ui::media_overlay_foreground),
                         )
                         .child(
                             ui::command()
@@ -521,7 +521,7 @@ fn surface(
                                     state.loaded.set(false);
                                     state.failed.set(false);
                                 })
-                                .child(text(move || i18n.text(Key::Retry))),
+                                .child(text(move || i18n.t(Key::NshTryAgain))),
                         )
                 })),
         )
@@ -560,7 +560,7 @@ fn speed_menu(state: Playback) -> impl IntoElement {
             .h_9()
             .text_color(ui::media_overlay_foreground)
             .disabled(move || !state.ready())
-            .accessibility_label(move || Some(i18n.tr("Playback speed", "播放速度").into()))
+            .accessibility_label(move || Some(i18n.t(Key::NshPlaybackSpeed).into()))
             .child(text(move || format!("{}×", state.rate.get())).text_role(ui::TextRole::Body)),
     );
     for (label, rate) in [("0.5×", 0.5), ("1×", 1.0), ("1.5×", 1.5), ("2×", 2.0)] {

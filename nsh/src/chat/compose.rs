@@ -378,13 +378,13 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
             },
         ))
         .child(when(operation_failed, move || {
-            ui::error_text(move || i18n.text(Key::CommandFailed))
+            ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
         }))
         .child(when(draft_writer.failed, move || {
             draft_error(move || draft_writer.retry())
         }))
         .child(when(send_failed, move || {
-            ui::error_text(move || i18n.text(Key::SendFailed))
+            ui::error_text(move || i18n.t(Key::NshCouldnTSendYourMessageIsStillHereTryAgain))
         }))
         .child(composer::surface::editor(
             move || tray.active(),
@@ -392,10 +392,10 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
             tray.view(),
             input.view(
                 move || {
-                    i18n.text(if encrypted.get() {
-                        Key::EncryptedPlaceholder
+                    i18n.t(if encrypted.get() {
+                        Key::ChatHintE2e
                     } else {
-                        Key::MessagePlaceholder
+                        Key::NshWriteAMessage
                     })
                     .to_owned()
                 },
@@ -457,14 +457,14 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
                                         draft.with(|s| s.trim().is_empty())
                                     }
                             })
-                            .accessibility_label(move || Some(i18n.text(Key::Send).into()))
+                            .accessibility_label(move || Some(i18n.t(Key::Send).into()))
                             .on_press(move || send(false))
                             .child(ui::icon(ui::Icon::Send).text_color(ui::fg_on_accent)),
                         move || {
                             let silent = silent.clone();
                             vec![
                                 nsh_core::element::desktop::MenuItem::new(
-                                    i18n.tr("Send Without Notification", "静音发送"),
+                                    i18n.t(Key::NshSendWithoutNotification),
                                 )
                                 .icon(ui::MenuIcon::Mute.src())
                                 .on_select(move || silent(true)),
@@ -479,8 +479,8 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
                         };
                         format!(
                             "{} · Enter\n{} · {shortcut}",
-                            i18n.tr("Send", "发送"),
-                            i18n.tr("Send as Post", "发送为文章")
+                            i18n.t(Key::Send),
+                            i18n.t(Key::NshSendAsPost)
                         )
                     }))
                 },
@@ -548,7 +548,7 @@ fn send_command(context: SendContext) -> Rc<dyn Fn(bool, bool)> {
         // The sender would cut the rest off silently: keep the draft and say so.
         let checked_body = if post { body.trim() } else { &body };
         if checked_body.encode_utf16().count() > MAX_TEXT_UNITS {
-            toasts.error(i18n.tr("Content too long", "内容过长"));
+            toasts.error(i18n.t(Key::ContentTooLong));
             return;
         }
         let client = account.clone();
@@ -625,12 +625,9 @@ fn unavailable(eligibility: Eligibility, i18n: I18n) -> impl IntoElement {
         .child(
             text(move || {
                 if eligibility.failed.get() {
-                    i18n.text(Key::CommandFailed)
+                    i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)
                 } else if eligibility.loaded.get() {
-                    i18n.tr(
-                        "You can't send messages to this group because you're no longer a participant.",
-                        "您不能发送消息，因为您已经不再是此群组成员。",
-                    )
+                    i18n.t(Key::GroupCantSend)
                 } else {
                     ""
                 }
@@ -640,7 +637,7 @@ fn unavailable(eligibility: Eligibility, i18n: I18n) -> impl IntoElement {
         )
         .child(when(eligibility.failed, move || {
             ui::link(
-                move || i18n.text(Key::Retry),
+                move || i18n.t(Key::NshTryAgain),
                 move || eligibility.retry.update(|revision| *revision += 1),
             )
         }))
@@ -652,12 +649,9 @@ pub(crate) fn draft_error(retry: impl Fn() + 'static) -> View {
         .flex_row()
         .gap_2()
         .child(ui::error_text(move || {
-            i18n.tr(
-                "Couldn’t save your draft. Try again.",
-                "无法保存草稿，请重试。",
-            )
+            i18n.t(Key::NshCouldnTSaveYourDraftTryAgain)
         }))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 #[cfg(debug_assertions)]

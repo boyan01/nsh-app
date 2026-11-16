@@ -88,8 +88,7 @@ pub(super) fn attachment_error(
         .child(
             text(move || {
                 i18n.format(
-                    "Unable to open file: {arg0}",
-                    "无法打开文件：{arg0}",
+                    Key::UnableToOpenFile,
                     &[(
                         "arg0",
                         &row.with(|row| super::message_actions::attachment_name(row)),
@@ -104,11 +103,11 @@ pub(super) fn attachment_error(
                 .flex_row()
                 .gap_2()
                 .child(ui::link(
-                    move || i18n.text(Key::Retry),
+                    move || i18n.t(Key::NshTryAgain),
                     move || retry.update(|value| *value = value.wrapping_add(1)),
                 ))
                 .child(ui::action(
-                    move || i18n.tr("Open with default app", "使用默认应用打开"),
+                    move || i18n.t(Key::NshOpenWithDefaultApp),
                     move || {
                         let path = row.with(|row| row.media_url.clone());
                         spawn(async move {
@@ -142,7 +141,7 @@ fn attachment_view(
                 .select_text(),
         )
         .child(when(loading, move || {
-            text(move || i18n.tr("Loading...", "加载中...")).text_role(ui::TextRole::Body)
+            text(move || i18n.t(Key::Loading)).text_role(ui::TextRole::Body)
         }))
         .child(when(failed, move || attachment_error(row, actions, retry)))
         .child(dynamic(move || {

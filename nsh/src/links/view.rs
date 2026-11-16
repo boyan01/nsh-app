@@ -1,6 +1,7 @@
+use crate::i18n::Key;
 use nsh_core::prelude::*;
 
-use super::{LinkNavigation, Panel, tr};
+use super::{LinkNavigation, Panel, t};
 use crate::{
     runtime,
     ui::parts,
@@ -49,7 +50,7 @@ fn code_panel(
     let members = value.participant_count;
     let title = value.conversation_name.unwrap_or_default();
     let Some(id) = value.conversation_id else {
-        return text(move || tr("Invalid invitation", "无效邀请"))
+        return text(move || t(Key::NshInvalidInvitation))
             .text_role(ui::TextRole::Body)
             .into_element();
     };
@@ -67,9 +68,12 @@ fn code_panel(
         .items_center()
         .child(text(title).text_role(ui::TextRole::Headline).text_center())
         .child(
-            text(move || crate::i18n::current().members(members))
-                .text_role(ui::TextRole::Body)
-                .text_color(ui::fg_secondary),
+            text(move || {
+                crate::i18n::current()
+                    .format(Key::ParticipantsCount, &[("arg0", &members.to_string())])
+            })
+            .text_role(ui::TextRole::Body)
+            .text_color(ui::fg_secondary),
         )
         .child(view().flex_row().gap_2().children(
             value.participant_avatars.into_iter().take(4).map(|avatar| {
@@ -86,12 +90,7 @@ fn code_panel(
             }),
         ))
         .child(when(failed, || {
-            ui::error_text(move || {
-                tr(
-                    "Couldn’t join this group. Try again.",
-                    "无法加入群组，请重试。",
-                )
-            })
+            ui::error_text(move || t(Key::NshCouldnTJoinThisGroupTryAgain))
         }))
         .child(
             ui::primary()
@@ -141,9 +140,9 @@ fn code_panel(
                 })
                 .child(text(move || {
                     if joined {
-                        tr("Open chat", "打开聊天")
+                        t(Key::NshOpenChat)
                     } else {
-                        tr("Join group", "加入群组")
+                        t(Key::NshJoinGroup)
                     }
                 })),
         )
@@ -154,39 +153,31 @@ fn payment_code(value: mixin_desktop_api::CodeResult, uri: String) -> impl IntoE
     let qr = crate::qr::source(&uri, 320);
     let mut fields = vec![
         (
-            tr("Amount", "金额"),
+            t(Key::NshAmount),
             format!(
                 "{} {}",
                 value.amount.unwrap_or_default(),
                 value.asset_symbol.unwrap_or_default()
             ),
         ),
-        (
-            tr("Asset ID", "资产 ID"),
-            value.asset_id.unwrap_or_default(),
-        ),
-        (tr("State", "状态"), value.state.unwrap_or_default()),
-        (tr("Senders", "发送方"), value.senders.join("\n")),
-        (tr("Receivers", "接收方"), value.receivers.join("\n")),
-        (tr("Threshold", "签名阈值"), value.threshold.to_string()),
+        (t(Key::NshAssetID), value.asset_id.unwrap_or_default()),
+        (t(Key::NshState), value.state.unwrap_or_default()),
+        (t(Key::NshSenders), value.senders.join("\n")),
+        (t(Key::NshReceivers), value.receivers.join("\n")),
+        (t(Key::NshThreshold), value.threshold.to_string()),
     ];
     if let Some(action) = value.action {
-        fields.push((tr("Action", "操作"), action));
+        fields.push((t(Key::NshAction), action));
     }
     scroll().flex_1().min_h_0().child(
         view()
             .p_4()
             .gap_4()
-            .child(ui::dialog_title(move || tr("Payment details", "付款详情")))
+            .child(ui::dialog_title(move || t(Key::NshPaymentDetails)))
             .child(
-                text(move || {
-                    tr(
-                        "Complete this payment in Mixin on your phone.",
-                        "请在手机 Mixin 中完成付款。",
-                    )
-                })
-                .text_role(ui::TextRole::Body)
-                .text_color(ui::fg_secondary),
+                text(move || t(Key::NshCompleteThisPaymentInMixinOnYourPhone))
+                    .text_role(ui::TextRole::Body)
+                    .text_color(ui::fg_secondary),
             )
             .child(qr.map(|source| image(source).size_48().label("Payment code for phone")))
             .children(
@@ -216,14 +207,9 @@ fn unsupported(raw: String) -> impl IntoElement {
             .p_4()
             .items_center()
             .child(
-                text(move || {
-                    tr(
-                        "Open this link in Mixin on your phone",
-                        "请在手机 Mixin 中打开此链接",
-                    )
-                })
-                .text_role(ui::TextRole::Body)
-                .text_center(),
+                text(move || t(Key::NshOpenThisLinkInMixinOnYourPhone))
+                    .text_role(ui::TextRole::Body)
+                    .text_center(),
             )
             .child(image.map(|source| {
                 nsh_core::prelude::image(source)
@@ -232,7 +218,7 @@ fn unsupported(raw: String) -> impl IntoElement {
                     .label("Mixin link QR code")
             }))
             .child(ui::action(
-                move || tr("Copy link", "复制链接"),
+                move || t(Key::NshCopyLink),
                 move || set_clipboard(raw.with(|raw| raw.clone())),
             )),
     )
@@ -249,24 +235,17 @@ pub(super) fn panel_card(router: LinkNavigation, panel: Panel) -> View {
             Panel::Loading | Panel::Error | Panel::Unsupported(_)
         );
     let content = match panel {
-        Panel::Loading => parts::status(move || tr("Loading…", "加载中…"))
+        Panel::Loading => parts::status(move || t(Key::NshLoading))
             .justify_center()
             .py_4()
             .into_element(),
         Panel::Error => view()
             .gap_3()
             .p_4()
-            .child(ui::dialog_title(move || {
-                tr("Couldn’t open this link", "无法打开此链接")
-            }))
+            .child(ui::dialog_title(move || t(Key::NshCouldnTOpenThisLink)))
             .child(
-                text(move || {
-                    tr(
-                        "Check the link and your connection, then try again.",
-                        "请检查链接和网络连接后重试。",
-                    )
-                })
-                .text_role(ui::TextRole::Body),
+                text(move || t(Key::NshCheckTheLinkAndYourConnectionThenTryAgain))
+                    .text_role(ui::TextRole::Body),
             )
             .into_element(),
         Panel::Profile(id) => {
@@ -304,10 +283,10 @@ pub(super) fn panel_card(router: LinkNavigation, panel: Panel) -> View {
         card = card.h(auto()).min_h_0();
     }
     if !send && !profile && !snapshot {
-        card = card.child(parts::dialog_actions().child(ui::action(
-            move || tr("Close", "关闭"),
-            move || router.close(),
-        )));
+        card = card.child(
+            parts::dialog_actions()
+                .child(ui::action(move || t(Key::Close), move || router.close())),
+        );
     }
 
     card

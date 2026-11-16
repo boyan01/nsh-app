@@ -10,7 +10,7 @@ use nsh_core::prelude::*;
 
 use crate::presentation::message_window::splice_phase;
 use crate::{
-    i18n::{self, Key, tr},
+    i18n::{self, Key, t},
     navigation::ChatNavigation,
     presentation, runtime,
     ui::parts,
@@ -515,9 +515,7 @@ fn filters(
                     move || {
                         ui::round_button()
                             .size_8()
-                            .accessibility_label(move || {
-                                Some(tr("Choose a sender", "选择发送者").into())
-                            })
+                            .accessibility_label(move || Some(t(Key::NshChooseASender).into()))
                             .on_press(move || {
                                 dismiss_keyboard();
                                 batch(|| {
@@ -536,10 +534,10 @@ fn filters(
                     .flex_row()
                     .gap_2()
                     .child(category_button(results.category, "TEXT", move || {
-                        tr("Text", "文字")
+                        t(Key::Text)
                     }))
                     .child(category_button(results.category, "POST", move || {
-                        tr("Post", "长文")
+                        t(Key::Post)
                     }))
             },
         ))
@@ -553,7 +551,7 @@ fn sender_chip(
     ui::button(ui::ButtonTone::Secondary, ui::ButtonSize::Regular)
         .justify_start()
         .w_full()
-        .accessibility_label(move || Some(tr("Clear sender", "清除发送者").into()))
+        .accessibility_label(move || Some(t(Key::NshClearSender).into()))
         .on_press(move || {
             selected.set(None);
             sender.set(None);
@@ -563,7 +561,7 @@ fn sender_chip(
             text(move || {
                 format!(
                     "{}: {}",
-                    tr("From", "发送者"),
+                    t(Key::From),
                     selected.with(|sender| sender
                         .as_ref()
                         .map(|sender| sender.full_name.clone())
@@ -589,9 +587,9 @@ fn search_field(
     let composing = signal(false);
     let label = move || {
         if is_picker {
-            tr("Search senders", "搜索发送者")
+            t(Key::NshSearchSenders)
         } else {
-            i18n.text(Key::SearchMessages)
+            i18n.t(Key::NshSearchMessages)
         }
     };
     ui::search_input()
@@ -657,7 +655,7 @@ fn sender_list(results: Results, senders: Senders) -> impl IntoElement {
         .child(when(
             move || senders.busy.get() && rows.with(Vec::is_empty),
             || {
-                parts::status(move || tr("Loading senders…", "正在加载发送者…"))
+                parts::status(move || t(Key::NshLoadingSenders))
                     .px_4()
                     .py_2()
             },
@@ -667,7 +665,7 @@ fn sender_list(results: Results, senders: Senders) -> impl IntoElement {
         }))
         .child(when(
             move || !senders.busy.get() && !senders.failed.get() && rows.with(Vec::is_empty),
-            || ui::placeholder(move || tr("No senders found", "未找到发送者")),
+            || ui::placeholder(move || t(Key::NshNoSendersFound)),
         ))
         .child(when(
             move || !rows.with(Vec::is_empty),
@@ -719,7 +717,7 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
         .child(when(
             move || results.busy.get() && rows.with(Vec::is_empty),
             move || {
-                parts::status(move || i18n.text(Key::LoadingMessages))
+                parts::status(move || i18n.t(Key::NshLoadingMessages))
                     .px_4()
                     .py_2()
             },
@@ -736,9 +734,9 @@ fn result_list(results: Results, target: Signal<Option<String>>) -> impl IntoEle
                     if results.query.with(|query| query.trim().is_empty())
                         && results.sender.with(Option::is_none)
                     {
-                        tr("Enter a keyword to search", "输入关键词搜索")
+                        t(Key::NshEnterAKeywordToSearch)
                     } else {
-                        tr("No messages found", "未找到消息")
+                        t(Key::NshNoMessagesFound)
                     }
                 })
             },
@@ -852,12 +850,12 @@ fn category_button(
 }
 
 pub(crate) fn sender_error(retry: impl Fn() + 'static) -> View {
-    parts::failure(move || tr("Couldn’t load senders", "无法加载发送者"), retry)
+    parts::failure(move || t(Key::NshCouldnTLoadSenders), retry)
 }
 
 pub(crate) fn results_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
-    parts::failure(move || i18n.text(Key::MessagesFailed), retry)
+    parts::failure(move || i18n.t(Key::NshCouldnTLoadMessages), retry)
 }
 
 fn content(
@@ -874,9 +872,9 @@ fn content(
         .child(parts::page_header(
             move || {
                 if senders.open.get() {
-                    tr("Choose a sender", "选择发送者")
+                    t(Key::NshChooseASender)
                 } else {
-                    i18n.text(Key::SearchMessages)
+                    i18n.t(Key::NshSearchMessages)
                 }
             },
             Some(

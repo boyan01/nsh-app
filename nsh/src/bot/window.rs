@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use nsh_core::prelude::*;
 #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use serde_json::json;
@@ -35,17 +36,17 @@ pub(super) fn host(windows: BotWindows, page: ReadSignal<Page>) -> impl IntoElem
                     "version": env!("CARGO_PKG_VERSION"), "focus": page.focus,
                     "locale": i18n.locale_tag(),
                     "labels": {
-                        "Back": i18n.tr("Back", "返回"),
-                        "More": i18n.tr("More", "更多"),
-                        "Close": i18n.tr("Close", "关闭"),
-                        "Refresh": i18n.tr("Refresh", "刷新"),
-                        "Forward…": i18n.tr("Forward…", "转发…"),
-                        "Copy link": i18n.tr("Copy link", "复制链接"),
-                        "Open in browser": i18n.tr("Open in browser", "在浏览器中打开"),
-                        "Webpage": i18n.tr("Webpage", "网页"),
-                        "OK": i18n.tr("OK", "好"),
-                        "Cancel": i18n.tr("Cancel", "取消"),
-                        "Couldn’t download this file. Try again.": i18n.tr("Couldn’t download this file. Try again.", "无法下载此文件，请重试。"),
+                        "Back": i18n.t(Key::NshBack),
+                        "More": i18n.t(Key::More),
+                        "Close": i18n.t(Key::Close),
+                        "Refresh": i18n.t(Key::Refresh),
+                        "Forward…": i18n.t(Key::NshForward),
+                        "Copy link": i18n.t(Key::NshCopyLink),
+                        "Open in browser": i18n.t(Key::NshOpenInBrowser),
+                        "Webpage": i18n.t(Key::NshWebpage),
+                        "OK": i18n.t(Key::NshOK),
+                        "Cancel": i18n.t(Key::Cancel),
+                        "Couldn’t download this file. Try again.": i18n.t(Key::NshCouldnTDownloadThisFileTryAgain),
                     } })
             }))
             .on_native_event(move |event: &NativeEvent| windows.event(page.get_untracked(), reference, event.clone()))

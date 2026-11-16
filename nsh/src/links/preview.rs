@@ -1,4 +1,5 @@
-use super::{parse::Payload, tr};
+use super::{parse::Payload, t};
+use crate::i18n::Key;
 use crate::{
     runtime,
     ui::{self, Typography as _},
@@ -125,21 +126,15 @@ pub(super) fn render(
 pub(crate) fn sticker_error(retry: impl Fn() + 'static) -> View {
     view()
         .gap_2()
-        .child(
-            text(move || tr("Sticker preview unavailable", "无法预览贴纸"))
-                .text_role(ui::TextRole::Body),
-        )
-        .child(ui::link(move || tr("Retry preview", "重试预览"), retry))
+        .child(text(move || t(Key::NshStickerPreviewUnavailable)).text_role(ui::TextRole::Body))
+        .child(ui::link(move || t(Key::NshRetryPreview), retry))
 }
 
 pub(crate) fn contact_error(retry: impl Fn() + 'static) -> View {
     view()
         .gap_2()
-        .child(
-            text(move || tr("Contact preview unavailable", "无法预览联系人"))
-                .text_role(ui::TextRole::Body),
-        )
-        .child(ui::link(move || tr("Retry preview", "重试预览"), retry))
+        .child(text(move || t(Key::NshContactPreviewUnavailable)).text_role(ui::TextRole::Body))
+        .child(ui::link(move || t(Key::NshRetryPreview), retry))
 }
 
 pub(super) fn text_payload(content: String) -> impl IntoElement {
@@ -178,7 +173,7 @@ pub(super) fn contact_view(
                 profile
                     .as_ref()
                     .map(|profile| profile.full_name.clone())
-                    .unwrap_or_else(|| tr("Contact", "联系人").into())
+                    .unwrap_or_else(|| t(Key::Contact).into())
             })
         },
         move || read(|profile| &profile.avatar_url),

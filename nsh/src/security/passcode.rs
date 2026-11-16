@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use nsh_base::{OtpInput, OtpInputApi, OtpInputCompleteEvent, otp_input};
 use nsh_core::prelude::*;
 
@@ -20,7 +21,7 @@ pub(super) fn input(
         })
         .child(otp_input().component_ref(&input).length(6).masked(true).disabled(disabled)
         .value(move || Some(SharedString::from(value.get())))
-        .accessibility_label(move || Some(i18n.tr("Six-digit screen passcode", "六位锁屏密码").into()))
+        .accessibility_label(move || Some(i18n.t(Key::NshSixDigitScreenPasscode).into()))
         .group_class("flex-row items-center gap-6 min-h-11")
         .cell_class("size-3 rounded-full border border-foreground text-foreground data-filled:bg-foreground focus:outline-2 focus:outline-ring disabled:opacity-40")
         .caret_class("hidden")

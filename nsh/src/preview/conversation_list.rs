@@ -1,5 +1,6 @@
 //! The production conversation chrome over fixed rows and account feedback.
 
+use crate::i18n::Key;
 use mixin_desktop_api::ConversationListData;
 use nsh_core::prelude::*;
 
@@ -128,11 +129,7 @@ pub(super) fn column(
                     view().flex_1().pt(move || px(height.get())).child(
                         when(
                             move || state.get() == "Loading",
-                            || {
-                                ui::placeholder(|| {
-                                    crate::i18n::tr("Loading conversations…", "正在加载会话…")
-                                })
-                            },
+                            || ui::placeholder(|| crate::i18n::t(Key::NshLoadingConversations)),
                         )
                         .otherwise(move || {
                             home::empty_filtered(crate::i18n::current(), nav, unread)

@@ -1,8 +1,9 @@
 use super::{
     LinkNavigation,
     parse::{Payload, Recipient, Send},
-    tr,
+    t,
 };
+use crate::i18n::Key;
 use crate::{
     runtime,
     ui::parts,
@@ -37,7 +38,7 @@ pub(super) fn screen(router: LinkNavigation, request: Send) -> impl IntoElement 
         load_failed.set(false);
         if matches!(recipient, Recipient::Choose) {
             loading.set(false);
-            name.set(tr("Choose recipient", "选择接收方").into());
+            name.set(t(Key::NshChooseRecipient).into());
             return;
         }
         loading.set(true);
@@ -215,16 +216,16 @@ fn content(
                 .gap_2()
                 .child(when(choosing, move || {
                     ui::icon_button()
-                        .accessibility_label(move || Some(tr("Back", "返回").into()))
+                        .accessibility_label(move || Some(t(Key::NshBack).into()))
                         .on_press(cancel_choosing)
                         .child(ui::icon(ui::Icon::ArrowLeft))
                 }))
                 .child(
                     ui::dialog_title(move || {
                         if choosing.get() {
-                            tr("Choose recipient", "选择接收方")
+                            t(Key::NshChooseRecipient)
                         } else {
-                            tr("Send message", "发送消息")
+                            t(Key::NshSendMessage)
                         }
                     })
                     .flex_1()
@@ -232,7 +233,7 @@ fn content(
                 )
                 .child(
                     ui::icon_button()
-                        .accessibility_label(move || Some(tr("Close", "关闭").into()))
+                        .accessibility_label(move || Some(t(Key::Close).into()))
                         .disabled(busy)
                         .on_press(close)
                         .child(ui::icon(ui::Icon::Close)),
@@ -251,12 +252,11 @@ fn content(
                             .text_role(ui::TextRole::Body),
                     )
                     .child(when(loading, || {
-                        parts::status(move || tr("Loading recipient…", "正在加载接收方…"))
-                            .flex_none()
+                        parts::status(move || t(Key::NshLoadingRecipient)).flex_none()
                     }))
                     .child(when(load_failed, move || {
                         parts::failure(
-                            move || tr("Couldn’t load this recipient.", "无法加载此接收方。"),
+                            move || t(Key::NshCouldnTLoadThisRecipient),
                             move || revision.update(|revision| *revision += 1),
                         )
                         .flex_none()
@@ -273,7 +273,7 @@ fn content(
                     )
                     .child(
                         ui::action(
-                            move || tr("Choose recipient…", "选择接收方…"),
+                            move || t(Key::NshChooseRecipientMessage),
                             move || choosing.set(true),
                         )
                         .flex_none()
@@ -283,18 +283,13 @@ fn content(
         ))
         .child(when(choosing, move || picker.with(|render| render())))
         .child(when(failed, move || {
-            ui::error_text(move || {
-                tr(
-                    "Couldn’t send this message. Try again.",
-                    "无法发送此消息，请重试。",
-                )
-            })
+            ui::error_text(move || t(Key::NshCouldnTSendThisMessageTryAgain))
         }))
         .child(
             parts::dialog_actions()
                 .child(
                     ui::action(
-                        move || tr("Cancel", "取消"),
+                        move || t(Key::Cancel),
                         move || {
                             if choosing.get_untracked() {
                                 cancel_choosing();
@@ -316,9 +311,9 @@ fn content(
                             .on_press(send)
                             .child(text(move || {
                                 if busy.get() {
-                                    tr("Sending…", "正在发送…")
+                                    t(Key::NshSendingMessage)
                                 } else {
-                                    tr("Send", "发送")
+                                    t(Key::Send)
                                 }
                             }))
                     },

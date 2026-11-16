@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use mixin_desktop_api::MessageListView;
 use nsh_base::tabs;
 use nsh_core::element::{ViewableItems, desktop::MenuItem};
@@ -216,7 +217,7 @@ fn media(
             .w_full()
             .h_full()
             .object_fit(ResizeMode::Cover)
-            .label(move || i18n.tr("Shared media preview", "共享媒体预览")),
+            .label(move || i18n.t(Key::NshSharedMediaPreview)),
         )
         .child(
             view()
@@ -246,16 +247,16 @@ fn media(
                                             (done as f64 / total as f64 * 100.0).clamp(0.0, 100.0)
                                         );
                                     }
-                                    return i18n.tr("Transferring…", "正在传输…").into();
+                                    return i18n.t(Key::NshTransferring).into();
                                 }
                                 if !Shared::available(&row) {
                                     return if matches!(
                                         row.media_status.as_str(),
                                         "PENDING" | "PROCESSING"
                                     ) {
-                                        i18n.tr("Cancel transfer", "取消传输")
+                                        i18n.t(Key::NshCancelTransfer)
                                     } else {
-                                        i18n.tr("Download", "下载")
+                                        i18n.t(Key::Download)
                                     }
                                     .into();
                                 }
@@ -291,29 +292,27 @@ fn item_menu(
         if Shared::available(&message) {
             let save = message.clone();
             file.push(
-                MenuItem::new(i18n.tr("Save as", "另存为"))
+                MenuItem::new(i18n.t(Key::SaveAs))
                     .icon(ui::MenuIcon::Download.src())
                     .on_select(move || shared.preview.save(save.clone())),
             );
             if let Some(path) = message.media_url {
                 file.push(
-                    MenuItem::new(i18n.tr("Show in folder", "在文件夹中显示")).on_select(
-                        move || {
-                            let path = path.clone();
-                            // The list cell showing this menu can go before the reveal completes.
-                            shared.owner.run(|| {
-                                spawn(async move {
-                                    shared.preview.failed.set(reveal_path(path).await.is_err());
-                                })
-                            });
-                        },
-                    ),
+                    MenuItem::new(i18n.t(Key::NshShowInFolder)).on_select(move || {
+                        let path = path.clone();
+                        // The list cell showing this menu can go before the reveal completes.
+                        shared.owner.run(|| {
+                            spawn(async move {
+                                shared.preview.failed.set(reveal_path(path).await.is_err());
+                            })
+                        });
+                    }),
                 );
             }
         }
         ui::menu_groups([
             vec![
-                MenuItem::new(i18n.tr("Locate in Chat", "前往聊天"))
+                MenuItem::new(i18n.t(Key::LocateToChat))
                     .icon(ui::MenuIcon::PositionToChat.src())
                     .on_select(move || {
                         target.set(Some(locate.clone()));
@@ -327,7 +326,10 @@ fn item_menu(
 
 pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
-    parts::failure(move || i18n.text(crate::i18n::Key::CommandFailed), retry)
+    parts::failure(
+        move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain),
+        retry,
+    )
 }
 
 fn screen_view(
@@ -371,13 +373,13 @@ fn screen_view(
                 .border_color(ui::border)
                 .children(
                     [
-                        ("media", "Media", "媒体"),
-                        ("post", "Posts", "文章"),
-                        ("file", "Files", "文件"),
+                        ("media", Key::Media),
+                        ("post", Key::NshPosts),
+                        ("file", Key::Files),
                     ]
                     .into_iter()
-                    .map(move |(value, en, zh)| {
-                        ui::tab(move || i18n.tr(en, zh), move || selected.get() == value).on_press(
+                    .map(move |(value, key)| {
+                        ui::tab(move || i18n.t(key), move || selected.get() == value).on_press(
                             move || {
                                 batch(|| {
                                     shown.update(|shown| {
@@ -417,7 +419,7 @@ fn panel_view(state: State, target: Signal<Option<String>>, shared: Shared) -> V
         .child(when(
             move || shared.loading.get() && shared.rows.with(Vec::is_empty),
             move || {
-                parts::status(move || i18n.tr("Loading…", "加载中…"))
+                parts::status(move || i18n.t(Key::NshLoading))
                     .px(ui::space_lg())
                     .py(ui::space_sm())
             },
@@ -439,9 +441,9 @@ fn panel_view(state: State, target: Signal<Option<String>>, shared: Shared) -> V
             },
             move || {
                 ui::placeholder(move || match kind {
-                    "post" => i18n.tr("No posts", "暂无文章"),
-                    "file" => i18n.tr("No files", "暂无文件"),
-                    _ => i18n.tr("No shared media", "暂无共享媒体"),
+                    "post" => i18n.t(Key::NshNoPosts),
+                    "file" => i18n.t(Key::NshNoFiles),
+                    _ => i18n.t(Key::NshNoSharedMedia),
                 })
             },
         ))

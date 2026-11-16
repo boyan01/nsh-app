@@ -98,7 +98,7 @@ fn proxy_row(
             ui::button(ui::ButtonTone::Danger, ui::ButtonSize::Small)
                 .mr(ui::space_md())
                 .disabled(feedback.busy)
-                .child(text(move || i18n.tr("Remove…", "移除…")))
+                .child(text(move || i18n.t(Key::NshRemoveMessage)))
                 .on_press(move || {
                     if let Some(proxy) = untracked(proxy) {
                         remove(proxy, settings, feedback);
@@ -116,9 +116,9 @@ fn remove(proxy: ProxyItem, settings: Signal<ProxySettingsItem>, feedback: Feedb
     feedback.owner.run(|| {
         spawn(async move {
             let prompt = Prompt::new(
-                i18n.tr("Remove proxy?", "移除代理？"),
+                i18n.t(Key::NshRemoveProxy),
                 address(&proxy),
-                i18n.tr("Remove", "移除"),
+                i18n.t(Key::NshRemove),
             );
             if !confirm(prompt).await {
                 return;
@@ -230,9 +230,9 @@ fn form_view(
     let fields = view()
         .gap(ui::space_lg())
         .child(
-            parts::labeled(move || i18n.tr("Host", "主机")).child(
+            parts::labeled(move || i18n.t(Key::Host)).child(
                 ui::field()
-                    .label(move || i18n.tr("Host", "主机"))
+                    .label(move || i18n.t(Key::Host))
                     .auto_focus(focus)
                     .value(move || host.get())
                     .readonly(feedback.busy)
@@ -242,9 +242,9 @@ fn form_view(
             ),
         )
         .child(
-            parts::labeled(move || i18n.tr("Port", "端口")).child(
+            parts::labeled(move || i18n.t(Key::Port)).child(
                 ui::field()
-                    .label(move || i18n.tr("Port", "端口"))
+                    .label(move || i18n.t(Key::Port))
                     .value(move || port.get())
                     .readonly(feedback.busy)
                     .on_key_press(cancel_key)
@@ -253,9 +253,9 @@ fn form_view(
             ),
         )
         .child(
-            parts::labeled(move || i18n.tr("Username (optional)", "用户名（可选）")).child(
+            parts::labeled(move || i18n.t(Key::NshUsernameOptional)).child(
                 ui::field()
-                    .label(move || i18n.tr("Username", "用户名"))
+                    .label(move || i18n.t(Key::Username))
                     .value(move || username.get())
                     .readonly(feedback.busy)
                     .on_key_press(cancel_key)
@@ -264,9 +264,9 @@ fn form_view(
             ),
         )
         .child(
-            parts::labeled(move || i18n.tr("Password (optional)", "密码（可选）")).child(
+            parts::labeled(move || i18n.t(Key::NshPasswordOptional)).child(
                 ui::field()
-                    .label(move || i18n.tr("Password", "密码"))
+                    .label(move || i18n.t(Key::Password))
                     .masked(true)
                     .value(move || password.get())
                     .readonly(feedback.busy)
@@ -277,16 +277,14 @@ fn form_view(
         );
     ui::dialog_card(ui::DialogWidth::Regular)
         .overflow_hidden()
-        .child(ui::dialog_title(move || {
-            i18n.tr("Add HTTP proxy", "添加 HTTP 代理")
-        }))
+        .child(ui::dialog_title(move || i18n.t(Key::NshAddHTTPProxy)))
         .child(scroll().min_h_0().flex_shrink(1.0).child(fields))
         .child(when(feedback.failed, move || {
-            ui::error_text(move || i18n.text(Key::CommandFailed))
+            ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
         }))
         .child(
             parts::dialog_actions()
-                .child(ui::action(move || i18n.text(Key::Cancel), cancel).disabled(feedback.busy))
+                .child(ui::action(move || i18n.t(Key::Cancel), cancel).disabled(feedback.busy))
                 .child(
                     ui::primary()
                         .disabled(move || {
@@ -294,7 +292,7 @@ fn form_view(
                                 || host.with(|h| h.trim().is_empty())
                                 || port.with(|p| !p.parse::<u16>().is_ok_and(|port| port > 0))
                         })
-                        .child(text(move || i18n.tr("Add", "添加")))
+                        .child(text(move || i18n.t(Key::Add)))
                         .on_press(add),
                 ),
         )
@@ -333,7 +331,7 @@ fn content(
                 view()
                     .gap(ui::space_sm())
                     .child(ui::card().child(ui::toggle_row(
-                        move || i18n.tr("Proxy", "代理"),
+                        move || i18n.t(Key::Proxy),
                         move || settings.with(|s| s.enabled),
                         move || {
                             !ready.get()
@@ -351,19 +349,12 @@ fn content(
                     )))
                     .child(when(
                         move || ready.get() && settings.with(|s| s.proxies.is_empty()),
-                        move || {
-                            parts::note(move || {
-                                i18n.tr(
-                                    "Add a proxy before enabling it.",
-                                    "请先添加代理，再开启代理连接。",
-                                )
-                            })
-                        },
+                        move || parts::note(move || i18n.t(Key::NshAddAProxyBeforeEnablingIt)),
                     )),
             )
             .child(when(
                 move || !ready.get() && !feedback.failed.get(),
-                move || parts::status(move || i18n.tr("Loading proxies…", "正在加载代理…")),
+                move || parts::status(move || i18n.t(Key::NshLoadingProxies)),
             ))
             .child(
                 ui::card()
@@ -388,19 +379,17 @@ fn content(
                         ),
                     )
                     .child(
-                        ui::settings_row(Some(ui::Icon::Add), move || {
-                            i18n.tr("Add proxy…", "添加代理…")
-                        })
-                        .disabled(move || !ready.get() || feedback.busy.get())
-                        .on_press(move || adding.set(true)),
+                        ui::settings_row(Some(ui::Icon::Add), move || i18n.t(Key::NshAddProxy))
+                            .disabled(move || !ready.get() || feedback.busy.get())
+                            .on_press(move || adding.set(true)),
                     ),
             )
-            .child(feedback.view(move || i18n.tr("Saving…", "正在保存…")))
+            .child(feedback.view(move || i18n.t(Key::NshSaving)))
             .child(when(
                 move || feedback.failed.get() && !ready.get(),
                 move || {
                     ui::link(
-                        move || i18n.text(Key::Retry),
+                        move || i18n.t(Key::NshTryAgain),
                         move || refresh.update(|r| *r += 1),
                     )
                 },

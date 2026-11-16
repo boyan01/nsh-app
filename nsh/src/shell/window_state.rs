@@ -1,5 +1,6 @@
 //! Native shell presentation and process-wide window preferences.
 use super::Handle;
+use crate::i18n::Key;
 use nsh_core::prelude::*;
 use serde_json::{Value, json};
 
@@ -71,8 +72,8 @@ pub(super) fn surface(handle: Handle) -> impl IntoElement {
                 .prop("bounds", move || initial.get())
                 .prop("labels", move || {
                     json!({
-                        "show": crate::i18n::tr("Show Mixin", "显示 Mixin"),
-                        "quit": crate::i18n::tr("Quit Mixin", "退出 Mixin"),
+                        "show": crate::i18n::t(Key::ShowMixin),
+                        "quit": crate::i18n::t(Key::QuitMixin),
                     })
                 })
                 .prop("tooltip", move || {
@@ -80,7 +81,7 @@ pub(super) fn surface(handle: Handle) -> impl IntoElement {
                     if count > 0 {
                         format!(
                             "Mixin · {count} {}",
-                            crate::i18n::current().text(crate::i18n::Key::Unread)
+                            crate::i18n::current().t(Key::NshUnread)
                         )
                     } else {
                         "Mixin".into()

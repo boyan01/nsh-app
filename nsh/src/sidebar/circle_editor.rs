@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use std::{
     collections::{BTreeMap, HashSet},
     sync::Arc,
@@ -8,7 +9,7 @@ use mixin_desktop_api::{AccountClient, CircleConversationEdit, CircleItem, Conve
 use nsh_core::prelude::*;
 
 use crate::{
-    i18n::tr,
+    i18n::t,
     runtime,
     ui::parts,
     ui::{self, Typography as _},
@@ -284,15 +285,13 @@ fn form(
     save: impl Fn() + Copy + 'static,
 ) -> View {
     parts::tall_dialog_card()
-        .child(ui::dialog_title(move || {
-            tr("Edit conversations", "编辑聊天")
-        }))
+        .child(ui::dialog_title(move || t(Key::NshEditConversations)))
         .child(text(move || title.with(|title| title.clone())).text_role(ui::TextRole::Body))
         .child(
             ui::search_pill().flex_none().child(
                 ui::search_input()
-                    .label(move || tr("Search chats", "搜索聊天"))
-                    .placeholder(move || tr("Search chats", "搜索聊天").to_owned())
+                    .label(move || t(Key::NshSearchChats))
+                    .placeholder(move || t(Key::NshSearchChats).to_owned())
                     .value(move || query.get())
                     .on_change(move |text: &str| {
                         if query.with_untracked(|query| query == text) {
@@ -312,16 +311,14 @@ fn form(
         )
         .child(when(
             move || loading.get() && rows.with(Vec::is_empty),
-            || parts::status(move || tr("Loading…", "加载中…")),
+            || parts::status(move || t(Key::NshLoading)),
         ))
         .child(when(load_failed, move || {
             view()
                 .gap_2()
-                .child(ui::error_text(move || {
-                    tr("Couldn’t load chats.", "无法加载聊天。")
-                }))
+                .child(ui::error_text(move || t(Key::NshCouldnTLoadChats)))
                 .child(ui::action(
-                    move || tr("Reload", "重新加载"),
+                    move || t(Key::NshReload),
                     move || refresh.update(|refresh| *refresh += 1),
                 ))
         }))
@@ -330,18 +327,12 @@ fn form(
                 .gap_2()
                 .child(ui::error_text(move || {
                     if reconcile.get() {
-                        tr(
-                            "Couldn’t refresh saved changes. Reload before saving again.",
-                            "无法刷新已保存的更改，请先重新加载。",
-                        )
+                        t(Key::NshCouldnTRefreshSavedChangesReloadBeforeSavingAgain)
                     } else {
-                        tr(
-                            "Some changes could not be saved. Check the remaining selections.",
-                            "部分更改未能保存，请检查剩余选择。",
-                        )
+                        t(Key::NshSomeChangesCouldNotBeSavedCheckTheRemainingSelections)
                     }
                 }))
-                .child(ui::action(move || tr("Reload", "重新加载"), reload_choices).disabled(busy))
+                .child(ui::action(move || t(Key::NshReload), reload_choices).disabled(busy))
         }))
         .child(
             virtual_list(
@@ -408,7 +399,7 @@ fn form(
         )
         .child(
             parts::dialog_actions()
-                .child(ui::action(move || tr("Cancel", "取消"), close).disabled(busy))
+                .child(ui::action(move || t(Key::Cancel), close).disabled(busy))
                 .child(
                     ui::primary()
                         .disabled(move || {
@@ -416,7 +407,7 @@ fn form(
                         })
                         .on_press(save)
                         .child(text(move || {
-                            format!("{} ({})", tr("Save", "保存"), changes.with(BTreeMap::len))
+                            format!("{} ({})", t(Key::Save), changes.with(BTreeMap::len))
                         })),
                 ),
         )

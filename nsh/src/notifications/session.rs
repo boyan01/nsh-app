@@ -116,7 +116,7 @@ pub(crate) fn attach(
                 let preview = if handle.preview.get_untracked() {
                     preview_body(i18n, &event, &account_id)
                 } else {
-                    i18n.text(Key::Message).to_owned()
+                    i18n.t(Key::NshMessage).to_owned()
                 };
                 let payload = native::Notification {
                     id: id.clone(),
@@ -183,8 +183,7 @@ fn preview_body(i18n: I18n, event: &NotificationEvent, account_id: &str) -> Stri
     let content = event.content.chars().take(512).collect::<String>();
     let body = if matches!(event.status.as_str(), "UNKNOWN" | "FAILED") {
         i18n.format(
-            "Waiting for {sender} to get online and establish an encrypted session.",
-            "正在等待{sender}上线以建立加密会话。",
+            Key::NshEncryptedSessionWaiting,
             &[("sender", &event.sender_name)],
         )
     } else if event.category == "SYSTEM_CONVERSATION" {
@@ -219,10 +218,9 @@ fn preview_body(i18n: I18n, event: &NotificationEvent, account_id: &str) -> Stri
                 )
             })
             .filter(|value| !value.is_empty())
-            .unwrap_or_else(|| i18n.tr("a message", "一条消息").into());
+            .unwrap_or_else(|| i18n.t(Key::AMessage).into());
         i18n.format(
-            "{sender} pinned {message}",
-            "{sender}置顶了{message}",
+            Key::NshSenderPinnedMessage,
             &[("sender", &event.sender_name), ("message", &message)],
         )
     } else {

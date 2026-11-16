@@ -2,7 +2,7 @@ use mixin_desktop_api::{AccountClient, MessageListView};
 use nsh_core::prelude::*;
 use std::sync::Arc;
 
-use super::{Tray, forms, tr};
+use super::{Tray, forms};
 use crate::{
     i18n::{self, Key},
     motion::Presence,
@@ -113,25 +113,20 @@ pub(crate) fn attachment_menu(
         .trigger(
             super::surface::menu_trigger()
                 .test_id("composer-attachment-trigger")
-                .tooltip(ui::hint(move || {
-                    tr(i18n, "Add attachment", "添加附件").to_owned()
-                }))
+                .tooltip(ui::hint(move || i18n.t(Key::NshAddAttachment).to_owned()))
                 .style_when(open, |s| {
                     s.bg(ui::state_selected).text_color(ui::fg_primary)
                 })
-                .optional_label(move || Some(i18n.text(Key::Attachment).into()))
+                .optional_label(move || Some(i18n.t(Key::NshSendFile).into()))
                 .child(ui::icon(ui::Icon::Attachment)),
         )
         .child(
             ui::menu_row_symbol(ui::Icon::Image, move || {
-                tr(i18n, "Pictures and videos…", "图片和视频…")
+                i18n.t(Key::NshPicturesAndVideosMessage)
             })
             .on_select(media),
         )
-        .child(
-            ui::menu_row_symbol(ui::Icon::File, move || tr(i18n, "Files…", "文件…"))
-                .on_select(files),
-        )
+        .child(ui::menu_row_symbol(ui::Icon::File, move || i18n.t(Key::NshFiles)).on_select(files))
         .child(
             nsh_base::menu_separator()
                 .h(ui::hairline_width())
@@ -139,10 +134,8 @@ pub(crate) fn attachment_menu(
                 .bg(ui::hairline),
         )
         .child(
-            ui::menu_row_symbol(ui::Icon::Person, move || tr(i18n, "Contact…", "联系人…"))
+            ui::menu_row_symbol(ui::Icon::Person, move || i18n.t(Key::NshContact))
                 .on_select(contact),
         )
-        .child(
-            ui::menu_row_symbol(ui::Icon::Post, move || tr(i18n, "Post…", "文章…")).on_select(post),
-        )
+        .child(ui::menu_row_symbol(ui::Icon::Post, move || i18n.t(Key::NshPost)).on_select(post))
 }

@@ -1,42 +1,21 @@
-# NSH copy coverage audit
+# NSH localization coverage
 
-The initial 2026-11-06 audit recorded 299 NSH-only phrases without an original
-Flutter ARB match. All 299 now have explicit translations in `supplemental.json`
-for es, id, ja, ms, ru, zh-CN, zh-TW and zh-HK; the exact English key supplies
-the English copy. The original ARB translations remain unchanged and take
-priority.
+All fixed English/Chinese translation pairs and former supplemental messages
+have ARB keys. Rust translation call sites consume the generated `i18n::Key`
+values directly, including menu options, preview labels, system-message
+arguments, disappearing-message units and native bot chrome.
 
-The current source scan covers 652 fixed English/Chinese copy pairs across
-`nsh/src`, representing 637 distinct English keys. It includes 647 adjacent
-literal pairs in `Key` declarations, `tr` / `label` / `format` calls and paired
-options, plus five singular-duration branches that reuse the plural branch’s
-Chinese template. Zero pairs lack a resolved translation in any of the eight
-non-English locales. Coverage includes avatar crop controls, sender loading
-states, unknown/encrypted/system messages, inscription metadata and bounded
-text-preview states, disappearing-message units, shared-media empty states,
-attachment progress controls, and missing reference Indonesian and Malay entries.
+The original Flutter keys and translations are preserved. NSH-only keys live in
+the ARB catalogs and have English, simplified Chinese, Taiwan Chinese and Hong
+Kong Chinese values. Existing additional locale translations were retained;
+missing entries in Spanish, Indonesian, Japanese, Malay and Russian use English.
+New regional translations still require native-speaker review.
 
-The supplemental catalog contains 553 exact English keys. Its 34 named
-parameter templates have the same placeholder names in every locale. A temporary
-Rust harness imports the actual language, alias and catalog modules. It checked
-617 static source pairs in all nine locales, rendered all 34 catalog templates,
-checked that every argument appeared and no placeholders remained, and verified
-that argument values containing braces are preserved verbatim. The five
-singular-duration branches were audited explicitly because they do not repeat
-the Chinese literal beside the English string.
+This coverage excludes user content, server-provided text, fixture messages,
+brand names, binary units, protocol identifiers and English-only accessibility
+labels. Date/time formatting is owned by the presentation layer. The original
+Flutter ICU plural/select entries are preserved but are not interpreted by the
+simple explicit-placeholder formatter; NSH uses separate keys where needed.
 
-Additional catalog entries cover native bot chrome and dialogs: Back, More,
-Close, Refresh, Copy link, Open in browser, Webpage, OK, Cancel and the download
-failure message. Their native presentation wiring is owned by the bot host.
-
-The audit covers application-authored fixed copy and these explicit templates.
-It does not claim that arbitrary runtime strings, server-provided content or
-user names/messages are translated. Brand names, binary units and protocol
-identifiers retain their original spelling. Unpaired English-only accessibility
-labels are allowed by the NSH design guide. Date/time formatting is owned by the
-presentation layer and requires a separate locale-aware formatter.
-
-Catalog coverage is a source-level result. Native-speaker review, translated
-text expansion, live language switching and visual layout remain unverified.
-Unknown future copy has an explicit English fallback; it is not silently
-substituted with simplified Chinese for Taiwan or Hong Kong.
+Source and unit-test coverage do not establish native font measurement, text
+expansion, visual layout, live language switching or Windows/Linux acceptance.

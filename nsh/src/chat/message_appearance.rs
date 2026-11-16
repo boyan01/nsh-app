@@ -1,4 +1,5 @@
 //! Shared sender, delivery and surface presentation for timeline rows.
+use crate::i18n::Key;
 use mixin_desktop_api::MessageListView;
 use nsh_core::{
     element::{AdaptiveColor, ImageSrc},
@@ -267,7 +268,7 @@ pub(super) fn nip(
     dynamic(move || {
         if mine() {
             layers(
-                include_str!("../../assets/message/nip_right.svg"),
+                crate::assets::svg::MESSAGE_NIP_RIGHT,
                 view()
                     .absolute()
                     .right(-ui::bubble_nip_width())
@@ -278,7 +279,7 @@ pub(super) fn nip(
             .into_element()
         } else {
             layers(
-                include_str!("../../assets/message/nip_left.svg"),
+                crate::assets::svg::MESSAGE_NIP_LEFT,
                 view()
                     .absolute()
                     .left(-ui::bubble_nip_width())
@@ -318,10 +319,10 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
         .items_center()
         .h(ui::message_status_height());
     if row.pinned {
-        line = line.child(mark(include_str!("../../assets/message/pin.svg")));
+        line = line.child(mark(crate::assets::svg::MESSAGE_PIN));
     }
     if secret(row) {
-        line = line.child(mark(include_str!("../../assets/message/secret.svg")));
+        line = line.child(mark(crate::assets::svg::MESSAGE_SECRET));
     }
     line = line.child(
         text(presentation::clock(row.created_at_micros / 1000))
@@ -389,9 +390,9 @@ pub(super) fn detail_icon() -> View {
         .text_color(ui::media_overlay_foreground)
         .pointer_events(PointerEvents::None)
         .child(
-            svg(ImageSrc::svg_markup(include_str!(
-                "../../assets/message/post_detail.svg"
-            )))
+            svg(ImageSrc::svg_markup(
+                crate::assets::svg::MESSAGE_POST_DETAIL,
+            ))
             .size(ui::icon_md()),
         )
 }
@@ -461,7 +462,7 @@ pub(super) fn sender(
         .child(when(
             move || message().is_some_and(|row| row.sender_is_scam),
             move || {
-                text(move || actions.i18n.tr("SCAM", "诈骗风险"))
+                text(move || actions.i18n.t(Key::NshSCAM))
                     .text_role(ui::TextRole::Caption)
                     .text_color(ui::danger)
             },

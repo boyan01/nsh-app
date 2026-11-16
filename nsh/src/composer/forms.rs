@@ -2,7 +2,7 @@ use mixin_desktop_api::UserProfileItem;
 use nsh_core::prelude::*;
 use std::collections::HashSet;
 
-use super::{attachments::Host, clear_quote, quote_id, tr, wide_dialog};
+use super::{attachments::Host, clear_quote, quote_id, wide_dialog};
 use crate::{
     i18n::{self, Key},
     runtime,
@@ -189,14 +189,12 @@ fn contact_view(
     let row_height = ui::field_height() + ui::space_lg();
     ui::dialog_card(ui::DialogWidth::Regular)
         .overflow_hidden()
-        .child(ui::dialog_title(move || {
-            tr(i18n, "Share contact", "分享联系人")
-        }))
+        .child(ui::dialog_title(move || i18n.t(Key::NshShareContact)))
         .child(
             ui::field()
                 .flex_none()
-                .label(move || i18n.text(Key::SearchContact))
-                .placeholder(move || i18n.text(Key::SearchContact).to_owned())
+                .label(move || i18n.t(Key::NshSearchContact))
+                .placeholder(move || i18n.t(Key::NshSearchContact).to_owned())
                 .auto_focus(focus)
                 .value(move || query.get())
                 .readonly(busy)
@@ -226,7 +224,7 @@ fn contact_view(
                 .child(when(
                     move || loading.get() && rows.with(Vec::is_empty),
                     move || {
-                        let label = move || tr(i18n, "Loading contacts…", "正在加载联系人…");
+                        let label = move || i18n.t(Key::NshLoadingContacts);
                         view()
                             .flex_row()
                             .items_center()
@@ -240,21 +238,18 @@ fn contact_view(
                 ))
                 .child(when(load_failed, move || {
                     ui::parts::failure(
-                        || {
-                            crate::i18n::tr(
-                                "Contacts are temporarily unavailable.",
-                                "暂时无法加载联系人",
-                            )
-                        },
+                        || crate::i18n::t(Key::NshContactsAreTemporarilyUnavailable),
                         move || retry.update(|v| *v += 1),
                     )
                 }))
                 .child(when(send_failed, move || {
-                    ui::error_text(move || i18n.text(Key::SendFailed))
+                    ui::error_text(move || {
+                        i18n.t(Key::NshCouldnTSendYourMessageIsStillHereTryAgain)
+                    })
                 }))
                 .child(when(
                     move || !loading.get() && !load_failed.get() && rows.with(Vec::is_empty),
-                    move || ui::placeholder(move || i18n.text(Key::NoContacts)).min_h_24(),
+                    move || ui::placeholder(move || i18n.t(Key::NshNoContactsFound)).min_h_24(),
                 ))
                 .child(
                     virtual_list(
@@ -352,7 +347,7 @@ fn contact_view(
                 .flex_row()
                 .justify_end()
                 .gap_2()
-                .child(ui::action(move || i18n.text(Key::Cancel), cancel).disabled(busy)),
+                .child(ui::action(move || i18n.t(Key::Cancel), cancel).disabled(busy)),
         )
 }
 
@@ -369,18 +364,14 @@ fn post_view(
 ) -> View {
     let i18n = i18n::current();
     wide_dialog()
-        .child(ui::dialog_title(move || {
-            tr(i18n, "Write a post", "撰写文章")
-        }))
+        .child(ui::dialog_title(move || i18n.t(Key::NshWriteAPost)))
         .child(
             ui::textarea()
                 .auto_focus(focus)
                 .h_64()
-                .label(move || i18n.text(Key::Post))
+                .label(move || i18n.t(Key::Post))
                 .readonly(busy)
-                .placeholder(move || {
-                    tr(i18n, "Write in Markdown…", "使用 Markdown 撰写…").to_owned()
-                })
+                .placeholder(move || i18n.t(Key::NshWriteInMarkdown).to_owned())
                 .value(move || content.get())
                 .on_key_press(move |key: &str| {
                     if key == "Escape" {
@@ -391,7 +382,7 @@ fn post_view(
                 .on_change(move |value: &str| content.set(value.to_owned())),
         )
         .child(when(failed, move || {
-            ui::error_text(move || i18n.text(Key::SendFailed))
+            ui::error_text(move || i18n.t(Key::NshCouldnTSendYourMessageIsStillHereTryAgain))
         }))
         .child(
             view()
@@ -399,14 +390,18 @@ fn post_view(
                 .justify_end()
                 .gap_2()
                 .child(
-                    ui::action(move || i18n.text(Key::Cancel), cancel)
+                    ui::action(move || i18n.t(Key::Cancel), cancel)
                         .disabled(move || busy.get() || composing.get()),
                 )
                 .child(
                     ui::primary()
                         .disabled(move || busy.get() || content.with(|s| s.trim().is_empty()))
                         .child(text(move || {
-                            i18n.text(if busy.get() { Key::Sending } else { Key::Send })
+                            i18n.t(if busy.get() {
+                                Key::NshSendingMessage
+                            } else {
+                                Key::Send
+                            })
                         }))
                         .on_press(send),
                 ),

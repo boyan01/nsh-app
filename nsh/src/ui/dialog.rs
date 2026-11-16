@@ -1,6 +1,7 @@
 //! Dialogs: the blocking frame and its card, and the layout of a person in one.
 //! The profile parts keep the measures of Flutter's `UserDialog`.
 
+use crate::i18n::Key;
 use nsh_base::ButtonElement;
 use nsh_core::{element::Modal, prelude::*};
 
@@ -16,7 +17,7 @@ use super::{
         surface_card, surface_popover,
     },
 };
-use crate::{i18n::tr, motion};
+use crate::{i18n::t, motion};
 
 #[derive(Clone, Copy)]
 pub(crate) enum DialogWidth {
@@ -140,7 +141,7 @@ pub(crate) fn dialog_close(on_press: impl Fn() + 'static) -> ButtonElement {
         .mt(space_md())
         .mr(space_md())
         .size(dialog_close_size())
-        .accessibility_label(move || Some(tr("Close", "关闭").into()))
+        .accessibility_label(move || Some(t(Key::Close).into()))
         .on_press(on_press)
         .child(icon(Icon::Close).size(icon_lg()))
 }

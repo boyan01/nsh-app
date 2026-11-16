@@ -24,19 +24,15 @@ pub(super) fn screen() -> impl IntoElement {
                                 && handle.permission.get() == Some(Permission::NotDetermined)
                         },
                         move || {
-                            ui::settings_row(None, move || {
-                                i18n.tr("Allow notifications", "允许通知")
-                            })
-                            .disabled(handle.busy)
-                            .on_press(move || handle.request_permission())
+                            ui::settings_row(None, move || i18n.t(Key::NshAllowNotifications))
+                                .disabled(handle.busy)
+                                .on_press(move || handle.request_permission())
                         },
                     ))
                     .child(when(available, move || {
-                        ui::settings_row(None, move || {
-                            i18n.tr("Refresh permission", "刷新权限状态")
-                        })
-                        .disabled(handle.busy)
-                        .on_press(move || handle.refresh_permission())
+                        ui::settings_row(None, move || i18n.t(Key::NshRefreshPermission))
+                            .disabled(handle.busy)
+                            .on_press(move || handle.refresh_permission())
                     }))
                     .child(when(
                         move || {
@@ -47,54 +43,37 @@ pub(super) fn screen() -> impl IntoElement {
             )
             .child(when(available, move || preview_setting(handle)))
             .child(when(handle.failed, move || {
-                ui::error_text(move || {
-                    i18n.tr(
-                        "Couldn’t use notifications. Check system permissions and try again.",
-                        "无法使用系统通知，请检查系统权限后重试。",
-                    )
-                })
+                ui::error_text(move || i18n.t(Key::NshNotificationsUnavailable))
             }))
             .child(when(settings_failed, move || {
-                ui::error_text(move || i18n.text(Key::CommandFailed))
+                ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
             })),
     )
 }
 
 fn permission_summary(i18n: I18n, handle: Handle) -> &'static str {
     if handle.availability == Availability::MissingAppBundle {
-        return i18n.tr(
-            "Notifications are available when you launch the packaged Mixin app.",
-            "请通过打包后的 Mixin 应用使用系统通知。",
-        );
+        return i18n.t(Key::NshNotificationsPackagedAppRequired);
     }
     if handle.availability != Availability::Available {
-        return i18n.tr(
-            "Notifications are not available on this platform yet.",
-            "此平台暂不支持系统通知。",
-        );
+        return i18n.t(Key::NshNotificationsAreNotAvailableOnThisPlatformYet);
     }
     match handle.permission.get() {
         #[cfg(target_os = "linux")]
-        Some(Permission::NotRequired) => i18n.tr(
-            "No app permission prompt is required on this system.",
-            "此系统无需单独授权应用通知。",
-        ),
-        Some(Permission::Authorized | Permission::Provisional) => {
-            i18n.tr("Notifications are enabled", "已允许通知")
+        Some(Permission::NotRequired) => {
+            i18n.t(Key::NshNoAppPermissionPromptIsRequiredOnThisSystem)
         }
-        Some(Permission::Denied) => i18n.tr(
-            "Notifications are disabled in system settings",
-            "系统设置中已关闭通知",
-        ),
-        Some(Permission::NotDetermined) => i18n.tr(
-            "Allow notifications to receive new message alerts.",
-            "允许通知后，可接收新消息提醒。",
-        ),
-        Some(Permission::Unknown) => i18n.tr(
-            "The system returned an unknown notification permission.",
-            "系统返回了未知的通知权限状态。",
-        ),
-        None => i18n.tr("Checking notification permission…", "正在检查通知权限…"),
+        Some(Permission::Authorized | Permission::Provisional) => {
+            i18n.t(Key::NshNotificationsAreEnabled)
+        }
+        Some(Permission::Denied) => i18n.t(Key::NshNotificationsAreDisabledInSystemSettings),
+        Some(Permission::NotDetermined) => {
+            i18n.t(Key::NshAllowNotificationsToReceiveNewMessageAlerts)
+        }
+        Some(Permission::Unknown) => {
+            i18n.t(Key::NshTheSystemReturnedAnUnknownNotificationPermission)
+        }
+        None => i18n.t(Key::NshCheckingNotificationPermission),
     }
 }
 
@@ -103,16 +82,13 @@ fn preview_setting(handle: Handle) -> impl IntoElement {
     view()
         .gap_2()
         .child(ui::card().child(ui::toggle_row(
-            move || i18n.tr("Message preview", "消息预览"),
+            move || i18n.t(Key::NshMessagePreview),
             move || handle.preview.get(),
             move || !handle.preview_ready.get() || handle.preview_busy.get(),
             move |value| handle.set_preview(value),
         )))
         .child(parts::note(move || {
-            i18n.tr(
-                "Show message content in notifications. Turn this off to keep message content private.",
-                "在通知中显示消息内容。关闭后，通知仅显示通用消息提示。",
-            )
+            i18n.t(Key::NshNotificationPreviewDescription)
         }))
         .child(when(handle.preview_failed, move || {
             load_error(move || handle.refresh_preview())
@@ -121,27 +97,28 @@ fn preview_setting(handle: Handle) -> impl IntoElement {
 
 fn system_settings(failed: Signal<bool>) -> impl IntoElement {
     let i18n = i18n::current();
-    ui::settings_row(None, move || {
-        i18n.tr("Open notification settings", "打开系统通知设置")
-    })
-    .child(ui::chevron())
-    .on_press(move || {
-        spawn(async move {
-            failed.set(
-                !open_url(if cfg!(target_os = "windows") {
-                    "ms-settings:notifications"
-                } else {
-                    "x-apple.systempreferences:com.apple.preference.notifications"
-                })
-                .await,
-            );
-        });
-    })
+    ui::settings_row(None, move || i18n.t(Key::NshOpenNotificationSettings))
+        .child(ui::chevron())
+        .on_press(move || {
+            spawn(async move {
+                failed.set(
+                    !open_url(if cfg!(target_os = "windows") {
+                        "ms-settings:notifications"
+                    } else {
+                        "x-apple.systempreferences:com.apple.preference.notifications"
+                    })
+                    .await,
+                );
+            });
+        })
 }
 
 pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
-    parts::failure(move || i18n.text(Key::CommandFailed), retry)
+    parts::failure(
+        move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain),
+        retry,
+    )
 }
 
 #[cfg(debug_assertions)]

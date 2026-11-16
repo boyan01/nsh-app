@@ -5,7 +5,7 @@ use nsh_base::{ButtonElement, PopoverEvent};
 use nsh_core::{element::desktop::MenuItem, prelude::*};
 use std::{future::Future, rc::Rc, sync::Arc};
 
-use super::{emoji, sticker_store, tool_button, tr};
+use super::{emoji, sticker_store, tool_button};
 use crate::{
     i18n::{self, Key},
     runtime,
@@ -234,13 +234,13 @@ pub(crate) fn stickers(
                 .trigger(
                     view()
                         .tooltip(ui::hint(move || {
-                            tr(i18n, "Emoji and stickers", "表情与贴纸").to_owned()
+                            i18n.t(Key::NshEmojiAndStickers).to_owned()
                         }))
                         .on_mouse_enter(move |_: &MouseEvent| hover(true, over_button))
                         .on_mouse_leave(move |_: &MouseEvent| hover(false, over_button))
                         .child(
                             tool_button()
-                                .accessibility_label(move || Some(i18n.text(Key::Emoji).into()))
+                                .accessibility_label(move || Some(i18n.t(Key::NshStickers).into()))
                                 .style_when(state.open, |s| {
                                     s.bg(ui::state_selected).text_color(ui::fg_primary)
                                 })
@@ -371,12 +371,9 @@ pub(super) fn grid_items(
                 .gap_2()
                 .child(ui::busy_indicator(
                     move || loading.get(),
-                    move || tr(i18n, "Loading stickers…", "正在加载贴纸…").into(),
+                    move || i18n.t(Key::NshLoadingStickers).into(),
                 ))
-                .child(
-                    text(move || tr(i18n, "Loading stickers…", "正在加载贴纸…"))
-                        .text_role(ui::TextRole::Body),
-                )
+                .child(text(move || i18n.t(Key::NshLoadingStickers)).text_role(ui::TextRole::Body))
         }))
         .child(when(
             move || !loading.get() && !state.failed.get() && !personal && items.with(Vec::is_empty),
@@ -464,9 +461,9 @@ pub(super) fn grid_items(
                                         };
                                         let personal = tab.with(|t| *t == Tab::Personal);
                                         let title = if personal {
-                                            tr(i18n, "Delete", "删除")
+                                            i18n.t(Key::Delete)
                                         } else {
-                                            tr(i18n, "Add Sticker", "添加贴纸")
+                                            i18n.t(Key::AddSticker)
                                         };
                                         let icon = if personal {
                                             ui::MenuIcon::Delete
@@ -556,29 +553,23 @@ pub(crate) fn panel_surface(
                                 .h(ui::sticker_tab_bar_height())
                                 .children(
                                     [
-                                        (None, ui::Icon::StickerStore, "Sticker store", "贴纸商店"),
-                                        (Some(Tab::Emoji), ui::Icon::Sticker, "Emoji", "表情"),
-                                        (
-                                            Some(Tab::Recent),
-                                            ui::Icon::Clock,
-                                            "Recently used",
-                                            "最近使用",
-                                        ),
+                                        (None, ui::Icon::StickerStore, Key::NshStickerStore),
+                                        (Some(Tab::Emoji), ui::Icon::Sticker, Key::NshEmoji),
+                                        (Some(Tab::Recent), ui::Icon::Clock, Key::NshRecentlyUsed),
                                         (
                                             Some(Tab::Personal),
                                             ui::Icon::StickerFavorite,
-                                            "My stickers",
-                                            "我的贴纸",
+                                            Key::NshMyStickers,
                                         ),
                                     ]
                                     .into_iter()
                                     .map(
-                                        move |(destination, icon, en, zh)| {
+                                        move |(destination, icon, key)| {
                                             let target = stored(destination);
                                             panel_tab()
                                                 .flex_shrink_0()
                                                 .accessibility_label(move || {
-                                                    Some(tr(i18n, en, zh).into())
+                                                    Some(i18n.t(key).into())
                                                 })
                                                 .selected(move || {
                                                     target.with(|v| {
@@ -599,7 +590,7 @@ pub(crate) fn panel_surface(
                                                 .child(
                                                     view()
                                                         .tooltip(ui::hint(move || {
-                                                            tr(i18n, en, zh).into()
+                                                            i18n.t(key).into()
                                                         }))
                                                         .child(ui::icon(icon).size(ui::icon_lg())),
                                                 )
@@ -655,7 +646,7 @@ pub(crate) fn import_tile(busy: Signal<bool>, import: impl Fn() + 'static) -> Bu
     let i18n = i18n::current();
     sticker_tile()
         .disabled(busy)
-        .accessibility_label(move || Some(tr(i18n, "Import sticker…", "导入贴纸…").into()))
+        .accessibility_label(move || Some(i18n.t(Key::NshImportSticker).into()))
         .on_press(import)
         .child(
             view()
@@ -694,18 +685,14 @@ pub(crate) fn empty_stickers(tab: impl Fn() -> Tab + 'static) -> View {
                 .text_color(ui::fg_tertiary),
         )
         .child(
-            text(move || i18n.text(Key::NoStickers))
+            text(move || i18n.t(Key::NshNoStickersYet))
                 .text_role(ui::TextRole::Body)
                 .text_color(ui::fg_secondary),
         )
         .child(
             text(move || {
                 if tab.get() == Tab::Recent {
-                    tr(
-                        i18n,
-                        "Stickers you send appear here",
-                        "发送过的贴纸会显示在这里",
-                    )
+                    i18n.t(Key::NshStickersYouSendAppearHere)
                 } else {
                     ""
                 }
@@ -721,6 +708,6 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
         .flex_row()
         .items_center()
         .gap_2()
-        .child(ui::error_text(move || i18n.text(Key::CommandFailed)).flex_1())
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)).flex_1())
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }

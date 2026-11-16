@@ -400,5 +400,836 @@
 "window" : "Окно",
 "withdrawal" : "Вывести",
 "you" : "Вы",
-"youDeletedThisMessage" : "Вы удалили это сообщение"
+"youDeletedThisMessage" : "Вы удалили это сообщение",
+  "nsh1Day": "1 день",
+  "nsh1Hour": "1 час",
+  "nsh1Week": "1 неделя",
+  "nsh1Year": "1 год",
+  "nsh10Minutes": "10 минут",
+  "nsh2Hours": "2 часа",
+  "nsh30Seconds": "30 секунд",
+  "nsh8Hours": "8 часов",
+  "nshAGroupMember": "Участник группы",
+  "nshScreenPasscodeDescription": "Код блокировки скрывает содержимое аккаунта. Mixin продолжает синхронизацию в фоне.",
+  "nshAboutMixinMessenger": "О приложении",
+  "nshAccountContentWillNoLongerBeHiddenWhenMixinLocks": "Содержимое аккаунта больше не будет скрываться при блокировке Mixin.",
+  "nshAction": "Действие",
+  "nshActualFit": "По размеру окна",
+  "nshAddHTTPProxy": "Добавить HTTP-прокси",
+  "nshAddACaption": "Добавить подпись…",
+  "nshAddAProxyBeforeEnablingIt": "Добавьте прокси перед включением.",
+  "nshAddAlbum": "Добавить альбом",
+  "nshAddContact": "Добавить контакт",
+  "nshAddContactMessage": "Добавить контакт",
+  "nshAddFiles": "Добавить файлы…",
+  "nshAddParticipants": "Добавить участников",
+  "nshAddParticipantsMessage": "Добавить участников",
+  "nshAddProxy": "Добавить прокси…",
+  "nshAddSticker": "Добавить наклейку",
+  "addToCircle": "Добавить в круг",
+  "nshAddingChat": "Добавление чата…",
+  "nshAll": "Все",
+  "nshAllChats": "Чаты",
+  "nshAllow": "Разрешить",
+  "nshAllowNotifications": "Разрешить уведомления",
+  "nshAllowNotificationsToReceiveNewMessageAlerts": "Разрешите уведомления о новых сообщениях.",
+  "nshAllowThisDeviceToSendChatHistoryToYourPhone": "Разрешить этому устройству отправить историю чатов на телефон?",
+  "nshAllowYourPhoneToSendChatHistoryToThisDevice": "Разрешить телефону отправить историю чатов на это устройство?",
+  "nshAmount": "Сумма",
+  "nshAnyoneWithThisLinkCanJoinTheGroup": "Любой, у кого есть эта ссылка, сможет вступить в группу.",
+  "nshAspectRatio": "Соотношение сторон",
+  "nshAsset": "Актив",
+  "nshAssetID": "ID актива",
+  "nshAutomaticLock": "Автоблокировка",
+  "nshAutomaticMediaDownload": "Автозагрузка медиа",
+  "nshAutomaticallyDownloadMediaWhenMessagesArrive": "Автоматически загружать медиа при получении сообщений.",
+  "nshBack": "Назад",
+  "nshBackToLatest": "К последним сообщениям",
+  "nshBasicMember": "Базовый участник",
+  "nshBiometricUnlock": "Разблокировка по биометрии",
+  "nshBlack": "Чёрный",
+  "nshBlockThisUser": "Заблокировать пользователя?",
+  "nshBlock": "Блокировать",
+  "nshBlue": "Синий",
+  "nshBot": "Бот",
+  "nshBotWindowsUnavailable": "Окна ботов недоступны",
+  "nshBrush": "Кисть",
+  "nshCalculatingStorage": "Подсчёт хранилища…",
+  "nshCancelDownload": "Отменить загрузку",
+  "nshCancelTransfer": "Отменить передачу",
+  "nshCaption": "Подпись",
+  "nshChangeAvatar": "Изменить аватар…",
+  "nshChangeGroupPhoto": "Изменить фото группы…",
+  "nshChatBackupAndRestore": "Резервное копирование и восстановление чатов",
+  "nshChatBackupAndRestoreMessage": "Резервное копирование и восстановление чатов",
+  "nshChatHistory": "Стенограмма",
+  "nshChatInfo": "Информация о чате",
+  "nshChatPreferences": "Настройки чата",
+  "nshChatTextSize": "Размер текста чата",
+  "nshChatsInThisCircleWillRemainAvailableInAllChats": "Чаты этого круга останутся в разделе «Все чаты».",
+  "nshCheckTheLinkAndYourConnectionThenTryAgain": "Проверьте ссылку и подключение, затем повторите попытку.",
+  "nshCheckYourConnectionAndTryAgain": "Проверьте подключение и повторите попытку.",
+  "nshCheckYourSystemClockAndTryAgain": "Проверьте системное время и повторите попытку.",
+  "nshCheckingNotificationPermission": "Проверка разрешения уведомлений…",
+  "nshCheckingScreenPrivacy": "Проверка защиты экрана…",
+  "nshChooseASender": "Выбрать отправителя",
+  "nshChooseCirclesForThisChat": "Выберите круги для этого чата.",
+  "nshChooseRecipient": "Выбрать получателя",
+  "nshChooseRecipientMessage": "Выбрать получателя…",
+  "nshCircleCreatedButThisChatCouldnTBeAddedRetryAddingIt": "Круг создан, но этот чат добавить не удалось. Повторите попытку.",
+  "nshCircleName": "Название круга",
+  "nshClearCache": "Очистить кэш",
+  "nshClearMediaCacheDescription": "Удалить кэш медиа с этого устройства. Сообщения останутся в чате.",
+  "nshClearChat": "Очистить чат?",
+  "nshClearChatMessage": "Очистить чат",
+  "nshClearFilters": "Сбросить фильтры",
+  "nshClearSelectedCache": "Очистить выбранный кэш…",
+  "nshClearSender": "Сбросить отправителя",
+  "nshClearTheSelectedMediaCache": "Очистить выбранный кэш медиа?",
+  "nshClearingCache": "Очистка кэша…",
+  "collectible": "Коллекционный предмет",
+  "collection": "Коллекция",
+  "nshCollectionHash": "Хеш коллекции",
+  "nshCombineAndForward": "Объединить и переслать",
+  "nshCompleteThisPaymentInMixinOnYourPhone": "Завершите платёж в Mixin на телефоне.",
+  "nshCompressImages": "Сжимать изображения",
+  "nshConfirmYourPasscode": "Подтвердите код блокировки",
+  "confirmations": "Подтверждения",
+  "nshContactCard": "Контакт",
+  "nshContactPreviewUnavailable": "Предпросмотр контакта недоступен",
+  "nshContact": "Контакт",
+  "nshContentType": "Тип содержимого",
+  "nshContentUnavailable": "Содержимое недоступно",
+  "nshConversationInfo": "Информация о чате",
+  "nshConversations": "Чаты",
+  "nshConversationsAddedToThisCircleWillAppearHere": "Беседы, добавленные в этот круг, появятся здесь.",
+  "nshConversationsWithBotsWillAppearHere": "Беседы с ботами появятся здесь.",
+  "nshStrangerConversationsEmptyDescription": "Беседы с людьми не из ваших контактов появятся здесь.",
+  "nshConversationsWithYourContactsWillAppearHere": "Беседы с вашими контактами появятся здесь.",
+  "copyImage": "Копировать изображение",
+  "copySelectedText": "Копировать выделенный текст",
+  "copyText": "Копировать текст",
+  "nshCopyImage": "Копировать изображение",
+  "nshCopyLink": "Копировать ссылку",
+  "nshCouldnTAddTheseFilesTryAgain": "Не удалось добавить эти файлы. Повторите попытку.",
+  "nshCouldnTClearBrowserDataTryAgain": "Не удалось удалить данные браузера. Попробуйте ещё раз.",
+  "nshCouldnTCompleteThisActionTryAgain": "Не удалось выполнить действие. Повторите попытку.",
+  "nshCouldnTCreateASignInCode": "Не удалось создать код входа",
+  "nshCouldnTCreateTheCircleTryAgain": "Не удалось создать круг. Повторите попытку.",
+  "nshCouldnTDisplayThisPhoto": "Не удалось показать фото.",
+  "nshCouldnTDownloadThisFileTryAgain": "Не удалось скачать файл. Повторите попытку.",
+  "nshCouldnTEditThisImageUndoTheLastEditOrTryAgain": "Не удалось изменить изображение. Отмените последнее изменение или повторите попытку.",
+  "nshCouldnTFindThisContactCheckTheIDAndTryAgain": "Не удалось найти контакт. Проверьте ID и повторите попытку.",
+  "nshCouldnTJoinThisGroupTryAgain": "Не удалось вступить в группу. Повторите попытку.",
+  "nshCouldnTLoadChats": "Не удалось загрузить чаты.",
+  "nshCouldnTLoadChatsTryAgain": "Не удалось загрузить чаты. Повторите попытку.",
+  "nshCouldnTLoadContent": "Не удалось загрузить содержимое",
+  "nshCouldnTLoadConversations": "Не удалось загрузить чаты",
+  "nshCouldnTLoadMembersTypeAgainToRetry": "Не удалось загрузить участников. Введите текст ещё раз.",
+  "nshCouldnTLoadMessages": "Не удалось загрузить сообщения",
+  "nshCouldnTLoadQuickSearch": "Не удалось загрузить быстрый поиск",
+  "nshCouldnTLoadRecentEmoji": "Не удалось загрузить недавние эмодзи.",
+  "nshCouldnTLoadRecipients": "Не удалось загрузить получателей.",
+  "nshCouldnTLoadSenders": "Не удалось загрузить отправителей",
+  "nshCouldnTLoadThisRecipient": "Не удалось загрузить получателя.",
+  "nshCouldnTLoadUnreadMessages": "Не удалось загрузить непрочитанные сообщения.",
+  "nshCouldnTLoadTryAgain": "Не удалось загрузить. Попробуйте ещё раз.",
+  "nshCouldnTOpenMixin": "Не удалось открыть Mixin",
+  "nshCouldnTOpenConversation": "Не удалось открыть чат",
+  "nshCouldnTOpenTheBrowser": "Не удалось открыть браузер.",
+  "nshCouldnTOpenThePage": "Не удалось открыть страницу",
+  "nshCouldnTOpenThisLink": "Не удалось открыть ссылку",
+  "nshCouldnTOpenThisResultCheckItAndTryAgain": "Не удалось открыть результат. Проверьте его и повторите попытку.",
+  "nshCouldnTOpenThisResultTryAgain": "Не удалось открыть результат. Повторите попытку.",
+  "nshCouldnTPrepareThePhotoTryAgain": "Не удалось подготовить фото. Повторите попытку.",
+  "nshCouldnTPrepareThisFileRemoveItOrSendAsFiles": "Не удалось подготовить этот файл. Удалите его или отправьте как файл.",
+  "nshCouldnTPrepareThisMediaSendAsFilesOrChooseOtherFiles": "Не удалось подготовить медиа. Отправьте их как файлы или выберите другие.",
+  "nshScreenPrivacyLoadFailed": "Не удалось прочитать настройки защиты экрана. Содержимое аккаунта остаётся скрытым.",
+  "nshCouldnTRefreshSavedChangesReloadBeforeSavingAgain": "Не удалось обновить сохранённые изменения. Перезагрузите перед повторным сохранением.",
+  "nshCouldnTRefreshYourProfileYourSavedProfileIsShown": "Не удалось обновить профиль. Показан сохранённый профиль.",
+  "nshCouldnTRespondToTheTransferRequestTryAgain": "Не удалось ответить на запрос переноса. Повторите попытку.",
+  "nshCouldnTSaveEmojiPreferences": "Не удалось сохранить настройки эмодзи.",
+  "nshCouldnTSaveOrLoadChatPreferencesTryAgain": "Не удалось сохранить или загрузить настройки чата. Повторите попытку.",
+  "nshCouldnTSaveSidebarSettings": "Не удалось сохранить настройки боковой панели",
+  "nshCouldnTSaveTheLanguageTryAgain": "Не удалось сохранить язык. Повторите попытку.",
+  "nshCouldnTSaveYourDraftTryAgain": "Не удалось сохранить черновик. Повторите попытку.",
+  "nshCouldnTSaveTryAgain": "Не удалось сохранить. Повторите попытку.",
+  "nshCouldnTSendThisMessageTryAgain": "Не удалось отправить сообщение. Повторите попытку.",
+  "nshCouldnTSendYourMessageIsStillHereTryAgain": "Не удалось отправить. Сообщение сохранено здесь. Повторите попытку.",
+  "nshCouldnTUnlockCheckYourPasscodeAndTryAgain": "Не удалось разблокировать. Проверьте код и повторите попытку.",
+  "nshCouldnTUpdateCirclesTryAgain": "Не удалось обновить круги. Повторите попытку.",
+  "nshCouldnTUpdateTryAgain": "Не удалось обновить. Повторите попытку.",
+  "nshNotificationsUnavailable": "Не удалось использовать уведомления. Проверьте системные разрешения и повторите попытку.",
+  "nshCreateCircle": "Новый круг",
+  "nshCreatedBy": "Автор",
+  "createdAt": "Создано {arg0}",
+  "@createdAt": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCreatingCircleAndAddingChat": "Создание круга и добавление чата…",
+  "nshCreating": "Создание…",
+  "nshCropPhoto": "Обрезать фото",
+  "nshCropPreviewDragOrUseArrowKeysToMoveThePhoto": "Предпросмотр обрезки. Перемещайте фото мышью или клавишами со стрелками.",
+  "nshCropRatio": "Пропорции обрезки",
+  "nshCustomColor": "Другой цвет…",
+  "nshCustomDrawingColor": "Свой цвет рисования",
+  "nshCustomTime": "Произвольное время",
+  "nshDataAndStorage": "Использование данных и хранилища",
+  "nshDate": "Дата",
+  "nshDays": "Дни",
+  "nshDeleteChat": "Удалить чат",
+  "nshDeleteForEveryone": "Удалить у всех?",
+  "nshDeleteForEveryoneMessage": "Удалить для всех",
+  "nshDeleteForMe": "Удалить у меня?",
+  "nshDeleteGroup": "Удалить группу?",
+  "nshDeleteGroupMessage": "Удалить группу…",
+  "nshDeleteName": "Удалить «{name}»?",
+  "@nshDeleteName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nshDelete": "Удалить",
+  "nshDelivered": "Доставлено",
+  "nshDescription": "Описание",
+  "disabled": "Отключено",
+  "nshDisappearingMessages": "Исчезающие сообщения",
+  "discard": "Отменить изменения",
+  "nshDiscardImageEdits": "Отменить изменения изображения?",
+  "nshDiscardRecordingMessage": "Удалить запись?",
+  "nshDismiss": "Закрыть",
+  "nshDismissAsAdmin": "Снять права администратора",
+  "nshDownloadPhoto": "Скачать фото",
+  "draft": "Черновик",
+  "nshDragCropCornersOrMoveTheCrop": "Перетащите углы или переместите область обрезки",
+  "nshDragToMoveUseTheSliderToZoomImagesUpTo10MB": "Перетаскивайте для перемещения. Масштаб меняется ползунком. Изображения до 10 МБ.",
+  "nshDraw": "Рисовать",
+  "nshDrawOnTheImage": "Рисовать на изображении",
+  "nshEarlierMessages": "Предыдущие сообщения",
+  "nshEditConversations": "Редактировать беседы",
+  "nshEditGroup": "Изменить группу",
+  "nshEditGroupMessage": "Изменить группу…",
+  "nshEditImage": "Изменить изображение…",
+  "nshEditName": "Редактировать название",
+  "nshEditNameMessage": "Редактировать название",
+  "nshEditProfile": "Редактировать профиль",
+  "nshEnterAKeywordToSearch": "Введите ключевое слово для поиска",
+  "nshEnterATimeBetween1SecondAnd4Weeks": "Введите время от 1 секунды до 4 недель.",
+  "nshEnterAWholeNumberFrom1ToMaximum": "Введите целое число от 1 до {maximum}.",
+  "@nshEnterAWholeNumberFrom1ToMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "nshEraser": "Ластик",
+  "nshExitGroup": "Выйти из группы?",
+  "nshExitGroupMessage": "Выйти из группы",
+  "nshExpand": "Развернуть",
+  "nshExpired": "Срок истёк",
+  "nshFilesSavedOnlyOnThisDeviceMayNotBeDownloadableAgain": "Файлы, сохранённые только на этом устройстве, могут быть недоступны для повторной загрузки.",
+  "nshFiles": "Файлы",
+  "nshFlip": "Отразить",
+  "nshFollowSystem": "Следуйте системе",
+  "nshForwardMessages": "Переслать сообщения",
+  "nshForward": "Переслать",
+  "generateQrcode": "Создать QR-код",
+  "nshGray": "Серый",
+  "nshGreen": "Зелёный",
+  "nshGroup": "Группа",
+  "nshGroupConversationsWillAppearHere": "Групповые беседы появятся здесь.",
+  "nshGroupName": "Название группы",
+  "nshGroupParticipants": "Участники",
+  "nshGroupsInCommon": "Общие группы",
+  "nshHelpCenter": "Центр помощи",
+  "nshHi": "Привет!",
+  "nshHistory": "История",
+  "host": "Сервер",
+  "nshHours": "Часы",
+  "nshHowAreYou": "Как дела?",
+  "nshImagePreview": "Предпросмотр изображения",
+  "nshImportSticker": "Импортировать стикер…",
+  "nshInscription": "Инскрипция",
+  "nshInscriptionDetailsAreNotAvailableYet": "Сведения об инскрипции пока недоступны.",
+  "nshInscriptionHash": "Хеш инскрипции",
+  "nshInvalidCard": "Некорректная карточка",
+  "nshInvalidInvitation": "Недействительное приглашение",
+  "nshInvalidLocation": "Некорректное местоположение",
+  "nshInvitationIsUnavailable": "Приглашение недоступно.",
+  "nshInviteToGroup": "Пригласить в группу",
+  "nshInviteToGroupMessage": "Пригласить в группу…",
+  "nshJoinGroup": "Вступить в группу",
+  "nshJoined": "Дата регистрации",
+  "nshKeepBothDevicesConnectedUntilTheTransferFinishes": "Не отключайте оба устройства до завершения переноса.",
+  "nshTransferNetworkInstructions": "Подключите оба устройства к одной сети и откройте Mixin на телефоне. Подтвердите перенос на другом устройстве.",
+  "nshLanguage": "Язык",
+  "nshLearnMore": "Узнать больше",
+  "nshLoadingContacts": "Загрузка контактов…",
+  "nshLoadingContent": "Загрузка содержимого…",
+  "nshLoadingConversations": "Загрузка чатов…",
+  "nshLoadingMembers": "Загрузка участников…",
+  "nshLoadingMessages": "Загрузка сообщений…",
+  "nshLoadingProxies": "Загрузка прокси…",
+  "nshLoadingRecipient": "Загрузка получателя…",
+  "nshLoadingSenders": "Загрузка отправителей…",
+  "nshLoadingStickers": "Загрузка стикеров…",
+  "nshLoadingTransfer": "Загрузка перевода…",
+  "nshLoading": "Загрузка...",
+  "nshLocateInChat": "Перейти к чату",
+  "lock": "Заблокировать",
+  "nshAutomaticLockDescription": "Блокировать, когда Mixin теряет фокус. Возврат до истечения времени отменяет блокировку.",
+  "nshLockNow": "Заблокировать сейчас",
+  "nshLockingMixin": "Блокировка Mixin…",
+  "nshManageSubscriptions": "Управление подписками",
+  "nshMessage": "Сообщение",
+  "nshMessagePreview": "Предварительный просмотр сообщения",
+  "nshMessagesFromThisUserWillBeBlocked": "Сообщения этого пользователя будут заблокированы.",
+  "nshMessagesInThisChatWillBeRemovedFromThisDevice": "Сообщения чата будут удалены с этого устройства.",
+  "nshMessagesInThisConversationAreEndToEndEncrypted": "Сообщения в этом чате защищены сквозным шифрованием.",
+  "nshMinutes": "Минуты",
+  "nshMixinIDOrPhoneNumber": "Mixin ID или номер телефона",
+  "nshMoveDown": "Переместить вниз",
+  "nshMoveUp": "Переместить вверх",
+  "nshMuteNotifications": "Отключить уведомления",
+  "nshMuted": "Уведомления отключены",
+  "nshMute": "Беззвучный",
+  "nshNewCircle": "Новый круг",
+  "nshNewCircleName": "Новое название круга",
+  "nshNewCircleMessage": "Новый круг",
+  "nshNewConversation": "Новый разговор",
+  "nshNewGroup": "Новая группа",
+  "nshNewMessagesDisappearAfterTheSelectedTime": "Новые сообщения исчезнут через выбранное время.",
+  "nshNextPage": "Следующая страница",
+  "nshNextPhoto": "Следующее фото",
+  "nshNextUnreadMention": "Следующее непрочитанное упоминание",
+  "nshNoAppPermissionPromptIsRequiredOnThisSystem": "В этой системе не требуется отдельный запрос разрешения на уведомления приложения.",
+  "nshNoAvailableContacts": "Нет доступных контактов",
+  "nshNoBotConversations": "Нет бесед с ботами",
+  "nshNoChatsFound": "Чаты не найдены",
+  "nshNoCirclesYet": "Кругов пока нет",
+  "nshNoContactConversations": "Нет бесед с контактами",
+  "nshNoContactsFound": "Контакты не найдены",
+  "nshNoConversationsFound": "Чаты не найдены",
+  "nshNoConversationsInThisCircle": "В этом круге нет бесед",
+  "nshNoConversationsYet": "Чатов пока нет",
+  "nshNoEmojiFound": "Эмодзи не найдены",
+  "nshNoFiles": "Нет файлов",
+  "nshNoGroupConversations": "Нет групповых бесед",
+  "nshNoGroupsInCommon": "Нет общих групп",
+  "nshNoMessagesFound": "Сообщения не найдены",
+  "nshNoParticipantsFound": "Участники не найдены",
+  "nshNoPosts": "Нет публикаций",
+  "nshNoRecentEmoji": "Нет недавних эмодзи",
+  "nshNoRecipientsFound": "Получатели не найдены",
+  "nshNoResults": "НЕТ РЕЗУЛЬТАТОВ",
+  "nshNoSendersFound": "Отправители не найдены",
+  "nshNoSharedApps": "Нет общих приложений",
+  "nshNoSharedMedia": "Нет общих медиа",
+  "nshNoStickerAlbumsAvailable": "Нет доступных альбомов стикеров",
+  "nshNoStickersYet": "Стикеров пока нет",
+  "nshNoStoredMedia": "Нет сохранённых медиа",
+  "nshNoStrangerConversations": "Нет бесед с незнакомцами",
+  "nshNoSubscribedStickerAlbums": "Нет подписок на наборы стикеров",
+  "nshNoUnreadConversations": "Нет непрочитанных бесед",
+  "nshNotAdded": "Не добавлено",
+  "nshNotificationsPackagedAppRequired": "Уведомления доступны при запуске упакованного приложения Mixin.",
+  "nshNotificationsAreDisabledInSystemSettings": "Уведомления отключены в настройках системы",
+  "nshNotificationsAreEnabled": "Уведомления включены",
+  "nshNotificationsAreNotAvailableOnThisPlatformYet": "Уведомления пока недоступны на этой платформе.",
+  "nshOK": "ОК",
+  "nshOff": "Выкл.",
+  "open": "Открыть",
+  "nshOpenMixinOnYourPhone": "Откройте Mixin на телефоне.",
+  "nshOpenAnotherApp": "Открыть другое приложение?",
+  "nshOpenApp": "Открыть приложение",
+  "nshOpenChat": "Открыть чат",
+  "nshOpenContent": "Открыть содержимое",
+  "nshOpenHomePage": "Открыть главную страницу",
+  "nshOpenInBrowser": "Открыть в браузере",
+  "nshOpenLink": "Открыть ссылку",
+  "nshOpenLogDirectory": "открыть каталог журналов",
+  "nshOpenNavigation": "Открыть навигацию",
+  "nshOpenNotificationSettings": "Открыть настройки уведомлений",
+  "nshOpenProfile": "Открыть профиль",
+  "nshOpenThisBotOnYourPhone": "Откройте бота на телефоне.",
+  "nshOpenThisLinkInMixinOnYourPhone": "Откройте ссылку в Mixin на телефоне",
+  "nshOpenWithDefaultApp": "Открыть в приложении по умолчанию",
+  "nshOpeningMixin": "Открытие Mixin…",
+  "nshOriginalImage": "Оригинал",
+  "nshPNGJPEGGIFWebPOrBMPUpTo10MB": "PNG, JPEG, GIF, WebP или BMP · до 10 МБ",
+  "password": "Пароль",
+  "nshPasswordOptional": "Пароль (необязательно)",
+  "nshPause": "Пауза",
+  "nshPaymentDetails": "Детали платежа",
+  "nshPhoneNumber": "Номер телефона",
+  "nshPhoto": "изображение",
+  "nshPhotoZoom": "Масштаб фото",
+  "nshPhotosAndVideos": "Фото и видео",
+  "nshPicturesAndVideos": "Фото и видео",
+  "nshPicturesAndVideosMessage": "Фото и видео…",
+  "nshPinned": "Закреплено",
+  "nshPlay": "Воспроизвести",
+  "nshPlaybackFailed": "Ошибка воспроизведения",
+  "nshPlaybackSpeed": "Скорость воспроизведения",
+  "port": "Порт",
+  "nshPost": "Публикация",
+  "nshPremiumMember": "Премиум-участник",
+  "nshPreparingFiles": "Подготовка файлов…",
+  "nshPreparingImage": "Подготовка изображения…",
+  "nshPreparingYourCode": "Подготовка кода…",
+  "nshPreparing": "Подготовка…",
+  "nshPrevious": "Назад",
+  "nshPreviousPage": "Предыдущая страница",
+  "nshPreviousPhoto": "Предыдущее фото",
+  "nshPreviousResults": "Предыдущие результаты",
+  "nshPrivacyPolicy": "Политика конфиденциальности",
+  "nshProfile": "Профиль",
+  "proxy": "Прокси",
+  "nshPurple": "Фиолетовый",
+  "nshQRCode": "QR-код",
+  "nshQuantity": "Количество",
+  "nshQuickSearch": "Быстрый поиск",
+  "nshQuickSearchMessage": "Быстрый поиск",
+  "nshRead": "Прочитано",
+  "nshReceivers": "Получатели",
+  "nshRecentChats": "ЧАТЫ",
+  "nshReconnect": "Переподключиться",
+  "nshReconnecting": "Переподключение…",
+  "nshRecordAVoiceMessage": "Записать голосовое сообщение",
+  "nshRecordAgain": "Записать заново",
+  "nshRecording": "Запись…",
+  "nshRed": "Красный",
+  "nshRedo": "Повторить",
+  "nshRefreshPermission": "Обновить разрешение",
+  "nshReload": "Перезагрузить",
+  "nshReloadList": "Перезагрузить список",
+  "nshReloadRecipient": "Перезагрузить получателя",
+  "nshRemove": "Удалить",
+  "nshRemoveAlbum": "Удалить альбом",
+  "nshRemoveContact": "Удалить контакт?",
+  "nshRemoveContactMessage": "Удалить контакт",
+  "nshRemoveFromGroup": "Удалить из группы…",
+  "nshRemoveParticipant": "Удалить участника?",
+  "nshRemoveProxy": "Удалить прокси?",
+  "nshRemoveSelectedFile": "Удалить выбранный файл",
+  "nshRemoveMessage": "Удалить…",
+  "nshRenameCircle": "Изменить название круга",
+  "nshReplyToMessage": "Ответить на сообщение",
+  "nshReportAndBlock": "Пожаловаться и заблокировать…",
+  "nshResetInvitationLink": "Сбросить ссылку приглашения?",
+  "nshResetLink": "Сбросить ссылку",
+  "nshRetryAddingChat": "Повторить добавление чата",
+  "nshRetryPreview": "Повторить предпросмотр",
+  "nshReturnToMessage": "Вернуться к сообщению",
+  "nshRotate": "Повернуть",
+  "nshSCAM": "МОШЕННИЧЕСТВО",
+  "nshSaveAs": "Сохранить как",
+  "nshSaveTheseChangesBeforeSelectingMoreThan200Chats": "Сохраните изменения перед выбором более 200 чатов.",
+  "nshSaving": "Сохранение…",
+  "nshScanTheQRCodeAndConfirmSignIn": "Отсканируйте QR-код и подтвердите вход.",
+  "nshScanToSignIn": "Войдите в Mixin Messenger по QR-коду",
+  "nshScreenPasscode": "Код блокировки",
+  "nshScreenPrivacy": "Защита экрана",
+  "nshScreenPrivacyIsNotAvailableOnThisPlatformYet": "Защита экрана пока недоступна на этой платформе.",
+  "nshSearchMixinID": "Поиск Mixin ID",
+  "nshSearchChats": "Поиск беседы",
+  "nshSearchContacts": "Поиск контакта",
+  "nshSearchContact": "Поиск контакта",
+  "nshSearchConversationsAndContacts": "Поиск чатов и контактов",
+  "nshSearchEmoji": "Искать эмодзи",
+  "nshSearchEmojiMessage": "Искать эмодзи…",
+  "nshSearchMessages": "Поиск сообщений",
+  "nshSearchMessagesInThisConversation": "Поиск сообщений в этом чате",
+  "nshSearchParticipants": "Поиск участников",
+  "nshSearchSenders": "Поиск отправителей",
+  "nshSearching": "Поиск…",
+  "nshSearch": "Поиск…",
+  "nshSeconds": "Секунды",
+  "nshSeconds12419200": "Секунды (1–2419200)",
+  "nshSecondsUpTo4Weeks": "Секунды (до 4 недель)",
+  "nshSelectAConversationToStartMessaging": "Выберите беседу и начните отправлять сообщение",
+  "nshSelectMessage": "Выбрать сообщение",
+  "nshSend1File": "Отправить 1 файл",
+  "nshSendAMessageToSayHello": "Отправьте сообщение, чтобы поздороваться.",
+  "nshSendAMessageToStartUsingThisBot": "Отправьте сообщение, чтобы начать пользоваться этим ботом.",
+  "nshSendFile": "Добавить файл",
+  "nshSendMessage": "Отправить сообщение",
+  "nshSendWithoutNotificationMessage": "Отправить без уведомления",
+  "nshSendCountFiles": "Отправить файлы: {count}",
+  "@nshSendCountFiles": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSender": "Отправитель",
+  "nshSenders": "Отправители",
+  "nshSending": "Отправка",
+  "nshSendingMessage": "Отправка…",
+  "nshSent": "Отправлено",
+  "nshSequence": "Порядковый номер",
+  "nshSetASixDigitPasscode": "Задать шестизначный код",
+  "nshSettings": "Настройки",
+  "nshSettingsMessage": "Настройки",
+  "nshShareContact": "Поделиться контактом",
+  "nshShareContactMessage": "Поделиться контактом",
+  "nshSharedApps": "Общие приложения",
+  "nshSharedMedia": "Общие медиа",
+  "nshSharedMediaPreview": "Просмотр общих медиафайлов",
+  "nshShowMixinID": "Показывать Mixin ID",
+  "nshShowInFolder": "Показать в папке",
+  "nshNotificationPreviewDescription": "Показывать текст сообщений в уведомлениях. Отключите, чтобы скрыть содержимое.",
+  "nshShowTransfer": "Показать перенос",
+  "nshShowingTheFirst8192Characters": "Показаны первые 8 192 символа",
+  "nshSignOut": "Выход",
+  "nshSignOutAndRemoveThisAccountSLocalData": "Выйти и удалить локальные данные аккаунта?",
+  "nshSignOutMessage": "Выход",
+  "nshSigningOut": "Выход…",
+  "nshSixDigitScreenPasscode": "Шестизначный код блокировки",
+  "nshSomeChangesCouldNotBeSavedCheckTheRemainingSelections": "Не удалось сохранить часть изменений. Проверьте оставшиеся выбранные чаты.",
+  "nshSomeFilesCouldnTBeSentTheRemainingFilesAreStillHere": "Не удалось отправить часть файлов. Остальные файлы сохранены здесь.",
+  "nshSomeResultsCouldNotBeLoadedTryAgain": "Не удалось загрузить часть результатов. Повторите попытку.",
+  "nshStandardMember": "Стандартный участник",
+  "nshStartTheConversation": "Начать общение",
+  "nshState": "Состояние",
+  "nshStickerPreviewUnavailable": "Предпросмотр стикера недоступен",
+  "nshStickerStore": "Магазин наклеек",
+  "nshStickers": "Стикеры",
+  "nshStickersYouSendAppearHere": "Здесь появятся отправленные вами стикеры",
+  "nshStop": "Остановить",
+  "nshStorageUsage": "Использование хранилища",
+  "nshSubscribedStickers": "Подписки на стикеры",
+  "nshSyncFromPhone": "Синхронизировать с другого устройства",
+  "nshSyncToPhone": "Синхронизировать на другое устройство",
+  "nshSystemLanguage": "Следуйте системе",
+  "nshTermsOfService": "Условия обслуживания",
+  "nshTextContent": "Текстовое содержимое",
+  "nshTextIsTooLongForAQRCode": "Текст слишком длинный для QR-кода.",
+  "nshTheAccountIsTemporarilyUnavailable": "Аккаунт временно недоступен.",
+  "nshTheCircleWasCreatedRetryAddingTheRemainingChats": "Круг создан. Повторите добавление оставшихся чатов.",
+  "nshTransferVersionMismatch": "Устройства используют разные версии переноса. Обновите оба приложения и повторите попытку.",
+  "nshTheGroupWasCreatedRetryOpeningIt": "Группа создана. Повторите открытие.",
+  "nshTheImageInTheSendPreviewWillStayUnchanged": "Изображение в предпросмотре отправки останется без изменений.",
+  "nshThePasscodesDidnTMatchTryAgain": "Коды не совпадают. Повторите попытку.",
+  "nshThePreviousLinkWillStopWorking": "Предыдущая ссылка перестанет работать.",
+  "nshTheSystemReturnedAnUnknownNotificationPermission": "Система вернула неизвестное разрешение уведомлений.",
+  "nshThereAreNoUnreadConversationsInThisCategory": "В этой категории нет непрочитанных бесед.",
+  "nshThereAreNoUnreadConversationsInThisCircle": "В этом круге нет непрочитанных бесед.",
+  "nshDeleteForEveryoneDescription": "Сообщения будут удалены у всех участников чата.",
+  "nshTheseMessagesWillBeRemovedFromThisDevice": "Сообщения будут удалены с этого устройства.",
+  "nshThisAccountWillBeReportedAndBlocked": "На аккаунт будет отправлена жалоба, и он будет заблокирован.",
+  "nshForwardedSummaryNotice": "Это пересланное сообщение содержит только краткое содержание. Исходные сообщения и вложения недоступны.",
+  "nshThisForwardedSummaryIsUnavailable": "Это пересланное краткое содержание недоступно.",
+  "nshThisMessageIsNoLongerAvailable": "Сообщение больше недоступно.",
+  "nshThisMessageTypeIsNotSupported": "Этот тип сообщений не поддерживается.",
+  "nshThisPersonIsNotInYourContacts": "Этого пользователя нет в ваших контактах.",
+  "nshThisRecordingWillBeDeleted": "Эта запись будет удалена.",
+  "nshThisRemovesTheChatAndItsMessageHistoryFromThisDevice": "Чат и его история сообщений будут удалены с этого устройства.",
+  "userDeleteHint": "Этот пользователь удалил свой аккаунт.",
+  "nshThisUserWillBeRemovedFromYourContacts": "Пользователь будет удалён из ваших контактов.",
+  "nshThreshold": "Порог подписей",
+  "nshTimeUnit": "Единица времени",
+  "nshTransactionHash": "Хэш транзакции",
+  "nshTransferID": "ID перевода",
+  "nshTransferCancelled": "Перенос отменён",
+  "transferCompleted": "Перенос завершён",
+  "nshTransferFailedCheckBothDevicesAndTryAgain": "Перенос не удался. Проверьте оба устройства и повторите попытку.",
+  "nshTransferringChats": "Перенос чатов…",
+  "nshTransferring": "Передача…",
+  "nshTryAgain": "Повторить",
+  "nshTryAgainInSecondsS": "Повторите через {seconds} с",
+  "@nshTryAgainInSecondsS": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "nshTryAnotherNameOrClearYourFilters": "Попробуйте другое имя или сбросьте фильтры.",
+  "nshTurnOff": "Отключить",
+  "nshTurnOffScreenPasscode": "Отключить код блокировки экрана?",
+  "nshUnblockThisUser": "Разблокировать пользователя?",
+  "nshUnblock": "Разблокировать",
+  "nshUndo": "Отменить",
+  "unlockMixinMessenger": "Разблокировать Mixin Messenger",
+  "nshUnlockWithPasscode": "Разблокировать кодом",
+  "nshUnlocking": "Разблокировка…",
+  "nshUnread": "Не прочитано",
+  "nshUnreadMention": "Непрочитанное упоминание",
+  "nshUpdateMixinMessengerToContinue": "Обновите Mixin Messenger, чтобы продолжить.",
+  "nshUseBiometrics": "Использовать биометрию",
+  "username": "Имя пользователя",
+  "nshUsernameOptional": "Имя пользователя (необязательно)",
+  "nshVerified": "Подтверждён",
+  "nshViewProfile": "Посмотреть профиль",
+  "nshVoiceMessage": "Голосовое сообщение",
+  "nshVoiceMessagePosition": "Позиция голосового сообщения",
+  "nshWaitingForTheOtherDevice": "Ожидание подключения другого устройства.",
+  "nshEncryptedSessionWaiting": "Ожидание подключения для создания зашифрованного сеанса: {sender}.",
+  "@nshEncryptedSessionWaiting": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshWatchLive": "Смотреть трансляцию",
+  "nshWebpage": "Веб-страница",
+  "nshWeeks": "Недели",
+  "nshWhite": "Белый",
+  "nshWorking": "Обработка…",
+  "nshWriteAMessage": "Введите сообщение",
+  "nshWriteAPost": "Написать публикацию",
+  "nshWriteInMarkdown": "Пишите в Markdown…",
+  "nshYellow": "Жёлтый",
+  "nshYesterday": "Вчера",
+  "nshYouHaveNoUnreadConversations": "У вас нет непрочитанных бесед.",
+  "nshYouWillLeaveThisGroupAndRemoveItsLocalConversation": "Вы выйдете из группы и удалите её локальный чат.",
+  "nshYourAlbums": "Ваши альбомы",
+  "nshYourConversationsWillAppearHereAsTheySync": "Чаты появятся здесь по мере синхронизации.",
+  "nshZIPArchive": "ZIP-архив",
+  "nshZoomIn": "Увеличить",
+  "nshZoomOut": "Уменьшить",
+  "nshTheSender": "отправитель",
+  "nshYourLinkedDevice": "ваше связанное устройство",
+  "nshCountChats": "Чатов: {count}",
+  "@nshCountChats": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDay": "{count} дн.",
+  "@nshCountDay": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDays": "{count} дн.",
+  "@nshCountDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHour": "{count} ч",
+  "@nshCountHour": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHours": "{count} ч",
+  "@nshCountHours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMembers": "Участников: {count}",
+  "@nshCountMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinute": "{count} мин",
+  "@nshCountMinute": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinutes": "{count} мин",
+  "@nshCountMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSecond": "{count} с",
+  "@nshCountSecond": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSeconds": "{count} с",
+  "@nshCountSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSelected": "Выбрано: {count}",
+  "@nshCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeek": "{count} нед.",
+  "@nshCountWeek": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeeks": "{count} нед.",
+  "@nshCountWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshHoursH": "{hours} ч",
+  "@nshHoursH": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "nshMinutesMin": "{minutes} мин",
+  "@nshMinutesMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nshNamePinnedMessage": "Закрепление от {name}: {message}",
+  "@nshNamePinnedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantBecameAnAdmin": "Новый администратор: {participant}",
+  "@nshParticipantBecameAnAdmin": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantJoinedTheGroup": "Вступление в группу: {participant}",
+  "@nshParticipantJoinedTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantLeftTheGroup": "Выход из группы: {participant}",
+  "@nshParticipantLeftTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderAddedParticipant": "{sender}: добавление участника {participant}",
+  "@nshSenderAddedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderChangedDisappearingMessageSettings": "{sender}: настройки исчезающих сообщений изменены",
+  "@nshSenderChangedDisappearingMessageSettings": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderCreatedThisGroup": "{sender}: группа создана",
+  "@nshSenderCreatedThisGroup": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderDisabledDisappearingMessages": "{sender}: исчезающие сообщения отключены",
+  "@nshSenderDisabledDisappearingMessages": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderPinnedMessage": "Закрепление от {sender}: {message}",
+  "@nshSenderPinnedMessage": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderRemovedParticipant": "{sender}: удаление участника {participant}",
+  "@nshSenderRemovedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderSetDisappearingMessagesToDuration": "{sender}: таймер исчезающих сообщений — {duration}",
+  "@nshSenderSetDisappearingMessagesToDuration": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSelectEnterOpenEscClose": "↑↓ Выбрать · Enter Открыть · Esc Закрыть",
+  "nshMixinIdLabel": "Mixin ID: {arg0}",
+  "@nshMixinIdLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use mixin_desktop_api::{GroupConversationItem, UserProfileItem};
 use nsh_core::element::desktop::MenuItem;
 
@@ -16,11 +17,11 @@ pub(super) enum Destination {
 impl Destination {
     fn title(self) -> &'static str {
         match self {
-            Self::Profile => tr("Profile", "个人资料"),
-            Self::EditName => tr("Edit name", "编辑名称"),
-            Self::AddContact => tr("Add contact", "添加联系人"),
-            Self::Groups => tr("Groups in common", "共同群组"),
-            Self::Apps => tr("Shared apps", "共享应用"),
+            Self::Profile => t(Key::NshProfile),
+            Self::EditName => t(Key::NshEditName),
+            Self::AddContact => t(Key::NshAddContact),
+            Self::Groups => t(Key::NshGroupsInCommon),
+            Self::Apps => t(Key::NshSharedApps),
         }
     }
 
@@ -174,7 +175,7 @@ fn dialog_body(page: Page, opened: impl Fn() + Copy + 'static) -> impl IntoEleme
         if id == ANONYMOUS_ID {
             return String::new();
         }
-        i18n::current().format("Mixin ID: {arg0}", "Mixin ID：{arg0}", &[("arg0", &id)])
+        i18n::current().format(Key::NshMixinIdLabel, &[("arg0", &id)])
     };
     let card = ui::profile_card(
         ui::AvatarSize::Hero,
@@ -197,9 +198,9 @@ fn dialog_body(page: Page, opened: impl Fn() + Copy + 'static) -> impl IntoEleme
             ui::pill(
                 move || {
                     if page.is(|profile| profile.is_bot) {
-                        tr("+ Add Bot", "+ 添加机器人")
+                        t(Key::AddBotWithPlus)
                     } else {
-                        tr("+ Add Contact", "+ 添加联系人")
+                        t(Key::AddContactWithPlus)
                     }
                 },
                 move || {
@@ -217,11 +218,7 @@ fn dialog_body(page: Page, opened: impl Fn() + Copy + 'static) -> impl IntoEleme
     ))
     .child(when(
         move || page.is(|profile| profile.is_deactivated),
-        move || {
-            ui::profile_notice(move || {
-                tr("This user has deleted their account.", "此用户已删除账号。")
-            })
-        },
+        move || ui::profile_notice(move || t(Key::UserDeleteHint)),
     ))
     .child(when(known, move || {
         ui::profile_actions()
@@ -229,7 +226,7 @@ fn dialog_body(page: Page, opened: impl Fn() + Copy + 'static) -> impl IntoEleme
             .child(
                 ui::profile_action(
                     ui::Icon::Share,
-                    move || tr("Share contact…", "分享联系人…"),
+                    move || t(Key::NshShareContactMessage),
                     move || links.open(contact_uri(&page.id.get_untracked()), None),
                 )
                 .disabled(unavailable),
@@ -239,7 +236,7 @@ fn dialog_body(page: Page, opened: impl Fn() + Copy + 'static) -> impl IntoEleme
                 move || {
                     ui::profile_action(
                         ui::Icon::Conversation,
-                        move || tr("Message", "发消息"),
+                        move || t(Key::NshMessage),
                         move || open(None),
                     )
                     .disabled(unavailable)
@@ -250,7 +247,7 @@ fn dialog_body(page: Page, opened: impl Fn() + Copy + 'static) -> impl IntoEleme
                 move || {
                     ui::profile_action(
                         ui::Icon::Profile,
-                        move || tr("Profile", "个人资料"),
+                        move || t(Key::NshProfile),
                         move || open(Some(crate::navigation::Panel::Info)),
                     )
                     .disabled(unavailable)
@@ -280,28 +277,24 @@ fn dialog_menu(page: Page) -> Vec<MenuItem> {
     };
     let link = (!profile.code_url.is_empty()).then(|| {
         let url = profile.code_url.clone();
-        MenuItem::new(tr("Copy link", "复制链接")).on_select(move || set_clipboard(url.clone()))
+        MenuItem::new(t(Key::NshCopyLink)).on_select(move || set_clipboard(url.clone()))
     });
     let mut relationship = Vec::new();
     if profile.identity_number != ANONYMOUS_ID && untracked(|| page.other_user()) {
         if profile.relationship == "BLOCKING" {
-            relationship.push(ask(
-                tr("Unblock…", "取消屏蔽…"),
-                unblock_prompt,
-                Action::Unblock,
-            ));
+            relationship.push(ask(t(Key::NshUnblock), unblock_prompt, Action::Unblock));
         } else {
             if profile.relationship == "FRIEND" {
                 relationship.push(ask(
-                    tr("Remove contact…", "移除联系人…"),
+                    t(Key::NshRemoveContactMessage),
                     remove_prompt,
                     Action::Remove,
                 ));
             }
-            relationship.push(ask(tr("Block…", "屏蔽…"), block_prompt, Action::Block));
+            relationship.push(ask(t(Key::NshBlock), block_prompt, Action::Block));
         }
         relationship.push(ask(
-            tr("Report and block…", "举报并屏蔽…"),
+            t(Key::NshReportAndBlock),
             report_prompt,
             Action::Report,
         ));
@@ -400,9 +393,9 @@ pub(super) fn sidebar_add(state: State) -> impl IntoElement {
             ui::pill(
                 move || {
                     if state.profile.with(|p| p.as_ref().is_some_and(|p| p.is_bot)) {
-                        tr("+ Add Bot", "+ 添加机器人")
+                        t(Key::AddBotWithPlus)
                     } else {
-                        tr("+ Add Contact", "+ 添加联系人")
+                        t(Key::AddContactWithPlus)
                     }
                 },
                 move || sidebar_apply(state, Action::Add),
@@ -426,7 +419,7 @@ pub(super) fn sidebar_relationship(state: State) -> impl IntoElement {
             move || relationship() == "BLOCKING",
             move || {
                 row(
-                    move || tr("Unblock…", "取消屏蔽…"),
+                    move || t(Key::NshUnblock),
                     move || sidebar_confirm(state, Action::Unblock, unblock_prompt()),
                 )
                 .disabled(state.busy)
@@ -439,9 +432,9 @@ pub(super) fn sidebar_relationship(state: State) -> impl IntoElement {
                 row(
                     move || {
                         if state.profile.with(|p| p.as_ref().is_some_and(|p| p.is_bot)) {
-                            tr("Remove bot…", "移除机器人…")
+                            t(Key::NshRemoveBot)
                         } else {
-                            tr("Remove contact…", "移除联系人…")
+                            t(Key::NshRemoveContactMessage)
                         }
                     },
                     move || sidebar_confirm(state, Action::Remove, remove_prompt()),
@@ -454,7 +447,7 @@ pub(super) fn sidebar_relationship(state: State) -> impl IntoElement {
             move || relationship() == "STRANGER",
             move || {
                 row(
-                    move || tr("Block…", "屏蔽…"),
+                    move || t(Key::NshBlock),
                     move || sidebar_confirm(state, Action::Block, block_prompt()),
                 )
                 .disabled(state.busy)
@@ -465,7 +458,7 @@ pub(super) fn sidebar_relationship(state: State) -> impl IntoElement {
 
 pub(super) fn sidebar_report(state: State) -> impl IntoElement {
     row(
-        move || tr("Report and block…", "举报并屏蔽…"),
+        move || t(Key::NshReportAndBlock),
         move || sidebar_confirm(state, Action::Report, report_prompt()),
     )
     .disabled(move || state.busy.get() || state.profile.with(Option::is_none))
@@ -542,7 +535,7 @@ pub(super) fn profile_at(
                     )
             },
             || {
-                parts::status(move || tr("Loading…", "加载中…"))
+                parts::status(move || t(Key::NshLoading))
                     .px(ui::space_lg())
                     .py(ui::space_sm())
             },
@@ -708,17 +701,12 @@ fn summary(page: Page) -> impl IntoElement {
         ))
         .child(when(
             move || page.is(|profile| profile.is_deactivated),
-            || {
-                ui::error_text(move || {
-                    tr("This user has deleted their account.", "此用户已删除账号。")
-                })
-                .text_center()
-            },
+            || ui::error_text(move || t(Key::UserDeleteHint)).text_center(),
         ))
         .child(when(
             move || page.is(|profile| profile.is_verified),
             || {
-                text(move || tr("Verified", "已认证"))
+                text(move || t(Key::NshVerified))
                     .text_role(ui::TextRole::Caption)
                     .text_color(ui::fg_secondary)
             },
@@ -750,7 +738,7 @@ fn primary_rows(page: Page) -> impl IntoElement {
             move || page.id.get() != page.own_id.with(|id| id.clone()),
             move || {
                 row(
-                    move || tr("Message", "发消息"),
+                    move || t(Key::NshMessage),
                     move || {
                         navigation.open_user(page.client(), page.id.get_untracked(), page.failed)
                     },
@@ -760,7 +748,7 @@ fn primary_rows(page: Page) -> impl IntoElement {
         ))
         .child(
             row(
-                move || tr("Share contact…", "分享联系人…"),
+                move || t(Key::NshShareContactMessage),
                 move || links.open(contact_uri(&page.id.get_untracked()), None),
             )
             .disabled(unavailable),
@@ -770,7 +758,7 @@ fn primary_rows(page: Page) -> impl IntoElement {
             move || {
                 view()
                     .child(row(
-                        move || tr("Open app", "打开应用"),
+                        move || t(Key::NshOpenApp),
                         move || {
                             links.open(
                                 format!("mixin://apps/{}?action=open", page.id.get_untracked()),
@@ -782,7 +770,7 @@ fn primary_rows(page: Page) -> impl IntoElement {
                         move || page.creator.with(Option::is_some),
                         move || {
                             page_row(
-                                move || tr("Created by", "开发者"),
+                                move || t(Key::NshCreatedBy),
                                 move || {
                                     if let Some(owner) = page.creator.get_untracked() {
                                         page.open_profile(owner);
@@ -795,7 +783,7 @@ fn primary_rows(page: Page) -> impl IntoElement {
         ))
         .child(
             row(
-                move || tr("Copy link", "复制链接"),
+                move || t(Key::NshCopyLink),
                 move || set_clipboard(untracked(|| page.text(|p| p.code_url.clone()))),
             )
             .disabled(move || page.missing_or(|profile| profile.code_url.is_empty())),
@@ -804,13 +792,13 @@ fn primary_rows(page: Page) -> impl IntoElement {
             move || page.is(|profile| !profile.is_bot),
             move || {
                 page_row(
-                    move || tr("Groups in common", "共同群组"),
+                    move || t(Key::NshGroupsInCommon),
                     move || page.destination.set(Destination::Groups),
                 )
             },
         ))
         .child(page_row(
-            move || tr("Shared apps", "共享应用"),
+            move || t(Key::NshSharedApps),
             move || page.destination.set(Destination::Apps),
         ))
 }
@@ -843,7 +831,7 @@ fn relationship_rows(
     let edits = parts::group()
         .child(
             row(
-                move || tr("Edit name…", "编辑名称…"),
+                move || t(Key::NshEditNameMessage),
                 move || page.destination.set(Destination::EditName),
             )
             .disabled(deactivated),
@@ -852,7 +840,7 @@ fn relationship_rows(
             move || !blocked() && !friend(),
             move || {
                 row(
-                    move || tr("Add contact…", "添加联系人…"),
+                    move || t(Key::NshAddContactMessage),
                     move || page.destination.set(Destination::AddContact),
                 )
                 .disabled(deactivated)
@@ -860,7 +848,7 @@ fn relationship_rows(
         ))
         .child(when(blocked, move || {
             row(
-                move || tr("Unblock…", "取消屏蔽…"),
+                move || t(Key::NshUnblock),
                 move || {
                     page.confirm_then(unblock_prompt(), move || {
                         apply(Action::Unblock, String::new())
@@ -875,7 +863,7 @@ fn relationship_rows(
             move || !blocked() && friend(),
             move || {
                 danger(
-                    || tr("Remove contact…", "移除联系人…"),
+                    || t(Key::NshRemoveContactMessage),
                     remove_prompt,
                     Action::Remove,
                 )
@@ -883,10 +871,10 @@ fn relationship_rows(
         ))
         .child(when(
             move || !blocked(),
-            move || danger(|| tr("Block…", "屏蔽…"), block_prompt, Action::Block),
+            move || danger(|| t(Key::NshBlock), block_prompt, Action::Block),
         ))
         .child(danger(
-            || tr("Report and block…", "举报并屏蔽…"),
+            || t(Key::NshReportAndBlock),
             report_prompt,
             Action::Report,
         ));
@@ -895,42 +883,29 @@ fn relationship_rows(
 
 fn remove_prompt() -> Prompt {
     Prompt::new(
-        tr("Remove contact?", "移除联系人？"),
-        tr(
-            "This user will be removed from your contacts.",
-            "此用户将从联系人中移除。",
-        ),
-        tr("Remove", "移除"),
+        t(Key::NshRemoveContact),
+        t(Key::NshThisUserWillBeRemovedFromYourContacts),
+        t(Key::NshRemove),
     )
 }
 
 fn block_prompt() -> Prompt {
     Prompt::new(
-        tr("Block this user?", "屏蔽此用户？"),
-        tr(
-            "Messages from this user will be blocked.",
-            "将不再接收此用户的消息。",
-        ),
-        tr("Block", "屏蔽"),
+        t(Key::NshBlockThisUser),
+        t(Key::NshMessagesFromThisUserWillBeBlocked),
+        t(Key::Block),
     )
 }
 
 fn unblock_prompt() -> Prompt {
-    Prompt::new(
-        tr("Unblock this user?", "取消屏蔽此用户？"),
-        "",
-        tr("Unblock", "取消屏蔽"),
-    )
+    Prompt::new(t(Key::NshUnblockThisUser), "", t(Key::Unblock))
 }
 
 fn report_prompt() -> Prompt {
     Prompt::new(
-        tr("Report and block?", "举报并屏蔽？"),
-        tr(
-            "This account will be reported and blocked.",
-            "将举报并屏蔽此账号。",
-        ),
-        tr("Report", "举报"),
+        t(Key::ReportAndBlock),
+        t(Key::NshThisAccountWillBeReportedAndBlocked),
+        t(Key::Report),
     )
 }
 
@@ -1005,7 +980,7 @@ fn name_fields(
     parts::page_body()
         .child(
             ui::field()
-                .label(move || tr("Name", "名称"))
+                .label(move || t(Key::Name))
                 .max_length(if editing { 40 } else { 64 })
                 .readonly(busy)
                 .auto_focus(true)
@@ -1023,7 +998,7 @@ fn name_fields(
                         name.get_untracked().trim().into(),
                     )
                 })
-                .child(text(move || tr("Save", "保存"))),
+                .child(text(move || t(Key::Save))),
         )
 }
 #[cfg(debug_assertions)]
@@ -1047,17 +1022,11 @@ pub(crate) fn preview_name(user: UserProfileItem, editing: bool) -> View {
 }
 
 pub(crate) fn update_error(retry: impl Fn() + 'static) -> View {
-    parts::failure(
-        move || tr("Couldn’t update. Try again.", "更新失败，请重试。"),
-        retry,
-    )
+    parts::failure(move || t(Key::NshCouldnTUpdateTryAgain), retry)
 }
 
 pub(crate) fn list_error(retry: impl Fn() + 'static) -> View {
-    parts::failure(
-        move || tr("Couldn’t load. Try again.", "加载失败，请重试。"),
-        retry,
-    )
+    parts::failure(move || t(Key::NshCouldnTLoadTryAgain), retry)
 }
 
 fn dialog_view(
@@ -1072,7 +1041,7 @@ fn dialog_view(
         .child(when(
             move || page.loading.get() && page.profile.with(Option::is_none),
             || {
-                parts::status(move || tr("Loading…", "加载中…"))
+                parts::status(move || t(Key::NshLoading))
                     .justify_center()
                     .pt(ui::space_sm())
                     .pb(ui::space_xl())
@@ -1101,7 +1070,7 @@ pub(super) fn groups_view(
         .flex_1()
         .min_h_0()
         .child(when(loading, || {
-            parts::status(move || tr("Loading…", "加载中…"))
+            parts::status(move || t(Key::NshLoading))
                 .px(ui::space_lg())
                 .py(ui::space_sm())
         }))
@@ -1124,7 +1093,12 @@ pub(super) fn groups_view(
                         move || value().map(|value| value.avatar_url).unwrap_or_default(),
                         move || {
                             value()
-                                .map(|value| i18n::current().members(value.participant_count))
+                                .map(|value| {
+                                    i18n::current().format(
+                                        Key::ParticipantsCount,
+                                        &[("arg0", &value.participant_count.to_string())],
+                                    )
+                                })
                                 .unwrap_or_default()
                         },
                         || false,
@@ -1149,7 +1123,7 @@ pub(super) fn groups_view(
         )
         .child(when(
             move || !loading.get() && !query_failed.get() && values.with(Vec::is_empty),
-            || ui::placeholder(move || tr("No groups in common", "没有共同群组")),
+            || ui::placeholder(move || t(Key::NshNoGroupsInCommon)),
         ))
 }
 
@@ -1164,7 +1138,7 @@ fn apps_view(
         .flex_1()
         .min_h_0()
         .child(when(loading, || {
-            parts::status(move || tr("Loading…", "加载中…"))
+            parts::status(move || t(Key::NshLoading))
                 .px(ui::space_lg())
                 .py(ui::space_sm())
         }))
@@ -1203,7 +1177,7 @@ fn apps_view(
         )
         .child(when(
             move || !loading.get() && !failed.get() && values.with(Vec::is_empty),
-            || ui::placeholder(move || tr("No shared apps", "暂无共享应用")),
+            || ui::placeholder(move || t(Key::NshNoSharedApps)),
         ))
 }
 

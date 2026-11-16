@@ -1,4 +1,5 @@
 use super::*;
+use crate::i18n::Key;
 use crate::runtime;
 
 pub(super) fn screen(
@@ -84,7 +85,7 @@ fn form(
         .flex_shrink(1.0)
         .min_h_0()
         .gap_4()
-        .child(ui::dialog_title(move || i18n.text(Key::SearchContact)))
+        .child(ui::dialog_title(move || i18n.t(Key::NshSearchContact)))
         .child(
             scroll().flex_shrink(1.0).min_h_0().child(
                 view()
@@ -92,8 +93,10 @@ fn form(
                     .child(
                         ui::search_pill().flex_none().child(
                             ui::search_input()
-                                .label(move || i18n.text(Key::SearchContact))
-                                .placeholder(move || i18n.text(Key::SearchUserHint).to_owned())
+                                .label(move || i18n.t(Key::NshSearchContact))
+                                .placeholder(move || {
+                                    i18n.t(Key::NshMixinIDOrPhoneNumber).to_owned()
+                                })
                                 .auto_focus(focus)
                                 .readonly(busy)
                                 .value(move || query.get())
@@ -113,17 +116,17 @@ fn form(
                         ),
                     )
                     .child(when(failed, move || {
-                        ui::error_text(move || i18n.text(Key::SearchFailed))
+                        ui::error_text(move || {
+                            i18n.t(Key::NshCouldnTFindThisContactCheckTheIDAndTryAgain)
+                        })
                     }))
-                    .child(when(busy, || {
-                        parts::status(move || tr("Searching…", "正在搜索…"))
-                    })),
+                    .child(when(busy, || parts::status(move || t(Key::NshSearching)))),
             ),
         )
         .child(
             parts::dialog_actions()
                 .child(
-                    ui::action(move || i18n.text(Key::Cancel), cancel)
+                    ui::action(move || i18n.t(Key::Cancel), cancel)
                         .disabled(move || busy.get() || composing.get()),
                 )
                 .child(
@@ -134,7 +137,7 @@ fn form(
                                 || query.with(|query| query.trim().is_empty())
                         })
                         .on_press(search)
-                        .child(text(move || i18n.text(Key::Search))),
+                        .child(text(move || i18n.t(Key::Search))),
                 ),
         )
 }

@@ -171,40 +171,36 @@ pub(super) fn row_menu<E: Interactive>(
             let root = root.with(|root| root.clone());
             let id = row.message_id.clone();
             copy_group.push(
-                item(
-                    ui::MenuIcon::Copy,
-                    i18n.tr("Copy Image", "复制图片"),
-                    move || {
-                        if busy.get_untracked() || !active() {
-                            return;
-                        }
-                        busy.set(true);
-                        let root = root.clone();
-                        let id = id.clone();
-                        let account = actions.account.with(|account| account.clone());
-                        owner.run(move || {
-                            spawn(async move {
-                                let result = runtime::run(async move {
-                                    account
-                                        .attachment()
-                                        .attachment_image_data_uri(id, Some(root))
-                                        .await
-                                })
-                                .await;
-                                if owner.is_live() {
-                                    match result {
-                                        Ok(uri) => {
-                                            set_clipboard_image(uri);
-                                            actions.failed.set(false);
-                                        }
-                                        Err(_) => actions.failed.set(true),
-                                    }
-                                    busy.set(false);
-                                }
+                item(ui::MenuIcon::Copy, i18n.t(Key::CopyImage), move || {
+                    if busy.get_untracked() || !active() {
+                        return;
+                    }
+                    busy.set(true);
+                    let root = root.clone();
+                    let id = id.clone();
+                    let account = actions.account.with(|account| account.clone());
+                    owner.run(move || {
+                        spawn(async move {
+                            let result = runtime::run(async move {
+                                account
+                                    .attachment()
+                                    .attachment_image_data_uri(id, Some(root))
+                                    .await
                             })
-                        });
-                    },
-                )
+                            .await;
+                            if owner.is_live() {
+                                match result {
+                                    Ok(uri) => {
+                                        set_clipboard_image(uri);
+                                        actions.failed.set(false);
+                                    }
+                                    Err(_) => actions.failed.set(true),
+                                }
+                                busy.set(false);
+                            }
+                        })
+                    });
+                })
                 .disabled(!message_content::available(&row)),
             );
         }
@@ -230,11 +226,11 @@ pub(super) fn row_menu<E: Interactive>(
             copy_group.push(item(
                 ui::MenuIcon::Copy,
                 if has_selection {
-                    i18n.tr("Copy Selected Text", "复制已选择的文本")
+                    i18n.t(Key::CopySelectedText)
                 } else if is_text || is_post {
-                    i18n.tr("Copy", "复制")
+                    i18n.t(Key::Copy)
                 } else {
-                    i18n.tr("Copy Text", "复制文字")
+                    i18n.t(Key::CopyText)
                 },
                 move || {
                     if busy.get_untracked() || !active() {
@@ -276,7 +272,7 @@ pub(super) fn row_menu<E: Interactive>(
             if let Some(qr) = qr {
                 copy_group.push(item(
                     ui::MenuIcon::QrCode,
-                    i18n.tr("Generate QR Code", "生成二维码"),
+                    i18n.t(Key::GenerateQrcode),
                     move || {
                         if !busy.get_untracked() && active() {
                             actions.open_text_qr(qr.clone());
@@ -292,7 +288,7 @@ pub(super) fn row_menu<E: Interactive>(
             let name = attachment_name(&row);
             save.push(item(
                 ui::MenuIcon::Download,
-                i18n.tr("Save as", "另存为"),
+                i18n.t(Key::SaveAs),
                 move || {
                     if busy.get_untracked() || !active() {
                         return;
@@ -339,7 +335,7 @@ pub(super) fn row_menu<E: Interactive>(
         {
             sticker.push(item(
                 ui::MenuIcon::Sticker,
-                i18n.tr("Add Sticker", "添加贴纸"),
+                i18n.t(Key::AddSticker),
                 move || {
                     if busy.get_untracked() || !active() {
                         return;
@@ -361,20 +357,17 @@ pub(crate) fn summary_error(retry: impl Fn() + 'static) -> View {
     view()
         .gap_2()
         .child(text(move || {
-            i18n.tr(
-                "This forwarded summary is unavailable.",
-                "无法读取这条转发摘要。",
-            )
+            i18n.t(Key::NshThisForwardedSummaryIsUnavailable)
         }))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
     view()
         .gap_2()
-        .child(text(move || i18n.text(Key::MessagesFailed)))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(text(move || i18n.t(Key::NshCouldnTLoadMessages)))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 pub(super) fn header(actions: Actions) -> View {
@@ -389,9 +382,9 @@ pub(super) fn header(actions: Actions) -> View {
                 .size_10()
                 .accessibility_label(move || {
                     Some(if actions.preview_history.with(Vec::is_empty) {
-                        i18n.tr("Close", "关闭").into()
+                        i18n.t(Key::Close).into()
                     } else {
-                        i18n.text(Key::Back).into()
+                        i18n.t(Key::NshBack).into()
                     })
                 })
                 .on_press(move || actions.back_preview())
@@ -405,7 +398,7 @@ pub(super) fn header(actions: Actions) -> View {
                 })),
         )
         .child(
-            ui::dialog_title(move || i18n.text(Key::Transcript))
+            ui::dialog_title(move || i18n.t(Key::NshChatHistory))
                 .text_role(ui::TextRole::Title)
                 .text_center()
                 .flex_1()
@@ -467,14 +460,14 @@ fn reader_view(
             move || {
                 view().px_4().py_2().child(ui::busy_indicator(
                     || true,
-                    move || i18n.text(Key::LoadingMessages).into(),
+                    move || i18n.t(Key::NshLoadingMessages).into(),
                 ))
             },
         ))
         .child(when(actions.busy, move || {
             view().px_4().py_2().child(ui::busy_indicator(
                 || true,
-                move || i18n.tr("Loading…", "加载中…").into(),
+                move || i18n.t(Key::NshLoading).into(),
             ))
         }))
         .child(when(failed, move || {
@@ -552,7 +545,7 @@ fn summary_view(
             move || {
                 view().px_4().py_2().child(ui::busy_indicator(
                     || true,
-                    move || i18n.text(Key::LoadingMessages).into(),
+                    move || i18n.t(Key::NshLoadingMessages).into(),
                 ))
             },
         ))
@@ -599,14 +592,9 @@ fn summary_view(
         )
         .child(
             view().px_6().py_3().child(
-                text(move || {
-                    i18n.tr(
-                        "Summary only · Original messages and attachments are unavailable.",
-                        "仅保留消息摘要，无法查看原始消息和附件。",
-                    )
-                })
-                .text_role(ui::TextRole::Caption)
-                .text_color(ui::fg_secondary),
+                text(move || i18n.t(Key::NshTranscriptSummaryNotice))
+                    .text_role(ui::TextRole::Caption)
+                    .text_color(ui::fg_secondary),
             ),
         )
 }

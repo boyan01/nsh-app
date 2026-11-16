@@ -38,14 +38,14 @@ pub(crate) enum Page {
 impl Page {
     fn title(self, i18n: I18n) -> &'static str {
         match self {
-            Self::Notifications => i18n.tr("Notifications", "通知"),
-            Self::Security => i18n.tr("Security", "安全"),
-            Self::Profile => i18n.tr("Edit profile", "编辑个人资料"),
-            Self::Storage => i18n.tr("Data and storage", "数据与存储"),
-            Self::Transfer => i18n.tr("Chat backup and restore", "聊天备份与恢复"),
-            Self::Proxy => i18n.tr("Proxy", "代理"),
-            Self::Appearance => i18n.tr("Appearance", "外观"),
-            Self::About => i18n.tr("About", "关于"),
+            Self::Notifications => i18n.t(Key::Notifications),
+            Self::Security => i18n.t(Key::Security),
+            Self::Profile => i18n.t(Key::NshEditProfile),
+            Self::Storage => i18n.t(Key::NshDataAndStorage),
+            Self::Transfer => i18n.t(Key::NshChatBackupAndRestore),
+            Self::Proxy => i18n.t(Key::Proxy),
+            Self::Appearance => i18n.t(Key::Appearance),
+            Self::About => i18n.t(Key::About),
         }
     }
 
@@ -94,7 +94,7 @@ pub(crate) fn navigation(
         .min_h_0()
         .child(when(compact, move || {
             parts::page_header(
-                move || i18n.text(Key::Settings),
+                move || i18n.t(Key::NshSettings),
                 None,
                 Some(parts::close_button(on_back)),
             )

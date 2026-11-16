@@ -1,10 +1,11 @@
 use super::*;
+use crate::i18n::Key;
 
-fn en(en: &'static str, _: &'static str) -> &'static str {
-    en
+fn en(key: Key) -> &'static str {
+    crate::i18n::catalog::lookup("en", key)
 }
-fn zh(_: &'static str, zh: &'static str) -> &'static str {
-    zh
+fn zh(key: Key) -> &'static str {
+    crate::i18n::catalog::lookup("zh-CN", key)
 }
 
 #[test]

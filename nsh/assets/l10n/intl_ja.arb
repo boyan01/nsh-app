@@ -400,5 +400,837 @@
 "window" : "ウィンドウ",
 "withdrawal" : "出金",
 "you" : "自分",
-"youDeletedThisMessage" : "このメッセージを削除しました。"
+"youDeletedThisMessage" : "このメッセージを削除しました。",
+  "nsh1Day": "1日",
+  "nsh1Hour": "1時間",
+  "nsh1Week": "1週間",
+  "nsh1Year": "1年間",
+  "nsh10Minutes": "10分",
+  "nsh2Hours": "2時間",
+  "nsh30Seconds": "30秒",
+  "nsh8Hours": "8時間",
+  "nshAGroupMember": "グループメンバー",
+  "nshScreenPasscodeDescription": "画面ロックのパスコードでアカウントの内容を非表示にします。Mixin はバックグラウンドで同期を続けます。",
+  "nshAboutMixinMessenger": "Mixinについて",
+  "nshAccountContentWillNoLongerBeHiddenWhenMixinLocks": "Mixin のロック時にアカウントの内容が非表示にならなくなります。",
+  "nshAction": "操作",
+  "nshActualFit": "ウィンドウに合わせる",
+  "nshAddHTTPProxy": "HTTP プロキシを追加",
+  "nshAddACaption": "キャプションを追加…",
+  "nshAddAProxyBeforeEnablingIt": "有効にする前にプロキシを追加してください。",
+  "nshAddAlbum": "アルバムを追加",
+  "nshAddContact": "友だちを追加",
+  "nshAddContactMessage": "友だちを追加",
+  "nshAddFiles": "ファイルを追加…",
+  "nshAddParticipants": "メンバーを追加",
+  "nshAddParticipantsMessage": "メンバーを追加",
+  "nshAddProxy": "プロキシを追加…",
+  "nshAddSticker": "スタンプを追加",
+  "addToCircle": "グループリストに追加",
+  "nshAddingChat": "チャットを追加中…",
+  "nshAll": "すべて",
+  "nshAllChats": "チャット",
+  "nshAllow": "許可",
+  "nshAllowNotifications": "通知を許可",
+  "nshAllowNotificationsToReceiveNewMessageAlerts": "新着メッセージの通知を受け取るには、通知を許可してください。",
+  "nshAllowThisDeviceToSendChatHistoryToYourPhone": "このデバイスからスマートフォンへのチャット履歴の転送を許可しますか？",
+  "nshAllowYourPhoneToSendChatHistoryToThisDevice": "スマートフォンからこのデバイスへのチャット履歴の転送を許可しますか？",
+  "nshAmount": "金額",
+  "nshAnyoneWithThisLinkCanJoinTheGroup": "このリンクを知っている人は誰でもグループに参加できます。",
+  "nshAspectRatio": "縦横比",
+  "nshAsset": "資産",
+  "nshAssetID": "資産 ID",
+  "nshAutomaticLock": "自動ロック",
+  "nshAutomaticMediaDownload": "メディアの自動ダウンロード",
+  "nshAutomaticallyDownloadMediaWhenMessagesArrive": "メッセージの受信時にメディアを自動でダウンロードします。",
+  "nshBack": "戻る",
+  "nshBackToLatest": "最新のメッセージへ",
+  "nshBasicMember": "ベーシックメンバー",
+  "nshBiometricUnlock": "生体認証でロック解除",
+  "nshBlack": "黒",
+  "nshBlockThisUser": "このユーザーをブロックしますか？",
+  "nshBlock": "ブロック",
+  "nshBlue": "青",
+  "nshBot": "ボット",
+  "nshBotWindowsUnavailable": "ボットのウィンドウを利用できません",
+  "nshBrush": "ブラシ",
+  "nshCalculatingStorage": "ストレージを計算中…",
+  "nshCancelDownload": "ダウンロードをキャンセル",
+  "nshCancelTransfer": "転送をキャンセル",
+  "nshCaption": "キャプション",
+  "nshChangeAvatar": "アバターを変更…",
+  "nshChangeGroupPhoto": "グループの写真を変更…",
+  "nshChatBackupAndRestore": "チャットのバックアップと復元",
+  "nshChatBackupAndRestoreMessage": "チャットのバックアップと復元",
+  "nshChatHistory": "メッセージ履歴",
+  "nshChatInfo": "チャット情報",
+  "nshChatPreferences": "チャット設定",
+  "nshChatTextSize": "チャットの文字サイズ",
+  "nshChatsInThisCircleWillRemainAvailableInAllChats": "このサークルのチャットは「すべてのチャット」に残ります。",
+  "nshCheckTheLinkAndYourConnectionThenTryAgain": "リンクと接続を確認して、もう一度お試しください。",
+  "nshCheckYourConnectionAndTryAgain": "接続を確認して、もう一度お試しください。",
+  "nshCheckYourSystemClockAndTryAgain": "システムの時刻を確認して、もう一度お試しください。",
+  "nshCheckingNotificationPermission": "通知の権限を確認中…",
+  "nshCheckingScreenPrivacy": "画面のプライバシー設定を確認中…",
+  "nshChooseASender": "送信者を選択",
+  "nshChooseCirclesForThisChat": "このチャットのサークルを選択してください。",
+  "nshChooseRecipient": "送信先を選択",
+  "nshChooseRecipientMessage": "送信先を選択…",
+  "nshCircleCreatedButThisChatCouldnTBeAddedRetryAddingIt": "サークルは作成されましたが、このチャットを追加できませんでした。もう一度追加してください。",
+  "nshCircleName": "サークル名",
+  "nshClearCache": "キャッシュを削除",
+  "nshClearMediaCacheDescription": "このデバイスのメディアキャッシュを削除します。会話内のメッセージは残ります。",
+  "nshClearChat": "チャットを消去しますか？",
+  "nshClearChatMessage": "チャットを削除する",
+  "nshClearFilters": "フィルターを解除",
+  "nshClearSelectedCache": "選択したキャッシュを削除…",
+  "nshClearSender": "送信者を解除",
+  "nshClearTheSelectedMediaCache": "選択したメディアキャッシュを削除しますか？",
+  "nshClearingCache": "キャッシュを削除中…",
+  "collectible": "コレクティブル",
+  "collection": "コレクション",
+  "nshCollectionHash": "コレクションのハッシュ",
+  "nshCombineAndForward": "まとめて転送",
+  "nshCompleteThisPaymentInMixinOnYourPhone": "スマートフォンの Mixin で支払いを完了してください。",
+  "nshCompressImages": "画像を圧縮",
+  "nshConfirmYourPasscode": "パスコードを確認",
+  "confirmations": "承認数",
+  "nshContactCard": "連絡先",
+  "nshContactPreviewUnavailable": "連絡先をプレビューできません",
+  "nshContact": "連絡先",
+  "nshContentType": "コンテンツの種類",
+  "nshContentUnavailable": "コンテンツを表示できません",
+  "nshConversationInfo": "会話情報",
+  "nshConversations": "会話",
+  "nshConversationsAddedToThisCircleWillAppearHere": "このサークルに追加した会話がここに表示されます。",
+  "nshConversationsWithBotsWillAppearHere": "ボットとの会話がここに表示されます。",
+  "nshStrangerConversationsEmptyDescription": "連絡先以外の人との会話がここに表示されます。",
+  "nshConversationsWithYourContactsWillAppearHere": "連絡先との会話がここに表示されます。",
+  "copyImage": "画像をコピー",
+  "copySelectedText": "選択したテキストをコピー",
+  "copyText": "テキストをコピー",
+  "nshCopyImage": "画像をコピー",
+  "nshCopyLink": "リンクをコピー",
+  "nshCouldnTAddTheseFilesTryAgain": "ファイルを追加できませんでした。もう一度お試しください。",
+  "nshCouldnTClearBrowserDataTryAgain": "ブラウザーデータを削除できませんでした。もう一度お試しください。",
+  "nshCouldnTCompleteThisActionTryAgain": "操作を完了できませんでした。もう一度お試しください。",
+  "nshCouldnTCreateASignInCode": "ログインコードを生成できませんでした",
+  "nshCouldnTCreateTheCircleTryAgain": "サークルを作成できませんでした。もう一度お試しください。",
+  "nshCouldnTDisplayThisPhoto": "この写真を表示できませんでした。",
+  "nshCouldnTDownloadThisFileTryAgain": "ファイルをダウンロードできませんでした。もう一度お試しください。",
+  "nshCouldnTEditThisImageUndoTheLastEditOrTryAgain": "画像を編集できませんでした。最後の編集を取り消すか、もう一度お試しください。",
+  "nshCouldnTFindThisContactCheckTheIDAndTryAgain": "連絡先が見つかりませんでした。ID を確認して、もう一度お試しください。",
+  "nshCouldnTJoinThisGroupTryAgain": "グループに参加できませんでした。もう一度お試しください。",
+  "nshCouldnTLoadChats": "チャットを読み込めませんでした。",
+  "nshCouldnTLoadChatsTryAgain": "チャットを読み込めませんでした。もう一度お試しください。",
+  "nshCouldnTLoadContent": "コンテンツを読み込めませんでした",
+  "nshCouldnTLoadConversations": "会話を読み込めませんでした",
+  "nshCouldnTLoadMembersTypeAgainToRetry": "メンバーを読み込めませんでした。もう一度入力してお試しください。",
+  "nshCouldnTLoadMessages": "メッセージを読み込めませんでした",
+  "nshCouldnTLoadQuickSearch": "クイック検索を読み込めませんでした",
+  "nshCouldnTLoadRecentEmoji": "最近使った絵文字を読み込めませんでした。",
+  "nshCouldnTLoadRecipients": "送信先を読み込めませんでした。",
+  "nshCouldnTLoadSenders": "送信者を読み込めませんでした",
+  "nshCouldnTLoadThisRecipient": "この宛先を読み込めませんでした。",
+  "nshCouldnTLoadUnreadMessages": "未読メッセージを読み込めませんでした。",
+  "nshCouldnTLoadTryAgain": "読み込めませんでした。再試行してください。",
+  "nshCouldnTOpenMixin": "Mixin を開けませんでした",
+  "nshCouldnTOpenConversation": "会話を開けませんでした",
+  "nshCouldnTOpenTheBrowser": "ブラウザーを開けませんでした。",
+  "nshCouldnTOpenThePage": "ページを開けませんでした",
+  "nshCouldnTOpenThisLink": "このリンクを開けませんでした",
+  "nshCouldnTOpenThisResultCheckItAndTryAgain": "検索結果を開けませんでした。確認して、もう一度お試しください。",
+  "nshCouldnTOpenThisResultTryAgain": "検索結果を開けませんでした。もう一度お試しください。",
+  "nshCouldnTPrepareThePhotoTryAgain": "写真を準備できませんでした。もう一度お試しください。",
+  "nshCouldnTPrepareThisFileRemoveItOrSendAsFiles": "このファイルを準備できませんでした。削除するか、ファイルとして送信してください。",
+  "nshCouldnTPrepareThisMediaSendAsFilesOrChooseOtherFiles": "メディアを準備できませんでした。ファイルとして送信するか、別のファイルを選択してください。",
+  "nshScreenPrivacyLoadFailed": "画面のプライバシー設定を読み込めませんでした。アカウントの内容は非表示のままです。",
+  "nshCouldnTRefreshSavedChangesReloadBeforeSavingAgain": "保存した変更を更新できませんでした。再読み込みしてから保存してください。",
+  "nshCouldnTRefreshYourProfileYourSavedProfileIsShown": "プロフィールを更新できませんでした。保存済みのプロフィールを表示しています。",
+  "nshCouldnTRespondToTheTransferRequestTryAgain": "転送リクエストに応答できませんでした。もう一度お試しください。",
+  "nshCouldnTSaveEmojiPreferences": "絵文字の設定を保存できませんでした。",
+  "nshCouldnTSaveOrLoadChatPreferencesTryAgain": "チャット設定を保存または読み込みできませんでした。もう一度お試しください。",
+  "nshCouldnTSaveSidebarSettings": "サイドバーの設定を保存できませんでした",
+  "nshCouldnTSaveTheLanguageTryAgain": "言語を保存できませんでした。もう一度お試しください。",
+  "nshCouldnTSaveYourDraftTryAgain": "下書きを保存できませんでした。もう一度お試しください。",
+  "nshCouldnTSaveTryAgain": "保存できませんでした。もう一度お試しください。",
+  "nshCouldnTSendThisMessageTryAgain": "メッセージを送信できませんでした。もう一度お試しください。",
+  "nshCouldnTSendYourMessageIsStillHereTryAgain": "送信できませんでした。メッセージは残っています。もう一度お試しください。",
+  "nshCouldnTUnlockCheckYourPasscodeAndTryAgain": "ロックを解除できませんでした。パスコードを確認して、もう一度お試しください。",
+  "nshCouldnTUpdateCirclesTryAgain": "サークルを更新できませんでした。もう一度お試しください。",
+  "nshCouldnTUpdateTryAgain": "更新できませんでした。もう一度お試しください。",
+  "nshNotificationsUnavailable": "通知を利用できませんでした。システムの権限を確認して、もう一度お試しください。",
+  "nshCreateCircle": "新しいグループリスト",
+  "nshCreatedBy": "作成者",
+  "createdAt": "{arg0}に作成",
+  "@createdAt": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCreatingCircleAndAddingChat": "サークルを作成してチャットを追加中…",
+  "nshCreating": "作成中…",
+  "nshCropPhoto": "写真を切り抜く",
+  "nshCropPreviewDragOrUseArrowKeysToMoveThePhoto": "切り抜きプレビュー。ドラッグまたは矢印キーで写真を移動できます。",
+  "nshCropRatio": "切り抜き比率",
+  "nshCustomColor": "カスタムカラー…",
+  "nshCustomDrawingColor": "描画色を指定",
+  "nshCustomTime": "日時",
+  "nshDataAndStorage": "ストレージ使用率",
+  "nshDate": "日時",
+  "nshDays": "日",
+  "nshDeleteChat": "チャットを削除",
+  "nshDeleteForEveryone": "全員から削除しますか？",
+  "nshDeleteForEveryoneMessage": "全員のチャットから削除",
+  "nshDeleteForMe": "自分から削除しますか？",
+  "nshDeleteGroup": "グループを削除しますか？",
+  "nshDeleteGroupMessage": "グループを削除…",
+  "nshDeleteName": "「{name}」を削除しますか？",
+  "@nshDeleteName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nshDelete": "削除",
+  "nshDelivered": "配信済み",
+  "nshDescription": "説明",
+  "disabled": "無効",
+  "nshDisappearingMessages": "消えるメッセージ",
+  "discard": "破棄",
+  "nshDiscardImageEdits": "画像の編集を破棄しますか？",
+  "nshDiscardRecordingMessage": "録音を破棄しますか？",
+  "nshDismiss": "閉じる",
+  "nshDismissAsAdmin": "管理者権限を解除",
+  "nshDownloadPhoto": "写真をダウンロード",
+  "draft": "下書き",
+  "nshDragCropCornersOrMoveTheCrop": "切り抜きの角をドラッグするか、切り抜き枠を移動",
+  "nshDragToMoveUseTheSliderToZoomImagesUpTo10MB": "ドラッグで移動、スライダーで拡大できます。画像は10 MBまでです。",
+  "nshDraw": "描画",
+  "nshDrawOnTheImage": "画像に描画",
+  "nshEarlierMessages": "以前のメッセージ",
+  "nshEditConversations": "チャットルームを編集",
+  "nshEditGroup": "グループを編集",
+  "nshEditGroupMessage": "グループを編集…",
+  "nshEditImage": "画像を編集…",
+  "nshEditName": "名前を変更",
+  "nshEditNameMessage": "名前を変更",
+  "nshEditProfile": "プロフィールを編集",
+  "nshEnterAKeywordToSearch": "検索するキーワードを入力",
+  "nshEnterATimeBetween1SecondAnd4Weeks": "1秒から4週間の時間を入力してください。",
+  "nshEnterAWholeNumberFrom1ToMaximum": "1 から {maximum} までの整数を入力してください。",
+  "@nshEnterAWholeNumberFrom1ToMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "nshEraser": "消しゴム",
+  "nshExitGroup": "グループを退出しますか？",
+  "nshExitGroupMessage": "グループから退出",
+  "nshExpand": "展開",
+  "nshExpired": "期限切れ",
+  "nshFilesSavedOnlyOnThisDeviceMayNotBeDownloadableAgain": "このデバイスのみに保存されているファイルは、再ダウンロードできない場合があります。",
+  "nshFiles": "ファイル",
+  "nshFlip": "反転",
+  "nshFollowSystem": "システム設定に従う",
+  "nshForwardMessages": "メッセージを転送",
+  "nshForward": "転送",
+  "generateQrcode": "QR コードを生成",
+  "nshGray": "グレー",
+  "nshGreen": "緑",
+  "nshGroup": "グループ",
+  "nshGroupConversationsWillAppearHere": "グループの会話がここに表示されます。",
+  "nshGroupName": "グループ名",
+  "nshGroupParticipants": "参加者",
+  "nshGroupsInCommon": "共通のグループ",
+  "nshHelpCenter": "ヘルプセンター",
+  "nshHi": "こんにちは！",
+  "nshHistory": "履歴",
+  "host": "ホスト",
+  "nshHours": "時間",
+  "nshHowAreYou": "お元気ですか？",
+  "nshImagePreview": "画像プレビュー",
+  "nshImportSticker": "ステッカーを読み込む…",
+  "nshInscription": "インスクリプション",
+  "nshInscriptionDetailsAreNotAvailableYet": "インスクリプションの詳細はまだ表示できません。",
+  "nshInscriptionHash": "インスクリプションのハッシュ",
+  "nshInvalidCard": "無効なカード",
+  "nshInvalidInvitation": "無効な招待",
+  "nshInvalidLocation": "無効な位置情報",
+  "nshInvitationIsUnavailable": "招待を利用できません。",
+  "nshInviteToGroup": "グループに招待",
+  "nshInviteToGroupMessage": "グループに招待…",
+  "nshJoinGroup": "グループに参加",
+  "nshJoined": "参加日",
+  "nshKeepBothDevicesConnectedUntilTheTransferFinishes": "転送が完了するまで両方のデバイスを接続したままにしてください。",
+  "nshTransferNetworkInstructions": "両方のデバイスを同じネットワークに接続し、スマートフォンで Mixin を開いてください。もう一方のデバイスで転送を承認してください。",
+  "nshLanguage": "言語",
+  "nshLearnMore": "こちら",
+  "nshLoadingContacts": "連絡先を読み込み中…",
+  "nshLoadingContent": "コンテンツを読み込み中…",
+  "nshLoadingConversations": "会話を読み込み中…",
+  "nshLoadingMembers": "メンバーを読み込み中…",
+  "nshLoadingMessages": "メッセージを読み込み中…",
+  "nshLoadingProxies": "プロキシを読み込み中…",
+  "nshLoadingRecipient": "送信先を読み込み中…",
+  "nshLoadingSenders": "送信者を読み込み中…",
+  "nshLoadingStickers": "ステッカーを読み込み中…",
+  "nshLoadingTransfer": "送金を読み込み中…",
+  "nshLoading": "ロード中...",
+  "nshLocateInChat": "チャットを探す",
+  "lock": "ロック",
+  "nshAutomaticLockDescription": "Mixin からフォーカスが外れるとロックの待機を開始します。時間内に戻るとロックを取り消します。",
+  "nshLockNow": "今すぐロック",
+  "nshLockingMixin": "Mixin をロック中…",
+  "nshManageSubscriptions": "登録を管理",
+  "nshMessage": "メッセージ",
+  "nshMessagePreview": "メッセージのプレビュー",
+  "nshMessagesFromThisUserWillBeBlocked": "このユーザーからのメッセージがブロックされます。",
+  "nshMessagesInThisChatWillBeRemovedFromThisDevice": "このチャットのメッセージがこのデバイスから削除されます。",
+  "nshMessagesInThisConversationAreEndToEndEncrypted": "この会話のメッセージはエンドツーエンドで暗号化されています。",
+  "nshMinutes": "分",
+  "nshMixinIDOrPhoneNumber": "Mixin IDまたは電話番号",
+  "nshMoveDown": "下へ移動",
+  "nshMoveUp": "上へ移動",
+  "mute": "ミュート",
+  "nshMuteNotifications": "通知をミュート",
+  "nshMuted": "ミュート中",
+  "nshMute": "ミュート",
+  "nshNewCircle": "新しいグループリスト",
+  "nshNewCircleName": "新しいサークル名",
+  "nshNewCircleMessage": "新しいグループリスト",
+  "nshNewConversation": "新しいチャットルーム",
+  "nshNewGroup": "新しいグループ",
+  "nshNewMessagesDisappearAfterTheSelectedTime": "新しいメッセージは選択した時間が経過すると消えます。",
+  "nshNextPage": "次のページ",
+  "nshNextPhoto": "次の写真",
+  "nshNextUnreadMention": "次の未読メンション",
+  "nshNoAppPermissionPromptIsRequiredOnThisSystem": "このシステムでは、アプリごとの通知許可は必要ありません。",
+  "nshNoAvailableContacts": "追加できる連絡先がありません",
+  "nshNoBotConversations": "ボットとの会話はありません",
+  "nshNoChatsFound": "チャットが見つかりません",
+  "nshNoCirclesYet": "サークルはまだありません",
+  "nshNoContactConversations": "連絡先との会話はありません",
+  "nshNoContactsFound": "連絡先が見つかりません",
+  "nshNoConversationsFound": "会話が見つかりません",
+  "nshNoConversationsInThisCircle": "このサークルに会話はありません",
+  "nshNoConversationsYet": "会話はまだありません",
+  "nshNoEmojiFound": "絵文字が見つかりません",
+  "nshNoFiles": "ファイルはありません",
+  "nshNoGroupConversations": "グループの会話はありません",
+  "nshNoGroupsInCommon": "共通のグループがありません",
+  "nshNoMessagesFound": "メッセージが見つかりません",
+  "nshNoParticipantsFound": "参加者が見つかりません",
+  "nshNoPosts": "投稿はありません",
+  "nshNoRecentEmoji": "最近使った絵文字はありません",
+  "nshNoRecipientsFound": "送信先が見つかりません",
+  "nshNoResults": "結果なし",
+  "nshNoSendersFound": "送信者が見つかりません",
+  "nshNoSharedApps": "共有アプリがありません",
+  "nshNoSharedMedia": "共有メディアがありません",
+  "nshNoStickerAlbumsAvailable": "利用できるステッカーアルバムはありません",
+  "nshNoStickersYet": "ステッカーはまだありません",
+  "nshNoStoredMedia": "保存済みメディアがありません",
+  "nshNoStrangerConversations": "知らない人との会話はありません",
+  "nshNoSubscribedStickerAlbums": "登録済みのステッカーパックはありません",
+  "nshNoUnreadConversations": "未読の会話はありません",
+  "nshNotAdded": "未追加",
+  "nshNotificationsPackagedAppRequired": "パッケージ化された Mixin アプリを起動すると通知を利用できます。",
+  "nshNotificationsAreDisabledInSystemSettings": "システム設定で通知が無効になっています",
+  "nshNotificationsAreEnabled": "通知は有効です",
+  "nshNotificationsAreNotAvailableOnThisPlatformYet": "このプラットフォームでは通知をまだ利用できません。",
+  "nshOK": "OK",
+  "nshOff": "オフ",
+  "open": "開く",
+  "nshOpenMixinOnYourPhone": "携帯でMixinを開き",
+  "nshOpenAnotherApp": "別のアプリを開きますか？",
+  "nshOpenApp": "アプリを開く",
+  "nshOpenChat": "チャットを開く",
+  "nshOpenContent": "コンテンツを開く",
+  "nshOpenHomePage": "ホームページを開く",
+  "nshOpenInBrowser": "ブラウザーで開く",
+  "nshOpenLink": "リンクを開く",
+  "nshOpenLogDirectory": "ログディレクトリを開く",
+  "nshOpenNavigation": "ナビゲーションを開く",
+  "nshOpenNotificationSettings": "通知設定を開く",
+  "nshOpenProfile": "プロフィールを開く",
+  "nshOpenThisBotOnYourPhone": "スマートフォンでこのボットを開いてください。",
+  "nshOpenThisLinkInMixinOnYourPhone": "スマートフォンの Mixin でこのリンクを開いてください",
+  "nshOpenWithDefaultApp": "既定のアプリで開く",
+  "nshOpeningMixin": "Mixin を開いています…",
+  "nshOriginalImage": "オリジナル",
+  "nshPNGJPEGGIFWebPOrBMPUpTo10MB": "PNG・JPEG・GIF・WebP・BMP · 最大10 MB",
+  "password": "パスワード",
+  "nshPasswordOptional": "パスワード（任意）",
+  "nshPause": "一時停止",
+  "nshPaymentDetails": "支払いの詳細",
+  "nshPhoneNumber": "電話番号",
+  "nshPhoto": "画像",
+  "nshPhotoZoom": "写真の拡大率",
+  "nshPhotosAndVideos": "写真と動画",
+  "nshPicturesAndVideos": "写真と動画",
+  "nshPicturesAndVideosMessage": "写真と動画…",
+  "nshPinned": "ピン留め済み",
+  "nshPlay": "再生",
+  "nshPlaybackFailed": "再生に失敗しました",
+  "nshPlaybackSpeed": "再生速度",
+  "port": "ポート",
+  "nshPost": "投稿",
+  "nshPremiumMember": "プレミアムメンバー",
+  "nshPreparingFiles": "ファイルを準備中…",
+  "nshPreparingImage": "画像を準備中…",
+  "nshPreparingYourCode": "QR コードを準備中…",
+  "nshPreparing": "準備中…",
+  "nshPrevious": "前へ",
+  "nshPreviousPage": "前のページ",
+  "nshPreviousPhoto": "前の写真",
+  "nshPreviousResults": "前の検索結果",
+  "nshPrivacyPolicy": "プライバシーポリシー",
+  "nshProfile": "プロフィール",
+  "proxy": "プロキシ",
+  "nshPurple": "紫",
+  "nshQRCode": "QR コード",
+  "nshQuantity": "数量",
+  "nshQuickSearch": "クイック検索",
+  "nshQuickSearchMessage": "クイック検索",
+  "nshRead": "既読",
+  "nshReceivers": "受取人",
+  "nshRecentChats": "チャット",
+  "nshReconnect": "再接続",
+  "nshReconnecting": "再接続中…",
+  "nshRecordAVoiceMessage": "音声メッセージを録音",
+  "nshRecordAgain": "録り直す",
+  "nshRecording": "録音中…",
+  "nshRed": "赤",
+  "nshRedo": "やり直す",
+  "nshRefreshPermission": "権限を再確認",
+  "nshReload": "再読み込み",
+  "nshReloadList": "リストを再読み込み",
+  "nshReloadRecipient": "送信先を再読み込み",
+  "nshRemove": "削除",
+  "nshRemoveAlbum": "アルバムを削除",
+  "nshRemoveContact": "連絡先を削除しますか？",
+  "nshRemoveContactMessage": "連絡先を削除",
+  "nshRemoveFromGroup": "グループから削除…",
+  "nshRemoveParticipant": "参加者を削除しますか？",
+  "nshRemoveProxy": "プロキシを削除しますか？",
+  "nshRemoveSelectedFile": "選択したファイルを削除",
+  "nshRemoveMessage": "削除…",
+  "nshRenameCircle": "グループリスト名を編集",
+  "nshReplyToMessage": "メッセージに返信",
+  "nshReportAndBlock": "報告してブロック…",
+  "nshResetInvitationLink": "招待リンクをリセットしますか？",
+  "nshResetLink": "リンクを取り消す",
+  "nshRetryAddingChat": "チャットの追加を再試行",
+  "nshRetryPreview": "プレビューを再試行",
+  "nshReturnToMessage": "メッセージに戻る",
+  "nshRotate": "回転",
+  "nshSCAM": "詐欺の疑い",
+  "nshSaveAs": "名前をつけて保存",
+  "nshSaveTheseChangesBeforeSelectingMoreThan200Chats": "200件を超えるチャットを選択する前に、変更を保存してください。",
+  "nshSaving": "保存中…",
+  "nshScanTheQRCodeAndConfirmSignIn": "画面に表示されるQRコードを読み取り、ログインします",
+  "nshScanToSignIn": "QRコードでMixinにログインする",
+  "nshScreenPasscode": "画面ロックのパスコード",
+  "nshScreenPrivacy": "画面のプライバシー",
+  "nshScreenPrivacyIsNotAvailableOnThisPlatformYet": "このプラットフォームでは画面のプライバシー保護をまだ利用できません。",
+  "nshSearchMixinID": "Mixin ID を検索",
+  "nshSearchChats": "チャットルームを検索",
+  "nshSearchContacts": "連絡先を検索",
+  "nshSearchContact": "連絡先を検索",
+  "nshSearchConversationsAndContacts": "会話と連絡先を検索",
+  "nshSearchEmoji": "絵文字を検索",
+  "nshSearchEmojiMessage": "絵文字を検索…",
+  "nshSearchMessages": "メッセージを検索",
+  "nshSearchMessagesInThisConversation": "この会話のメッセージを検索",
+  "nshSearchParticipants": "参加者を検索",
+  "nshSearchSenders": "送信者を検索",
+  "nshSearching": "検索中…",
+  "nshSearch": "検索…",
+  "nshSeconds": "秒",
+  "nshSeconds12419200": "秒数（1～2419200）",
+  "nshSecondsUpTo4Weeks": "秒数（最大4週間）",
+  "nshSelectAConversationToStartMessaging": "チャットルームを選択して、メッセージを送信してみましょう",
+  "nshSelectMessage": "メッセージを選択",
+  "nshSend1File": "1 件のファイルを送信",
+  "nshSendAMessageToSayHello": "メッセージを送って挨拶しましょう。",
+  "nshSendAMessageToStartUsingThisBot": "メッセージを送信して、このボットを使い始めましょう。",
+  "nshSendFile": "ファイルを追加",
+  "nshSendMessage": "メッセージを送信",
+  "nshSendWithoutNotificationMessage": "通知せずに送信",
+  "nshSendCountFiles": "{count}件のファイルを送信",
+  "@nshSendCountFiles": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSender": "送信者",
+  "nshSenders": "送信者",
+  "nshSending": "送信中",
+  "nshSendingMessage": "送信中…",
+  "nshSent": "送信済み",
+  "nshSequence": "連番",
+  "nshSetASixDigitPasscode": "6桁のパスコードを設定",
+  "nshSettings": "環境設定",
+  "nshSettingsMessage": "環境設定",
+  "nshShareContact": "連絡先を共有",
+  "nshShareContactMessage": "連絡先を共有…",
+  "nshSharedApps": "共有ずみのアプリ",
+  "nshSharedMedia": "共有されたメディア",
+  "nshSharedMediaPreview": "共有メディアのプレビュー",
+  "nshShowMixinID": "Mixin ID を表示",
+  "nshShowInFolder": "フォルダーに表示",
+  "nshNotificationPreviewDescription": "通知にメッセージの内容を表示します。内容を非公開にするにはオフにしてください。",
+  "nshShowTransfer": "転送状況を表示",
+  "nshShowingTheFirst8192Characters": "最初の8,192文字を表示しています",
+  "nshSignOut": "サインアウト",
+  "nshSignOutAndRemoveThisAccountSLocalData": "ログアウトして、このアカウントのローカルデータを削除しますか？",
+  "nshSignOutMessage": "サインアウト",
+  "nshSigningOut": "ログアウト中…",
+  "nshSixDigitScreenPasscode": "6桁の画面ロックパスコード",
+  "nshSomeChangesCouldNotBeSavedCheckTheRemainingSelections": "一部の変更を保存できませんでした。残りの選択内容を確認してください。",
+  "nshSomeFilesCouldnTBeSentTheRemainingFilesAreStillHere": "一部のファイルを送信できませんでした。未送信のファイルは残っています。",
+  "nshSomeResultsCouldNotBeLoadedTryAgain": "一部の検索結果を読み込めませんでした。もう一度お試しください。",
+  "nshStandardMember": "スタンダードメンバー",
+  "nshStartTheConversation": "会話を始める",
+  "nshState": "状態",
+  "nshStickerPreviewUnavailable": "ステッカーをプレビューできません",
+  "nshStickerStore": "スタンプストア",
+  "nshStickers": "ステッカー",
+  "nshStickersYouSendAppearHere": "送信したステッカーがここに表示されます",
+  "nshStop": "停止",
+  "nshStorageUsage": "ストレージ使用率",
+  "nshSubscribedStickers": "登録済みステッカー",
+  "nshSyncFromPhone": "別のデバイスから同期",
+  "nshSyncToPhone": "別のデバイスへ同期",
+  "nshSystemLanguage": "システム設定に従う",
+  "nshTermsOfService": "利用規約",
+  "nshTextContent": "テキスト内容",
+  "nshTextIsTooLongForAQRCode": "テキストが長すぎるため、QR コードを生成できません。",
+  "nshTheAccountIsTemporarilyUnavailable": "アカウントを一時的に利用できません。",
+  "nshTheCircleWasCreatedRetryAddingTheRemainingChats": "サークルを作成しました。残りのチャットの追加をもう一度お試しください。",
+  "nshTransferVersionMismatch": "デバイス間で転送のバージョンが異なります。両方のアプリを更新して、もう一度お試しください。",
+  "nshTheGroupWasCreatedRetryOpeningIt": "グループを作成しました。もう一度開いてください。",
+  "nshTheImageInTheSendPreviewWillStayUnchanged": "送信プレビューの画像は変更されません。",
+  "nshThePasscodesDidnTMatchTryAgain": "パスコードが一致しません。もう一度お試しください。",
+  "nshThePreviousLinkWillStopWorking": "以前のリンクは無効になります。",
+  "nshTheSystemReturnedAnUnknownNotificationPermission": "システムから不明な通知権限が返されました。",
+  "nshThereAreNoUnreadConversationsInThisCategory": "このカテゴリに未読の会話はありません。",
+  "nshThereAreNoUnreadConversationsInThisCircle": "このサークルに未読の会話はありません。",
+  "nshDeleteForEveryoneDescription": "この会話の全員から、これらのメッセージが削除されます。",
+  "nshTheseMessagesWillBeRemovedFromThisDevice": "これらのメッセージがこのデバイスから削除されます。",
+  "nshThisAccountWillBeReportedAndBlocked": "このアカウントを報告してブロックします。",
+  "nshForwardedSummaryNotice": "この転送メッセージには概要のみが含まれています。元のメッセージと添付ファイルは利用できません。",
+  "nshThisForwardedSummaryIsUnavailable": "この転送された概要は利用できません。",
+  "nshThisMessageIsNoLongerAvailable": "このメッセージは利用できなくなりました。",
+  "nshThisMessageTypeIsNotSupported": "この種類のメッセージには対応していません。",
+  "nshThisPersonIsNotInYourContacts": "このユーザーは連絡先に登録されていません。",
+  "nshThisRecordingWillBeDeleted": "この録音は削除されます。",
+  "nshThisRemovesTheChatAndItsMessageHistoryFromThisDevice": "このチャットとメッセージ履歴がこのデバイスから削除されます。",
+  "userDeleteHint": "このユーザーはアカウントを削除しました。",
+  "nshThisUserWillBeRemovedFromYourContacts": "このユーザーが連絡先から削除されます。",
+  "nshThreshold": "署名しきい値",
+  "nshTimeUnit": "時間の単位",
+  "nshTransactionHash": "トランザクションハッシュ",
+  "nshTransferID": "送金 ID",
+  "nshTransferCancelled": "転送がキャンセルされました",
+  "transferCompleted": "転送が完了しました",
+  "nshTransferFailedCheckBothDevicesAndTryAgain": "転送に失敗しました。両方のデバイスを確認して、もう一度お試しください。",
+  "nshTransferringChats": "チャットを転送中…",
+  "nshTransferring": "転送中…",
+  "nshTryAgain": "リトライ",
+  "nshTryAgainInSecondsS": "{seconds}秒後にもう一度お試しください",
+  "@nshTryAgainInSecondsS": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "nshTryAnotherNameOrClearYourFilters": "別の名前を試すか、フィルターを解除してください。",
+  "nshTurnOff": "オフにする",
+  "nshTurnOffScreenPasscode": "画面パスコードをオフにしますか？",
+  "nshUnblockThisUser": "このユーザーのブロックを解除しますか？",
+  "nshUnblock": "ブロックを解除",
+  "nshUndo": "元に戻す",
+  "unlockMixinMessenger": "Mixin Messenger のロックを解除",
+  "nshUnlockWithPasscode": "パスコードでロック解除",
+  "nshUnlocking": "ロック解除中…",
+  "nshUnread": "未読",
+  "nshUnreadMention": "未読のメンション",
+  "nshUpdateMixinMessengerToContinue": "続けるには Mixin Messenger を更新してください。",
+  "nshUseBiometrics": "生体認証を使用",
+  "username": "ユーザー名",
+  "nshUsernameOptional": "ユーザー名（任意）",
+  "nshVerified": "認証済み",
+  "nshViewProfile": "プロフィールを表示",
+  "nshVoiceMessage": "音声メッセージ",
+  "nshVoiceMessagePosition": "音声メッセージの再生位置",
+  "nshWaitingForTheOtherDevice": "別のデバイスの接続を待っています。",
+  "nshEncryptedSessionWaiting": "暗号化セッションを確立するため、{sender}がオンラインになるのを待っています。",
+  "@nshEncryptedSessionWaiting": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshWatchLive": "ライブを視聴",
+  "nshWebpage": "ウェブページ",
+  "nshWeeks": "週",
+  "nshWhite": "白",
+  "nshWorking": "処理中…",
+  "nshWriteAMessage": "メッセージを入力",
+  "nshWriteAPost": "記事を書く",
+  "nshWriteInMarkdown": "Markdown で入力…",
+  "nshYellow": "黄",
+  "nshYesterday": "昨日",
+  "nshYouHaveNoUnreadConversations": "未読の会話はありません。",
+  "nshYouWillLeaveThisGroupAndRemoveItsLocalConversation": "このグループから退出し、ローカルの会話を削除します。",
+  "nshYourAlbums": "自分のアルバム",
+  "nshYourConversationsWillAppearHereAsTheySync": "同期された会話がここに表示されます。",
+  "nshZIPArchive": "ZIP アーカイブ",
+  "nshZoomIn": "拡大",
+  "nshZoomOut": "縮小",
+  "nshTheSender": "送信者",
+  "nshYourLinkedDevice": "自分のリンク済み端末",
+  "nshCountChats": "{count}件のチャット",
+  "@nshCountChats": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDay": "{count}日",
+  "@nshCountDay": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDays": "{count}日",
+  "@nshCountDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHour": "{count}時間",
+  "@nshCountHour": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHours": "{count}時間",
+  "@nshCountHours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMembers": "{count}人のメンバー",
+  "@nshCountMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinute": "{count}分",
+  "@nshCountMinute": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinutes": "{count}分",
+  "@nshCountMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSecond": "{count}秒",
+  "@nshCountSecond": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSeconds": "{count}秒",
+  "@nshCountSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSelected": "{count}件を選択中",
+  "@nshCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeek": "{count}週間",
+  "@nshCountWeek": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeeks": "{count}週間",
+  "@nshCountWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshHoursH": "{hours}時間",
+  "@nshHoursH": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "nshMinutesMin": "{minutes}分",
+  "@nshMinutesMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nshNamePinnedMessage": "{name}が{message}をピン留めしました",
+  "@nshNamePinnedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantBecameAnAdmin": "{participant}が管理者になりました",
+  "@nshParticipantBecameAnAdmin": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantJoinedTheGroup": "{participant}がグループに参加しました",
+  "@nshParticipantJoinedTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantLeftTheGroup": "{participant}がグループを退出しました",
+  "@nshParticipantLeftTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderAddedParticipant": "{sender}が{participant}を追加しました",
+  "@nshSenderAddedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderChangedDisappearingMessageSettings": "{sender}が消えるメッセージの設定を変更しました",
+  "@nshSenderChangedDisappearingMessageSettings": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderCreatedThisGroup": "{sender}がこのグループを作成しました",
+  "@nshSenderCreatedThisGroup": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderDisabledDisappearingMessages": "{sender}が消えるメッセージを無効にしました",
+  "@nshSenderDisabledDisappearingMessages": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderPinnedMessage": "{sender}が{message}をピン留めしました",
+  "@nshSenderPinnedMessage": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderRemovedParticipant": "{sender}が{participant}を削除しました",
+  "@nshSenderRemovedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderSetDisappearingMessagesToDuration": "{sender}が消えるメッセージを{duration}に設定しました",
+  "@nshSenderSetDisappearingMessagesToDuration": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSelectEnterOpenEscClose": "↑↓ 選択 · Enter 開く · Esc 閉じる",
+  "nshMixinIdLabel": "Mixin ID: {arg0}",
+  "@nshMixinIdLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  }
 }

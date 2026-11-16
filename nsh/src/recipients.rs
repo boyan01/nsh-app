@@ -1,8 +1,9 @@
+use crate::i18n::Key;
 use mixin_desktop_api::{AccountClient, ConversationListData, UserProfileItem};
 use std::{collections::HashSet, sync::Arc};
 
 use crate::{
-    i18n::tr,
+    i18n::t,
     runtime,
     ui::{self, parts},
 };
@@ -175,8 +176,8 @@ fn content(
         .min_h_0()
         .child(ui::picker::search(
             ui::search_input()
-                .label(move || tr("Search", "搜索"))
-                .placeholder(move || tr("Search", "搜索").to_owned())
+                .label(move || t(Key::Search))
+                .placeholder(move || t(Key::Search).to_owned())
                 .value(move || query.get())
                 .disabled(disabled)
                 .auto_focus(focus)
@@ -206,37 +207,34 @@ fn content(
                 .pb(ui::space_sm())
                 .gap_2()
                 .children(
-                    [
-                        (false, "Recent chats", "最近聊天"),
-                        (true, "Contacts", "联系人"),
-                    ]
-                    .into_iter()
-                    .map(move |(value, en, zh)| {
-                        ui::command()
-                            .flex_1()
-                            .selected(move || contacts.get() == value)
-                            .disabled(unavailable)
-                            .on_press(move || {
-                                if contacts.get_untracked() == value {
-                                    return;
-                                }
-                                batch(|| {
-                                    contacts.set(value);
-                                    page.set(0);
-                                    rows.set(Vec::new());
+                    [(false, Key::NshRecentChats), (true, Key::ContactTitle)]
+                        .into_iter()
+                        .map(move |(value, key)| {
+                            ui::command()
+                                .flex_1()
+                                .selected(move || contacts.get() == value)
+                                .disabled(unavailable)
+                                .on_press(move || {
+                                    if contacts.get_untracked() == value {
+                                        return;
+                                    }
+                                    batch(|| {
+                                        contacts.set(value);
+                                        page.set(0);
+                                        rows.set(Vec::new());
+                                    })
                                 })
-                            })
-                            .child(text(move || tr(en, zh)))
-                    }),
+                                .child(text(move || t(key)))
+                        }),
                 ),
         )
         .child(when(
             move || loading.get() && rows.with(Vec::is_empty),
-            || parts::status(move || tr("Loading…", "加载中…")).px(ui::space_xl()),
+            || parts::status(move || t(Key::NshLoading)).px(ui::space_xl()),
         ))
         .child(when(failed, move || {
             parts::failure(
-                move || tr("Chats are temporarily unavailable.", "暂时无法加载聊天"),
+                move || t(Key::NshChatsAreTemporarilyUnavailable),
                 move || retry.update(|retry| *retry += 1),
             )
             .px(ui::space_xl())
@@ -282,7 +280,7 @@ fn content(
         )
         .child(when(
             move || !loading.get() && !failed.get() && rows.with(Vec::is_empty),
-            || ui::placeholder(move || tr("No chats found", "没有找到聊天")).min_h_24(),
+            || ui::placeholder(move || t(Key::NshNoChatsFound)).min_h_24(),
         ))
 }
 

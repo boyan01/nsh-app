@@ -152,8 +152,7 @@ impl Pinned {
                         .unwrap_or_default(),
                 );
                 Some(i18n.format(
-                    "{name} pinned {message}",
-                    "{name}置顶了{message}",
+                    Key::NshNamePinnedMessage,
                     &[("name", &preview.sender_name), ("message", &message)],
                 ))
             })
@@ -281,7 +280,7 @@ impl Pinned {
                     view()
                         .pr_2()
                         .tooltip(ui::hint(move || {
-                            self.i18n.tr("Pinned messages", "置顶消息").to_owned()
+                            self.i18n.t(Key::NshPinnedMessages).to_owned()
                         }))
                         .opacity(move || {
                             if compact.get() {
@@ -293,7 +292,7 @@ impl Pinned {
                         .child(ui::glass_button(
                             ui::round_button()
                                 .accessibility_label(move || {
-                                    Some(self.i18n.tr("Pinned messages", "置顶消息").into())
+                                    Some(self.i18n.t(Key::NshPinnedMessages).into())
                                 })
                                 .selected(move || {
                                     self.side.get() == Some(navigation::Panel::Pinned)
@@ -364,7 +363,7 @@ impl Pinned {
                                         .size_8()
                                         .disabled(busy)
                                         .accessibility_label(move || {
-                                            Some(i18n.tr("Close", "关闭").into())
+                                            Some(i18n.t(Key::Close).into())
                                         })
                                         .on_press(move || self.set_shown(false))
                                         .child(ui::icon(ui::Icon::Close).size(ui::icon_sm())),
@@ -379,7 +378,7 @@ impl Pinned {
                                         .rounded(ui::glass_radius())
                                         .justify_start()
                                         .accessibility_label(move || {
-                                            Some(i18n.text(Key::Pinned).into())
+                                            Some(i18n.t(Key::NshPinned).into())
                                         })
                                         .on_press(move || {
                                             if let Some(id) = preview.with(|preview| {
@@ -402,7 +401,7 @@ impl Pinned {
                                     ui::round_button()
                                         .size_8()
                                         .accessibility_label(move || {
-                                            Some(i18n.tr("Pinned messages", "置顶消息").into())
+                                            Some(i18n.t(Key::NshPinnedMessages).into())
                                         })
                                         .selected(move || {
                                             side.get() == Some(navigation::Panel::Pinned)
@@ -440,8 +439,10 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
         .flex_row()
         .items_center()
         .gap_2()
-        .child(ui::error_text(move || i18n.text(Key::CommandFailed)))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || {
+            i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)
+        }))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 /// Optional fixture control for the same local state used by real controls.

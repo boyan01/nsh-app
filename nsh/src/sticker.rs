@@ -88,7 +88,7 @@ pub(crate) fn framed_asset(
                         .w(width)
                         .h(height)
                         .object_fit(ResizeMode::Contain)
-                        .label(move || i18n.text(Key::Sticker))
+                        .label(move || i18n.t(Key::Sticker))
                         .on_error(move |_: &str| fail())
                         .into_element()
                 };
@@ -106,7 +106,7 @@ pub(crate) fn framed_asset(
                         .child(
                             ui::icon(ui::Icon::Sticker)
                                 .size(ui::icon_lg())
-                                .label(move || i18n.text(Key::CommandFailed)),
+                                .label(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)),
                         )
                 }))
         })
@@ -218,7 +218,7 @@ fn animated(
                 .w(px(size.0))
                 .h(px(size.1))
                 .object_fit(ResizeMode::Contain)
-                .label(move || i18n.text(Key::Sticker))
+                .label(move || i18n.t(Key::Sticker))
                 .on_error(move |_: &str| {
                     if !frame.get_untracked().is_empty() {
                         fail();

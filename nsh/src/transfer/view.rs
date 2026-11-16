@@ -12,10 +12,7 @@ pub(crate) fn screen(handle: Handle) -> impl IntoElement {
     scroll().flex_1().min_h_0().child(
         parts::page_body()
             .child(parts::note(move || {
-                i18n.tr(
-                    "Keep both devices on the same network and open Mixin on your phone. Confirm the transfer on the other device.",
-                    "请将两台设备连接到同一网络，并打开手机上的 Mixin。在另一台设备上确认同步请求。",
-                )
+                i18n.t(Key::NshTransferNetworkInstructions)
             }))
             .child(
                 ui::card().children(
@@ -65,7 +62,7 @@ fn transfer_row(handle: Handle, direction: Direction) -> impl IntoElement {
                         move || job.get().status.active(),
                         move || {
                             ui::action(
-                                move || i18n.tr("Show transfer", "查看同步进度"),
+                                move || i18n.t(Key::NshShowTransfer),
                                 move || handle.visible.set(Some(direction)),
                             )
                         },
@@ -113,8 +110,8 @@ pub(crate) fn surface(handle: Handle) -> impl IntoElement {
 
 fn title(i18n: I18n, direction: Direction) -> &'static str {
     match direction {
-        Direction::Restore => i18n.tr("Sync from phone", "从手机同步"),
-        Direction::Backup => i18n.tr("Sync to phone", "同步到手机"),
+        Direction::Restore => i18n.t(Key::NshSyncFromPhone),
+        Direction::Backup => i18n.t(Key::NshSyncToPhone),
     }
 }
 
@@ -143,27 +140,21 @@ fn approval_card(
         .child(ui::dialog_title(move || title(i18n, direction)))
         .child(
             text(move || match direction {
-                Direction::Restore => i18n.tr(
-                    "Allow your phone to send chat history to this device?",
-                    "允许手机向此设备同步聊天记录吗？",
-                ),
-                Direction::Backup => i18n.tr(
-                    "Allow this device to send chat history to your phone?",
-                    "允许此设备向手机同步聊天记录吗？",
-                ),
+                Direction::Restore => i18n.t(Key::NshAllowYourPhoneToSendChatHistoryToThisDevice),
+                Direction::Backup => i18n.t(Key::NshAllowThisDeviceToSendChatHistoryToYourPhone),
             })
             .text_role(ui::TextRole::Body),
         )
         .child(
             parts::dialog_actions()
                 .child(
-                    ui::action(move || i18n.text(Key::Cancel), reject)
+                    ui::action(move || i18n.t(Key::Cancel), reject)
                         .disabled(handle.busy(direction)),
                 )
                 .child(
                     ui::primary()
                         .disabled(handle.busy(direction))
-                        .child(text(move || i18n.tr("Allow", "允许")))
+                        .child(text(move || i18n.t(Key::NshAllow)))
                         .on_press(move || {
                             if !presence.interactive() {
                                 return;
@@ -182,12 +173,7 @@ fn approval_card(
         .child(when(
             move || handle.response_error(direction).get() == Some(request_id),
             move || {
-                ui::error_text(move || {
-                    i18n.tr(
-                        "Couldn’t respond to the transfer request. Try again.",
-                        "无法回应同步请求，请重试。",
-                    )
-                })
+                ui::error_text(move || i18n.t(Key::NshCouldnTRespondToTheTransferRequestTryAgain))
             },
         ))
 }
@@ -205,17 +191,14 @@ fn progress_card(handle: Handle, direction: Direction) -> View {
                     .gap(ui::space_lg())
                     .child(
                         text(move || {
-                            i18n.tr(
-                                "Keep both devices connected until the transfer finishes.",
-                                "同步完成前请保持两台设备联网。",
-                            )
+                            i18n.t(Key::NshKeepBothDevicesConnectedUntilTheTransferFinishes)
                         })
                         .text_role(ui::TextRole::Body)
                         .text_color(ui::fg_secondary),
                     )
                     .child(
                         ui::action(
-                            move || i18n.text(Key::Cancel),
+                            move || i18n.t(Key::Cancel),
                             move || handle.cancel(direction),
                         )
                         .disabled(handle.busy(direction)),
@@ -224,12 +207,7 @@ fn progress_card(handle: Handle, direction: Direction) -> View {
         ))
         .child(when(
             move || !job.get().status.active(),
-            move || {
-                ui::action(
-                    move || i18n.tr("Done", "完成"),
-                    move || handle.visible.set(None),
-                )
-            },
+            move || ui::action(move || i18n.t(Key::Done), move || handle.visible.set(None)),
         ))
 }
 
@@ -241,18 +219,12 @@ fn status(handle: Handle, direction: Direction) -> impl IntoElement {
         .child(
             text(move || match job.get().status {
                 Status::Idle => "",
-                Status::Waiting => i18n.tr("Waiting for the other device…", "等待另一台设备连接…"),
-                Status::Transferring => i18n.tr("Transferring chats…", "正在同步聊天记录…"),
-                Status::Completed => i18n.tr("Transfer completed", "同步完成"),
-                Status::Failed => i18n.tr(
-                    "Transfer failed. Check both devices and try again.",
-                    "同步失败，请检查两台设备后重试。",
-                ),
-                Status::VersionMismatch => i18n.tr(
-                    "The devices use different transfer versions. Update both apps and try again.",
-                    "两台设备的同步协议版本不同，请更新应用后重试。",
-                ),
-                Status::Cancelled => i18n.tr("Transfer cancelled", "同步已取消"),
+                Status::Waiting => i18n.t(Key::NshWaitingForTheOtherDevice),
+                Status::Transferring => i18n.t(Key::NshTransferringChats),
+                Status::Completed => i18n.t(Key::TransferCompleted),
+                Status::Failed => i18n.t(Key::NshTransferFailedCheckBothDevicesAndTryAgain),
+                Status::VersionMismatch => i18n.t(Key::NshTransferVersionMismatch),
+                Status::Cancelled => i18n.t(Key::NshTransferCancelled),
             })
             .text_role(ui::TextRole::Body),
         )

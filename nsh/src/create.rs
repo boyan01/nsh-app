@@ -4,7 +4,7 @@ mod contacts;
 mod lookup;
 
 use crate::{
-    i18n::{self, Key, tr},
+    i18n::{self, Key, t},
     navigation::ChatNavigation,
     ui::parts,
     ui::{self, Typography as _},
@@ -33,10 +33,10 @@ impl Action {
 
     fn title(self) -> Key {
         match self {
-            Self::Search => Key::SearchContact,
-            Self::Chat => Key::NewConversation,
-            Self::Group => Key::NewGroup,
-            Self::Circle => Key::NewCircle,
+            Self::Search => Key::NshSearchContact,
+            Self::Chat => Key::NshNewConversation,
+            Self::Group => Key::NshNewGroup,
+            Self::Circle => Key::NshNewCircleMessage,
         }
     }
 }
@@ -57,14 +57,14 @@ pub(crate) fn trigger(action: Signal<Option<Action>>) -> impl IntoElement {
         .offset(ui::space_xs())
         .trigger(ui::glass_button(
             ui::round_button()
-                .accessibility_label(move || Some(i18n.text(Key::NewConversation).into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshNewConversation).into()))
                 .child(ui::icon(ui::Icon::Add).size(ui::icon_lg())),
         ))
         .children(
             [Action::Search, Action::Chat, Action::Group, Action::Circle]
                 .into_iter()
                 .map(move |value| {
-                    ui::menu_row_icon(Some(value.icon()), move || i18n.text(value.title()))
+                    ui::menu_row_icon(Some(value.icon()), move || i18n.t(value.title()))
                         .on_select(move || action.set(Some(value)))
                 }),
         )
@@ -96,12 +96,9 @@ pub(crate) fn surface(
             owner.run(|| {
                 spawn(async move {
                     let _ = nsh_base::alert_dialog()
-                        .title(tr("Couldn’t open conversation", "无法打开会话"))
-                        .description(tr(
-                            "Check your connection and try again.",
-                            "请检查网络连接后重试。",
-                        ))
-                        .action("close", tr("Close", "关闭"))
+                        .title(t(Key::NshCouldnTOpenConversation))
+                        .description(t(Key::NshCheckYourConnectionAndTryAgain))
+                        .action("close", t(Key::Close))
                         .show()
                         .await;
                 })

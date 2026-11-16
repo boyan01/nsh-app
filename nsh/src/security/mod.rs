@@ -1,5 +1,6 @@
 //! Session-owned presentation for Rust's authoritative screen privacy state.
 
+use crate::i18n::Key;
 use std::{future::Future, sync::Arc, time::Duration};
 
 use futures::StreamExt as _;
@@ -178,9 +179,7 @@ impl Handle {
         }
         let client = self.client();
         let i18n = i18n::current();
-        let reason = i18n
-            .tr("Unlock Mixin Messenger", "解锁 Mixin Messenger")
-            .to_owned();
+        let reason = i18n.t(Key::UnlockMixinMessenger).to_owned();
         self.busy.set(true);
         self.failed.set(false);
         self.owner.run(|| {

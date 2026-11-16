@@ -7,7 +7,7 @@ pub(crate) use palette::surface as palette;
 mod results;
 
 use crate::{
-    i18n::{self, Key, tr},
+    i18n::{self, Key, t},
     navigation::ChatNavigation,
     navigation::Navigation,
     runtime,
@@ -28,10 +28,10 @@ enum Section {
 impl Section {
     fn title(self) -> &'static str {
         match self {
-            Self::All => tr("All", "全部"),
-            Self::Users => tr("Contacts", "联系人"),
-            Self::Conversations => tr("Conversations", "会话"),
-            Self::Messages => tr("Messages", "消息"),
+            Self::All => t(Key::NshAll),
+            Self::Users => t(Key::ContactTitle),
+            Self::Conversations => t(Key::NshConversations),
+            Self::Messages => t(Key::Messages),
         }
     }
 }
@@ -203,12 +203,9 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
         .py_2()
         .gap_2()
         .child(ui::error_text(move || {
-            tr(
-                "Some results could not be loaded. Try again.",
-                "部分搜索结果加载失败，请重试。",
-            )
+            t(Key::NshSomeResultsCouldNotBeLoadedTryAgain)
         }))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 fn content(
@@ -250,20 +247,15 @@ fn content(
         )
         .child(remote)
         .child(when(open_failed, move || {
-            ui::error_text(move || {
-                tr(
-                    "Couldn’t open this result. Try again.",
-                    "无法打开此结果，请重试。",
-                )
-            })
-            .px_4()
-            .py_2()
+            ui::error_text(move || t(Key::NshCouldnTOpenThisResultTryAgain))
+                .px_4()
+                .py_2()
         }))
         // Results stay in place while they refresh, so only a first load shows progress.
         .child(when(
             move || loading.get() && rows.with(Vec::is_empty),
             move || {
-                parts::status(move || i18n.text(Key::LoadingChats))
+                parts::status(move || i18n.t(Key::NshLoadingConversations))
                     .px_4()
                     .py_2()
             },
@@ -279,10 +271,10 @@ fn content(
                     move || !loading.get() && !failed.get(),
                     move || {
                         ui::placeholder(move || match section.get() {
-                            Section::All => tr("No results", "未找到相关结果"),
-                            Section::Users => i18n.text(Key::NoContacts),
-                            Section::Conversations => i18n.text(Key::NoMatches),
-                            Section::Messages => tr("No messages found", "未找到消息"),
+                            Section::All => t(Key::NshNoResults),
+                            Section::Users => i18n.t(Key::NshNoContactsFound),
+                            Section::Conversations => i18n.t(Key::NshNoConversationsFound),
+                            Section::Messages => t(Key::NshNoMessagesFound),
                         })
                     },
                 )),

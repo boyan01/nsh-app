@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use mixin_desktop_api::SettingsClient;
 
 use super::*;
@@ -89,8 +90,8 @@ pub(crate) fn preference_error(retry: impl Fn() + 'static) -> View {
         .p(ui::space_sm())
         .gap(ui::space_xs())
         .child(
-            ui::error_text(move || i18n::tr("Couldn’t save sidebar settings", "侧栏设置保存失败"))
+            ui::error_text(move || i18n::t(Key::NshCouldnTSaveSidebarSettings))
                 .text_role(ui::TextRole::Caption),
         )
-        .child(ui::link(move || i18n::current().text(Key::Retry), retry))
+        .child(ui::link(move || i18n::current().t(Key::NshTryAgain), retry))
 }

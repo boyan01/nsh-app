@@ -27,21 +27,15 @@ pub(crate) fn settings(handle: Handle) -> impl IntoElement {
     scroll().flex_1().min_h_0().child(
         parts::page_body()
             .child(
-                ui::section(move || i18n.tr("Screen privacy", "锁屏保护"))
+                ui::section(move || i18n.t(Key::NshScreenPrivacy))
                     .child(parts::note(move || {
-                        i18n.tr(
-                            "A screen passcode hides account content while Mixin keeps syncing in the background.",
-                            "锁屏密码可隐藏账号内容。锁屏后，Mixin 仍会在后台同步消息。",
-                        )
+                        i18n.t(Key::NshScreenPasscodeDescription)
                     }))
                     .child(when(
                         move || available(false),
                         move || {
                             parts::note(move || {
-                                i18n.tr(
-                                    "Screen privacy is not available on this platform yet.",
-                                    "此平台暂不支持锁屏保护。",
-                                )
+                                i18n.t(Key::NshScreenPrivacyIsNotAvailableOnThisPlatformYet)
                             })
                         },
                     ))
@@ -50,7 +44,7 @@ pub(crate) fn settings(handle: Handle) -> impl IntoElement {
                         move || {
                             ui::card()
                                 .child(ui::toggle_row(
-                                    move || i18n.tr("Screen passcode", "锁屏密码"),
+                                    move || i18n.t(Key::NshScreenPasscode),
                                     move || handle.enabled(),
                                     move || handle.busy.get(),
                                     move |enabled| {
@@ -66,7 +60,7 @@ pub(crate) fn settings(handle: Handle) -> impl IntoElement {
                     )),
             )
             .child(when(handle.failed, move || {
-                ui::error_text(move || i18n.text(Key::CommandFailed))
+                ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
             }))
             .child(when(
                 move || presence.mounted(),
@@ -80,12 +74,9 @@ fn disable_passcode(handle: Handle) {
     let client = handle.client();
     spawn(async move {
         let prompt = Prompt::new(
-            i18n.tr("Turn off screen passcode?", "关闭锁屏密码？"),
-            i18n.tr(
-                "Account content will no longer be hidden when Mixin locks.",
-                "关闭后，将不再隐藏账号内容。",
-            ),
-            i18n.tr("Turn off", "关闭"),
+            i18n.t(Key::NshTurnOffScreenPasscode),
+            i18n.t(Key::NshAccountContentWillNoLongerBeHiddenWhenMixinLocks),
+            i18n.t(Key::NshTurnOff),
         );
         if confirm(prompt).await {
             handle.command(async move { client.disable_passcode().await });
@@ -102,7 +93,7 @@ fn lock_options(handle: Handle) -> impl IntoElement {
     };
     view()
         .child(
-            ui::static_row(move || i18n.tr("Automatic lock", "自动锁屏")).child(
+            ui::static_row(move || i18n.t(Key::NshAutomaticLock)).child(
                 view().w_40().child(
                     ui::select()
                         .items(move || {
@@ -115,9 +106,7 @@ fn lock_options(handle: Handle) -> impl IntoElement {
                         })
                         .value(move || Some(SharedString::from(minutes().to_string())))
                         .disabled(handle.busy)
-                        .accessibility_label(move || {
-                            Some(i18n.tr("Automatic lock", "自动锁屏").into())
-                        })
+                        .accessibility_label(move || Some(i18n.t(Key::NshAutomaticLock).into()))
                         .trigger(ui::select_trigger(move || duration(i18n, minutes())))
                         .on_change(move |next: &Option<SharedString>| {
                             if let Some(minutes) =
@@ -132,17 +121,9 @@ fn lock_options(handle: Handle) -> impl IntoElement {
                 ),
             ),
         )
-        .child(
-            parts::note(move || {
-                i18n.tr(
-                    "Lock after Mixin loses focus. Returning before the timeout cancels the lock.",
-                    "Mixin 失去焦点后开始计时。在到期前返回应用，可取消自动锁屏。",
-                )
-            })
-            .pb(ui::space_sm()),
-        )
+        .child(parts::note(move || i18n.t(Key::NshAutomaticLockDescription)).pb(ui::space_sm()))
         .child(ui::toggle_row(
-            move || i18n.tr("Biometric unlock", "生物识别解锁"),
+            move || i18n.t(Key::NshBiometricUnlock),
             move || {
                 handle
                     .state
@@ -155,7 +136,7 @@ fn lock_options(handle: Handle) -> impl IntoElement {
             },
         ))
         .child(
-            ui::settings_row(None, move || i18n.tr("Lock now", "立即锁屏"))
+            ui::settings_row(None, move || i18n.t(Key::NshLockNow))
                 .disabled(handle.busy)
                 .on_press(move || handle.lock()),
         )
@@ -163,19 +144,11 @@ fn lock_options(handle: Handle) -> impl IntoElement {
 
 fn duration(i18n: i18n::I18n, minutes: u32) -> String {
     if minutes == 0 {
-        i18n.tr("Disabled", "关闭").into()
+        i18n.t(Key::Disabled).into()
     } else if minutes < 60 {
-        i18n.format(
-            "{minutes} min",
-            "{minutes} 分钟",
-            &[("minutes", &minutes.to_string())],
-        )
+        i18n.format(Key::NshMinutesMin, &[("minutes", &minutes.to_string())])
     } else {
-        i18n.format(
-            "{hours} h",
-            "{hours} 小时",
-            &[("hours", &(minutes / 60).to_string())],
-        )
+        i18n.format(Key::NshHoursH, &[("hours", &(minutes / 60).to_string())])
     }
 }
 
@@ -215,9 +188,9 @@ fn setup_card(handle: Handle, setup: Signal<bool>, presence: crate::motion::Pres
     ui::dialog_card(ui::DialogWidth::Compact)
         .child(ui::dialog_title(move || {
             if first.with(Option::is_some) {
-                i18n.tr("Confirm your passcode", "确认锁屏密码")
+                i18n.t(Key::NshConfirmYourPasscode)
             } else {
-                i18n.tr("Set a six-digit passcode", "设置六位锁屏密码")
+                i18n.t(Key::NshSetASixDigitPasscode)
             }
         }))
         .child(passcode::input(
@@ -230,19 +203,14 @@ fn setup_card(handle: Handle, setup: Signal<bool>, presence: crate::motion::Pres
             move |_| submit(),
         ))
         .child(when(mismatch, move || {
-            ui::error_text(move || {
-                i18n.tr(
-                    "The passcodes didn’t match. Try again.",
-                    "两次输入的密码不一致，请重试。",
-                )
-            })
+            ui::error_text(move || i18n.t(Key::NshThePasscodesDidnTMatchTryAgain))
         }))
         .child(when(handle.failed, move || {
-            ui::error_text(move || i18n.text(Key::CommandFailed))
+            ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
         }))
         .child(
             parts::dialog_actions()
-                .child(ui::action(move || i18n.text(Key::Cancel), cancel).disabled(handle.busy)),
+                .child(ui::action(move || i18n.t(Key::Cancel), cancel).disabled(handle.busy)),
         )
 }
 

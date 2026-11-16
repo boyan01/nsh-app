@@ -33,7 +33,7 @@ pub(super) fn card(
 ) -> AnyElement {
     let i18n = actions.i18n;
     let Ok(value) = serde_json::from_str::<Value>(&row.content) else {
-        return text(move || i18n.tr("Invalid card", "无法读取卡片"))
+        return text(move || i18n.t(Key::NshInvalidCard))
             .text_role(ui::TextRole::Body)
             .into_element();
     };
@@ -235,9 +235,9 @@ fn commands(row: &MessageListView, commands: Vec<Value>, actions: Actions) -> Vi
         if external {
             // Says the button leaves for a web page.
             plate = plate.child(
-                svg(ImageSrc::svg_markup(include_str!(
-                    "../../assets/message/external_link.svg"
-                )))
+                svg(ImageSrc::svg_markup(
+                    crate::assets::svg::MESSAGE_EXTERNAL_LINK,
+                ))
                 .absolute()
                 .top(ui::space_xs() + ui::space_2xs())
                 .right(ui::space_xs() + ui::space_2xs())
@@ -302,19 +302,19 @@ fn add_image_sticker(row: MessageListView, actions: Actions) -> impl IntoElement
         .items_center()
         .justify_center()
         .gap_6()
-        .child(ui::dialog_title(move || i18n.tr("Add sticker", "添加贴纸")))
+        .child(ui::dialog_title(move || i18n.t(Key::NshAddSticker)))
         .child(
             image(row.media_url.unwrap_or_default())
                 .size_96()
                 .max_w(relative(0.9))
                 .max_h(relative(0.7))
                 .object_fit(ResizeMode::Contain)
-                .label(move || i18n.text(Key::Photo))
+                .label(move || i18n.t(Key::NshPhoto))
                 .on_error(move |_: &str| actions.failed.set(true)),
         )
         .child(
             ui::action(
-                move || i18n.tr("Save", "保存"),
+                move || i18n.t(Key::Save),
                 move || {
                     if !active() || actions.busy.get_untracked() {
                         return;
@@ -343,7 +343,7 @@ fn add_image_sticker(row: MessageListView, actions: Actions) -> impl IntoElement
             .disabled(move || actions.busy.get() || !active())
             .child(ui::busy_indicator(
                 move || actions.busy.get(),
-                move || i18n.tr("Saving…", "正在保存…").into(),
+                move || i18n.t(Key::NshSaving).into(),
             )),
         )
 }
@@ -431,18 +431,18 @@ fn detail_card(
                     |style| style.hidden(),
                 )
                 .child(when(qr, move || {
-                    ui::dialog_title(move || i18n.tr("QR code", "二维码"))
+                    ui::dialog_title(move || i18n.t(Key::NshQRCode))
                         .flex_1()
                         .min_w_0()
                 }))
                 .child(when(
                     move || !actions.preview_history.with(Vec::is_empty),
                     move || {
-                        ui::action(move || i18n.text(Key::Back), move || actions.back_preview())
+                        ui::action(move || i18n.t(Key::NshBack), move || actions.back_preview())
                     },
                 ))
                 .child(ui::action(
-                    move || i18n.tr("Close", "关闭"),
+                    move || i18n.t(Key::Close),
                     move || actions.close_preview(),
                 )),
         )
@@ -520,13 +520,13 @@ fn detail_card(
                     .min_h_0()
                     .w_full()
                     .object_fit(ResizeMode::Contain)
-                    .label(move || i18n.text(Key::Photo))
+                    .label(move || i18n.t(Key::NshPhoto))
                     .into_element(),
                 None => view().hidden().into_element(),
             })
         }))
         .child(when(actions.failed, move || {
-            ui::error_text(move || i18n.text(Key::CommandFailed))
+            ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
         }))
         .child(
             text(move || {

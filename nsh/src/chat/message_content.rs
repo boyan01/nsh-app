@@ -166,7 +166,7 @@ fn kind_body(
     } else if category.ends_with("_LIVE") {
         let preview = row.clone();
         ui::action(
-            move || actions.i18n.tr("Watch live", "观看直播"),
+            move || actions.i18n.t(Key::NshWatchLive),
             move || actions.open_preview(preview.clone()),
         )
         .into_element()
@@ -196,26 +196,24 @@ fn recalled(row: &MessageListView, actions: Actions) -> AnyElement {
         .items_center()
         .gap_1()
         .child(
-            svg(ImageSrc::svg_markup(include_str!(
-                "../../assets/quote/recall.svg"
-            )))
-            .size(ui::icon_sm())
-            .flex_shrink_0()
-            .text_color(ui::message_secondary)
-            .accessibility_elements_hidden(true),
+            svg(ImageSrc::svg_markup(crate::assets::svg::QUOTE_RECALL))
+                .size(ui::icon_sm())
+                .flex_shrink_0()
+                .text_color(ui::message_secondary)
+                .accessibility_elements_hidden(true),
         )
         .child(text(move || {
             if mine {
-                i18n.tr("You deleted this message", "你删除了这条消息")
+                i18n.t(Key::YouDeletedThisMessage)
             } else {
-                i18n.tr("This message was deleted", "这条消息已被删除")
+                i18n.t(Key::ThisMessageWasDeleted)
             }
         }))
         .child(when(
             move || mine && id.with(|id| reedit.available(id)),
             move || {
                 ui::link(
-                    move || i18n.tr("Re-edit", "重新编辑"),
+                    move || i18n.t(Key::Reedit),
                     move || id.with(|id| reedit.request(id)),
                 )
             },
@@ -240,7 +238,7 @@ fn post(row: &MessageListView, actions: Actions, stamp: Option<View>) -> AnyElem
         .items_stretch()
         .max_h(bound)
         .overflow_hidden()
-        .accessibility_label(move || Some(i18n.text(Key::Post).into()))
+        .accessibility_label(move || Some(i18n.t(Key::Post).into()))
         .on_press(move || actions.open_preview(preview.clone()))
         .child(
             view()
@@ -274,7 +272,7 @@ fn sticker(row: &MessageListView, actions: Actions) -> AnyElement {
     let id = row.sticker_id.clone().filter(|id| !id.is_empty());
     let url = row.sticker_asset_url.clone().unwrap_or_default();
     if id.is_none() && url.is_empty() {
-        return text(move || i18n.text(Key::Sticker)).into_element();
+        return text(move || i18n.t(Key::Sticker)).into_element();
     }
     let kind = row.sticker_asset_type.clone().unwrap_or_default();
     let pressed = id.clone().unwrap_or_default();
@@ -283,7 +281,7 @@ fn sticker(row: &MessageListView, actions: Actions) -> AnyElement {
         .p_0()
         .min_h_0()
         .disabled(id.is_none())
-        .accessibility_label(move || Some(i18n.text(Key::Sticker).into()))
+        .accessibility_label(move || Some(i18n.t(Key::Sticker).into()))
         .on_press(move || actions.open_sticker(pressed.clone()))
         .child(crate::sticker::framed_asset(
             actions.account.client(),
@@ -349,13 +347,13 @@ fn file(row: MessageListView, transcript: Option<String>, actions: Actions) -> A
     let root = stored(transcript);
     let action = move || {
         if done {
-            i18n.tr("Open", "打开")
+            i18n.t(Key::Open)
         } else if transfer.active() {
-            i18n.tr("Cancel transfer", "取消传输")
+            i18n.t(Key::NshCancelTransfer)
         } else if retry {
-            i18n.tr("Retry", "重试")
+            i18n.t(Key::Retry)
         } else {
-            i18n.tr("Download", "下载")
+            i18n.t(Key::Download)
         }
     };
     ui::command()
@@ -526,7 +524,7 @@ fn transcript_card(
         .p_0()
         .min_h_0()
         .min_w_0()
-        .accessibility_label(move || Some(i18n.text(Key::Transcript).into()))
+        .accessibility_label(move || Some(i18n.t(Key::NshChatHistory).into()))
         .on_press(move || {
             if let Some(root) = transcript.clone() {
                 actions.open_transcript_summary(root, opened.message_id.clone());
@@ -542,7 +540,7 @@ fn transcript_card(
                 .pl_2()
                 .pb_1()
                 .child(
-                    text(move || i18n.text(Key::Transcript))
+                    text(move || i18n.t(Key::NshChatHistory))
                         .text_size(move || appearance.primary_size()),
                 )
                 .child(message_appearance::detail_icon()),
@@ -565,7 +563,7 @@ fn transcript_card(
         .gap_2()
         .child(body)
         .child(ui::link(
-            move || i18n.tr("Retry", "重试"),
+            move || i18n.t(Key::Retry),
             move || {
                 let client = actions.account.with(|account| account.clone());
                 let id = id.clone();
@@ -695,9 +693,9 @@ fn safe_snapshot(row: &MessageListView, actions: Actions) -> AnyElement {
         .disabled(row.snapshot_id.is_none())
         .on_press(move || actions.open_preview(opened.clone()))
         .child(
-            svg(ImageSrc::svg_markup(include_str!(
-                "../../assets/message/bg_snapshot.svg"
-            )))
+            svg(ImageSrc::svg_markup(
+                crate::assets::svg::MESSAGE_BG_SNAPSHOT,
+            ))
             .absolute()
             .top_0()
             .right_0()

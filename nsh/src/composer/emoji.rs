@@ -5,10 +5,7 @@ use serde_json::Value;
 use std::{collections::HashMap, rc::Rc};
 use tokio::sync::watch;
 
-use super::{
-    stickers::{TabLabel, columns, panel_tab},
-    tr,
-};
+use super::stickers::{TabLabel, columns, panel_tab};
 use crate::{
     i18n::{self, Key},
     runtime,
@@ -31,15 +28,15 @@ const MAX_COLUMNS: usize = 12;
 
 fn section_title(section: usize, i18n: i18n::I18n) -> &'static str {
     match section {
-        RECENT => tr(i18n, "Recently used", "最近使用"),
-        1 => tr(i18n, "Smileys and people", "表情符号与人物"),
-        2 => tr(i18n, "Animals and nature", "动物与自然"),
-        3 => tr(i18n, "Food and drink", "食物与饮料"),
-        4 => tr(i18n, "Travel and places", "旅行与地点"),
-        5 => tr(i18n, "Activities", "活动"),
-        6 => tr(i18n, "Objects", "物品"),
-        7 => tr(i18n, "Symbols", "符号"),
-        _ => tr(i18n, "Flags", "旗帜"),
+        RECENT => i18n.t(Key::NshRecentlyUsed),
+        1 => i18n.t(Key::NshSmileysAndPeople),
+        2 => i18n.t(Key::NshAnimalsAndNature),
+        3 => i18n.t(Key::NshFoodAndDrink),
+        4 => i18n.t(Key::NshTravelAndPlaces),
+        5 => i18n.t(Key::NshActivities),
+        6 => i18n.t(Key::Objects),
+        7 => i18n.t(Key::Symbols),
+        _ => i18n.t(Key::Flags),
     }
 }
 
@@ -204,17 +201,8 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
         .flex_row()
         .items_center()
         .gap_2()
-        .child(
-            ui::error_text(move || {
-                tr(
-                    i18n,
-                    "Couldn’t load recent emoji.",
-                    "无法加载最近使用的表情。",
-                )
-            })
-            .flex_1(),
-        )
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || i18n.t(Key::NshCouldnTLoadRecentEmoji)).flex_1())
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 fn panel_view(insert: Rc<dyn Fn(String)>, preferences: Preferences) -> View {
@@ -367,7 +355,7 @@ fn panel_view(insert: Rc<dyn Fn(String)>, preferences: Preferences) -> View {
                 panel_tab()
                     .flex_1()
                     .min_w_0()
-                    .accessibility_label(move || Some(tr(i18n, "Search emoji", "搜索表情").into()))
+                    .accessibility_label(move || Some(i18n.t(Key::NshSearchEmoji).into()))
                     .on_press(move || searching.set(true))
                     .child(ui::icon(ui::Icon::Search)),
             )
@@ -382,14 +370,14 @@ fn panel_view(insert: Rc<dyn Fn(String)>, preferences: Preferences) -> View {
                 ui::field()
                     .flex_1()
                     .auto_focus(true)
-                    .label(move || tr(i18n, "Search emoji", "搜索表情"))
-                    .placeholder(move || tr(i18n, "Search emoji…", "搜索表情…").to_owned())
+                    .label(move || i18n.t(Key::NshSearchEmoji))
+                    .placeholder(move || i18n.t(Key::NshSearchEmojiMessage).to_owned())
                     .value(move || query.get())
                     .on_change(move |value: &str| query.set(value.to_owned())),
             )
             .child(
                 panel_tab()
-                    .accessibility_label(move || Some(tr(i18n, "Close", "关闭").into()))
+                    .accessibility_label(move || Some(i18n.t(Key::Close).into()))
                     .on_press(move || {
                         query.set(String::new());
                         searching.set(false);
@@ -428,7 +416,7 @@ fn panel_view(insert: Rc<dyn Fn(String)>, preferences: Preferences) -> View {
             )
             .child(
                 panel_tab()
-                    .accessibility_label(move || Some(tr(i18n, "Close", "关闭").into()))
+                    .accessibility_label(move || Some(i18n.t(Key::Close).into()))
                     .on_press(move || picking.set(None))
                     .child(ui::icon(ui::Icon::Close)),
             )
@@ -511,7 +499,7 @@ fn panel_view(insert: Rc<dyn Fn(String)>, preferences: Preferences) -> View {
         )
         .child(when(
             move || rows.with(Vec::is_empty),
-            move || ui::placeholder(move || tr(i18n, "No emoji found", "未找到表情")),
+            move || ui::placeholder(move || i18n.t(Key::NshNoEmojiFound)),
         ))
 }
 

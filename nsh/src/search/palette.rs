@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use std::{collections::HashMap, time::Duration};
 
 use futures::StreamExt as _;
@@ -18,12 +19,9 @@ pub(crate) fn surface(account: Arc<AccountClient>, open: Signal<bool>) -> impl I
             failed.set(false);
             spawn(async move {
                 let _ = nsh_base::alert_dialog()
-                    .title(tr("Couldn’t open conversation", "无法打开会话"))
-                    .description(tr(
-                        "Check your connection and try again.",
-                        "请检查网络连接后重试。",
-                    ))
-                    .action("close", tr("Close", "关闭"))
+                    .title(t(Key::NshCouldnTOpenConversation))
+                    .description(t(Key::NshCheckYourConnectionAndTryAgain))
+                    .action("close", t(Key::Close))
                     .show()
                     .await;
             });
@@ -237,10 +235,10 @@ impl Palette {
                 .collect::<Vec<_>>()
         });
         if self.page.get() > 0 {
-            items.push(CommandItem::new("previous", tr("Previous page", "上一页")));
+            items.push(CommandItem::new("previous", t(Key::NshPreviousPage)));
         }
         if self.more.get() {
-            items.push(CommandItem::new("next", tr("Next page", "下一页")));
+            items.push(CommandItem::new("next", t(Key::NshNextPage)));
         }
         items
             .into_iter()
@@ -303,9 +301,9 @@ impl Palette {
                 }
             })
             .placeholder(move || {
-                Some(tr("Search conversations and contacts", "搜索会话和联系人").into())
+                Some(t(Key::NshSearchConversationsAndContacts).into())
             })
-            .accessibility_label(move || Some(tr("Quick search", "快速搜索").into()))
+            .accessibility_label(move || Some(t(Key::NshQuickSearch).into()))
             .items(move || self.items())
             .search_bar_class("flex items-center px-4 py-2 border-b border-border gap-3 shrink-0")
             .search_class("flex-1 min-w-0 text-sm text-foreground bg-transparent")
@@ -317,7 +315,7 @@ impl Palette {
             .search_suffix(
                 ui::round_button()
                     .size_8()
-                    .accessibility_label(move || Some(tr("Close", "关闭").into()))
+                    .accessibility_label(move || Some(t(Key::Close).into()))
                     .on_press(close)
                     .child(ui::icon(ui::Icon::Close)),
             )
@@ -325,7 +323,7 @@ impl Palette {
                 self.highlighted
                     .set(value.as_ref().map(ToString::to_string))
             })
-            .empty(ui::placeholder(move || tr("No results", "没有搜索结果")))
+            .empty(ui::placeholder(move || t(Key::NshNoResults)))
             .footer(
                 view()
                     .flex_none()
@@ -335,9 +333,8 @@ impl Palette {
                     .border_color(ui::border)
                     .child(
                         text(move || {
-                            tr(
-                                "↑↓ Select · Enter Open · Esc Close",
-                                "↑↓ 选择 · Enter 打开 · Esc 关闭",
+                            t(
+                                Key::NshSelectEnterOpenEscClose,
                             )
                         })
                         .text_role(ui::TextRole::Caption)
@@ -421,10 +418,8 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     view()
         .p_3()
         .gap_2()
-        .child(ui::error_text(move || {
-            tr("Couldn’t load quick search", "快速搜索加载失败")
-        }))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || t(Key::NshCouldnTLoadQuickSearch)))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 #[cfg(debug_assertions)]

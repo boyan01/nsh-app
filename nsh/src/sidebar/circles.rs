@@ -1,10 +1,11 @@
+use crate::i18n::Key;
 use mixin_desktop_api::{CircleItem, ClientResult, ConversationListData};
 use nsh_base::alert_dialog;
 use nsh_core::{TouchEvent, TouchPhase, element::desktop::MenuItem};
 use std::{future::Future, time::Duration};
 
 use super::*;
-use crate::{i18n::tr, runtime};
+use crate::{i18n::t, runtime};
 
 /// A rail row and the rail's row gap, so circles keep the category rhythm.
 fn circle_row_height() -> Points {
@@ -257,19 +258,12 @@ impl Circles {
     fn confirm_delete(self, circle: CircleItem) {
         self.owner.run(|| {
             spawn(async move {
-                let title = i18n::current().format(
-                    "Delete “{name}”?",
-                    "删除“{name}”？",
-                    &[("name", &circle.name)],
-                );
+                let title = i18n::current().format(Key::NshDeleteName, &[("name", &circle.name)]);
                 let answer = alert_dialog()
                     .title(title)
-                    .description(tr(
-                        "Chats in this circle will remain available in All chats.",
-                        "圈子中的聊天仍会保留在“全部聊天”中。",
-                    ))
-                    .cancel("cancel", tr("Cancel", "取消"))
-                    .destructive("delete", tr("Delete", "删除"))
+                    .description(t(Key::NshChatsInThisCircleWillRemainAvailableInAllChats))
+                    .cancel("cancel", t(Key::Cancel))
+                    .destructive("delete", t(Key::Delete))
                     .show()
                     .await;
                 if matches!(answer, Ok(answer) if answer.action.as_deref() == Some("delete")) {
@@ -285,13 +279,8 @@ impl Circles {
     pub(super) fn feedback(self) -> impl IntoElement {
         view().child(when(self.failed, move || {
             view().px_2().py_2().child(
-                ui::error_text(move || {
-                    tr(
-                        "Couldn’t update circles. Try again.",
-                        "更新圈子失败，请重试。",
-                    )
-                })
-                .text_role(ui::TextRole::Caption),
+                ui::error_text(move || t(Key::NshCouldnTUpdateCirclesTryAgain))
+                    .text_role(ui::TextRole::Caption),
             )
         }))
     }
@@ -622,17 +611,17 @@ impl Circles {
             };
             ui::menu_groups([
                 vec![
-                    MenuItem::new(tr("Edit Circle Name", "编辑名称"))
+                    MenuItem::new(t(Key::EditCircleName))
                         .icon(ui::MenuIcon::Edit.src())
                         .disabled(busy)
                         .on_select(edit(Editing::Rename)),
-                    MenuItem::new(tr("Edit Conversations", "管理圈子"))
+                    MenuItem::new(t(Key::EditConversations))
                         .icon(ui::MenuIcon::ManageCircle.src())
                         .disabled(busy)
                         .on_select(edit(Editing::Manage)),
                 ],
                 vec![
-                    MenuItem::new(tr("Delete Circle", "删除圈子"))
+                    MenuItem::new(t(Key::DeleteCircle))
                         .icon(ui::MenuIcon::Delete.src())
                         .disabled(busy)
                         .on_select(move || {
@@ -673,7 +662,7 @@ pub(crate) fn add_to_circle_item(state: Circles, row: &ConversationListData) -> 
             .collect::<Vec<_>>()
     });
     (!items.is_empty()).then(|| {
-        MenuItem::submenu(tr("Add to Circle", "添加到圈子"), items)
+        MenuItem::submenu(t(Key::AddToCircle), items)
             .icon(ui::MenuIcon::Circle.src())
             .disabled(state.busy.get_untracked())
     })
@@ -687,7 +676,7 @@ pub(crate) fn remove_from_circle_item(
     let id = state.nav.circle.get_untracked()?;
     let row = row.clone();
     Some(
-        MenuItem::new(tr("Remove Chat from circle", "从圈子里移除对话"))
+        MenuItem::new(t(Key::RemoveChatFromCircle))
             .icon(ui::MenuIcon::Delete.src())
             .disabled(state.busy.get_untracked())
             .on_select(move || state.edit_membership(id.clone(), &row, false)),
@@ -702,13 +691,13 @@ fn rename_view(
     save: impl Fn() + 'static,
 ) -> View {
     ui::dialog_card(ui::DialogWidth::Compact)
-        .child(ui::dialog_title(move || tr("Rename circle", "重命名圈子")))
+        .child(ui::dialog_title(move || t(Key::NshRenameCircle)))
         .child(when(failed, || {
-            ui::error_text(move || tr("Couldn’t save. Try again.", "保存失败，请重试。"))
+            ui::error_text(move || t(Key::NshCouldnTSaveTryAgain))
         }))
         .child(
             ui::field()
-                .label(move || tr("Name", "名称"))
+                .label(move || t(Key::Name))
                 .max_length(64)
                 .value(move || name.get())
                 .on_change(move |value: &str| name.set(value.into())),
@@ -718,12 +707,12 @@ fn rename_view(
                 .flex_row()
                 .justify_end()
                 .gap_2()
-                .child(ui::action(move || tr("Cancel", "取消"), close).disabled(busy))
+                .child(ui::action(move || t(Key::Cancel), close).disabled(busy))
                 .child(
                     ui::primary()
                         .disabled(move || busy.get() || name.with(|name| name.trim().is_empty()))
                         .on_press(save)
-                        .child(text(move || tr("Save", "保存"))),
+                        .child(text(move || t(Key::Save))),
                 ),
         )
 }

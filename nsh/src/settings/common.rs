@@ -51,7 +51,7 @@ impl Feedback {
                     .gap(ui::space_sm())
                     .child(when(self.busy, move || parts::status(busy_label)))
                     .child(when(self.failed, move || {
-                        ui::error_text(move || i18n.text(Key::CommandFailed))
+                        ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
                     }))
             },
         )

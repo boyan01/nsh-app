@@ -1,9 +1,9 @@
+use crate::i18n::Key;
 use futures::StreamExt as _;
 use mixin_desktop_api::{AccountClient, ConversationParticipantItem};
 use nsh_core::prelude::*;
 use std::{rc::Rc, sync::Arc};
 
-use super::tr;
 use crate::{
     i18n, runtime,
     ui::{self, Typography as _},
@@ -155,7 +155,7 @@ pub(crate) fn mentions(
                 .child(when(
                     move || searching.get() && rows.with(Vec::is_empty),
                     move || {
-                        text(move || tr(i18n, "Loading members…", "正在加载群成员…"))
+                        text(move || i18n.t(Key::NshLoadingMembers))
                             .px_3()
                             .py_2()
                             .text_role(ui::TextRole::Body)
@@ -164,11 +164,7 @@ pub(crate) fn mentions(
                 ))
                 .child(when(failed, move || {
                     view().px_3().py_2().child(ui::error_text(move || {
-                        tr(
-                            i18n,
-                            "Couldn’t load members. Type again to retry.",
-                            "无法加载群成员，请重新输入重试。",
-                        )
+                        i18n.t(Key::NshCouldnTLoadMembersTypeAgainToRetry)
                     }))
                 }))
                 .child(

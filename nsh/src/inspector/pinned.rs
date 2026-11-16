@@ -189,12 +189,9 @@ impl Pinned {
         let i18n = i18n::current();
         spawn(async move {
             let result = alert_dialog()
-                .title(i18n.tr(
-                    "Are you sure you want to unpin all messages?",
-                    "确定取消置顶所有消息么？",
-                ))
-                .cancel("cancel", i18n.text(Key::Cancel))
-                .action("unpin", i18n.tr("Unpin All Messages", "取消所有置顶消息"))
+                .title(i18n.t(Key::UnpinAllMessagesConfirmation))
+                .cancel("cancel", i18n.t(Key::Cancel))
+                .action("unpin", i18n.t(Key::UnpinAllMessages))
                 .show()
                 .await;
             if matches!(result, Ok(answer) if answer.action.as_deref() == Some("unpin")) {
@@ -283,7 +280,10 @@ fn reader(
 
 pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
-    parts::failure(move || i18n.text(Key::CommandFailed), retry)
+    parts::failure(
+        move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain),
+        retry,
+    )
 }
 
 fn reader_view(
@@ -305,14 +305,14 @@ fn reader_view(
         .flex_1()
         .min_h_0()
         .child(parts::page_header(
-            move || format!("{} ({})", i18n.text(Key::Pinned), state.total.get()),
+            move || format!("{} ({})", i18n.t(Key::NshPinned), state.total.get()),
             None,
             Some(parts::close_button(close)),
         ))
         .child(when(
             move || state.loading.get() && state.rows.with(Vec::is_empty),
             move || {
-                parts::status(move || i18n.text(Key::LoadingMessages))
+                parts::status(move || i18n.t(Key::NshLoadingMessages))
                     .px_4()
                     .py_2()
             },
@@ -363,10 +363,7 @@ fn reader_view(
                     state.mutating.get() || state.total.get() == 0 || !state.can_unpin.get()
                 })
                 .on_press(move || state.unpin_all(close))
-                .child(
-                    text(move || i18n.tr("Unpin All Messages", "取消所有置顶消息"))
-                        .text_color(ui::accent),
-                ),
+                .child(text(move || i18n.t(Key::UnpinAllMessages)).text_color(ui::accent)),
         )
         .child(state.preview.surface())
 }

@@ -179,9 +179,7 @@ pub(super) fn body(
                 .step(100.0)
                 .value(move || Some(SliderValue::Single(position() as f64)))
                 .disabled(move || duration() == 0)
-                .accessibility_label(move || {
-                    Some(i18n.tr("Voice message position", "语音播放进度").into())
-                })
+                .accessibility_label(move || Some(i18n.t(Key::NshVoiceMessagePosition).into()))
                 .on_change(move |value: &SliderValue| {
                     if let SliderValue::Single(value) = *value
                         && active()
@@ -210,9 +208,9 @@ pub(super) fn body(
                     .accessibility_label(move || {
                         Some(
                             if playing() {
-                                i18n.tr("Stop", "停止")
+                                i18n.t(Key::NshStop)
                             } else {
-                                i18n.text(Key::Play)
+                                i18n.t(Key::NshPlay)
                             }
                             .into(),
                         )
@@ -228,11 +226,11 @@ pub(super) fn body(
                         )
                     })
                     .child(when(playing, move || {
-                        glyph(include_str!("../../assets/message/audio_stop.svg"))
+                        glyph(crate::assets::svg::MESSAGE_AUDIO_STOP)
                     }))
                     .child(when(
                         move || !playing(),
-                        move || glyph(include_str!("../../assets/message/audio_play.svg")),
+                        move || glyph(crate::assets::svg::MESSAGE_AUDIO_PLAY),
                     )),
             ),
         )
@@ -263,7 +261,7 @@ pub(super) fn body(
                                     .py_0()
                                     .disabled(busy)
                                     .accessibility_label(move || {
-                                        Some(i18n.tr("Playback speed", "播放速度").into())
+                                        Some(i18n.t(Key::NshPlaybackSpeed).into())
                                     })
                                     .child(
                                         text(move || {

@@ -49,15 +49,12 @@ fn unavailable(handle: Handle) -> impl IntoElement {
         .child(
             text(move || {
                 if handle.load_failed.get() {
-                    i18n.tr(
-                        "Couldn’t read screen privacy settings. Account content stays hidden.",
-                        "无法读取锁屏设置，账号内容将保持隐藏。",
-                    )
+                    i18n.t(Key::NshScreenPrivacyLoadFailed)
                 } else {
                     if handle.lock_pending.get() {
-                        i18n.tr("Locking Mixin…", "正在锁定 Mixin…")
+                        i18n.t(Key::NshLockingMixin)
                     } else {
-                        i18n.tr("Checking screen privacy…", "正在检查锁屏设置…")
+                        i18n.t(Key::NshCheckingScreenPrivacy)
                     }
                 }
             })
@@ -65,7 +62,7 @@ fn unavailable(handle: Handle) -> impl IntoElement {
             .text_center(),
         )
         .child(when(handle.load_failed, move || {
-            ui::link(move || i18n.text(Key::Retry), move || handle.retry())
+            ui::link(move || i18n.t(Key::NshTryAgain), move || handle.retry())
         }))
 }
 
@@ -90,7 +87,7 @@ fn lock_body(handle: Handle) -> impl IntoElement {
                         .text_color(ui::fg_secondary),
                 )
                 .child(
-                    text(move || i18n.tr("Unlock with passcode", "输入锁屏密码解锁"))
+                    text(move || i18n.t(Key::NshUnlockWithPasscode))
                         .text_role(ui::TextRole::Headline),
                 )
                 .child(passcode::input(
@@ -103,14 +100,11 @@ fn lock_body(handle: Handle) -> impl IntoElement {
                     },
                 ))
                 .child(when(handle.busy, move || {
-                    parts::status(move || i18n.tr("Unlocking…", "正在解锁…"))
+                    parts::status(move || i18n.t(Key::NshUnlocking))
                 }))
                 .child(when(handle.failed, move || {
                     ui::error_text(move || {
-                        i18n.tr(
-                            "Couldn’t unlock. Check your passcode and try again.",
-                            "无法解锁，请检查锁屏密码后重试。",
-                        )
+                        i18n.t(Key::NshCouldnTUnlockCheckYourPasscodeAndTryAgain)
                     })
                     .text_center()
                 }))
@@ -120,8 +114,7 @@ fn lock_body(handle: Handle) -> impl IntoElement {
                         text(move || {
                             let seconds = handle.cooldown_seconds.get();
                             i18n.format(
-                                "Try again in {seconds}s",
-                                "请在 {seconds} 秒后重试",
+                                Key::NshTryAgainInSecondsS,
                                 &[("seconds", &seconds.to_string())],
                             )
                         })
@@ -139,7 +132,7 @@ fn lock_body(handle: Handle) -> impl IntoElement {
                     },
                     move || {
                         ui::action(
-                            move || i18n.tr("Use biometrics", "使用生物识别"),
+                            move || i18n.t(Key::NshUseBiometrics),
                             move || handle.authenticate(),
                         )
                         .disabled(handle.busy)

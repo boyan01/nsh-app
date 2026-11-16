@@ -5,7 +5,7 @@ use std::{
     sync::Arc,
 };
 
-use super::{Action, modal, parts, tr};
+use super::{Action, modal, parts, t};
 use crate::{
     i18n::{self, Key},
     navigation::ChatNavigation,
@@ -179,8 +179,8 @@ fn contact_list(
         .child(ui::picker::search(
             ui::search_input()
                 .test_id("create-contact-search")
-                .label(move || tr("Search contacts", "搜索联系人"))
-                .placeholder(move || tr("Search", "搜索").to_owned())
+                .label(move || t(Key::NshSearchContacts))
+                .placeholder(move || t(Key::Search).to_owned())
                 .auto_focus(form.focus)
                 .value(move || query.get())
                 .on_key_press(move |key: &str| {
@@ -207,14 +207,14 @@ fn contact_list(
             move || form.kind == Action::Group && form.selected.with(|rows| !rows.is_empty()),
             move || selected_people(form),
         ))
-        .child(ui::picker::section(|| tr("Contacts", "联系人")))
+        .child(ui::picker::section(|| t(Key::ContactTitle)))
         .child(when(
             move || loading.get() && rows.with(Vec::is_empty),
-            move || parts::status(move || i18n.text(Key::LoadingChats)).px(ui::space_xl()),
+            move || parts::status(move || i18n.t(Key::NshLoadingConversations)).px(ui::space_xl()),
         ))
         .child(when(
             move || !loading.get() && !form.failed.get() && rows.with(Vec::is_empty),
-            move || ui::placeholder(move || i18n.text(Key::NoContacts)).min_h_24(),
+            move || ui::placeholder(move || i18n.t(Key::NshNoContactsFound)).min_h_24(),
         ))
         .child(
             virtual_list(
@@ -276,12 +276,7 @@ fn contact_list(
         )
         .child(when(form.failed, move || {
             parts::failure(
-                || {
-                    tr(
-                        "Contacts are temporarily unavailable.",
-                        "暂时无法加载联系人",
-                    )
-                },
+                || t(Key::NshContactsAreTemporarilyUnavailable),
                 move || form.revision.update(|revision| *revision += 1),
             )
             .px(ui::space_xl())
@@ -304,7 +299,7 @@ fn group_form(form: Form, cancel: impl Fn() + Copy + 'static) -> impl IntoElemen
                 text(move || {
                     format!(
                         "{}: {}",
-                        tr("Participants", "群成员"),
+                        t(Key::GroupParticipants),
                         form.selected.with(BTreeMap::len) + 1
                     )
                 })
@@ -312,11 +307,11 @@ fn group_form(form: Form, cancel: impl Fn() + Copy + 'static) -> impl IntoElemen
                 .text_color(ui::fg_secondary),
             )
             .child(
-                parts::labeled(|| tr("Group name", "群名称")).child(
+                parts::labeled(|| t(Key::NshGroupName)).child(
                     ui::field()
                         .test_id("group-name")
-                        .label(move || tr("Group name", "群名称"))
-                        .placeholder(move || tr("Group name", "群名称").to_owned())
+                        .label(move || t(Key::NshGroupName))
+                        .placeholder(move || t(Key::NshGroupName).to_owned())
                         .auto_focus(form.focus)
                         .max_length(40)
                         .readonly(move || form.busy.get() || form.created.with(Option::is_some))
@@ -335,13 +330,8 @@ fn group_form(form: Form, cancel: impl Fn() + Copy + 'static) -> impl IntoElemen
             .child(when(
                 move || form.created.with(Option::is_some),
                 || {
-                    text(move || {
-                        tr(
-                            "The group was created. Retry opening it.",
-                            "群组已创建，请重试打开。",
-                        )
-                    })
-                    .text_role(ui::TextRole::Body)
+                    text(move || t(Key::NshTheGroupWasCreatedRetryOpeningIt))
+                        .text_role(ui::TextRole::Body)
                 },
             )),
     )
@@ -395,12 +385,11 @@ fn content(
             }
         })
         .child(ui::picker::header(
-            move || i18n.text(form.kind.title()),
+            move || i18n.t(form.kind.title()),
             move || {
                 if group && form.selected.with(|users| !users.is_empty()) {
                     i18n.format(
-                        "Selected contacts: {count}",
-                        "已选 {count} 人",
+                        Key::NshSelectedContactsCount,
                         &[("count", &form.selected.with(BTreeMap::len).to_string())],
                     )
                 } else {
@@ -415,9 +404,9 @@ fn content(
                 .accessibility_label(move || {
                     Some(
                         if form.naming.get() {
-                            tr("Back", "返回")
+                            t(Key::NshBack)
                         } else {
-                            tr("Close", "关闭")
+                            t(Key::Close)
                         }
                         .into(),
                     )
@@ -454,13 +443,13 @@ fn content(
                 })
                 .child(text(move || {
                     if form.busy.get() {
-                        i18n.text(Key::Creating)
+                        i18n.t(Key::NshCreating)
                     } else if form.created.with(Option::is_some) {
-                        tr("Open", "打开")
+                        t(Key::Open)
                     } else if form.naming.get() {
-                        i18n.text(Key::Create)
+                        i18n.t(Key::Create)
                     } else {
-                        tr("Next", "下一步")
+                        t(Key::Next)
                     }
                 })),
         ))
@@ -472,14 +461,9 @@ fn content(
         .child(when(
             move || form.failed.get() && form.naming.get() && form.created.with(Option::is_none),
             move || {
-                ui::error_text(|| {
-                    tr(
-                        "Couldn’t create the group. Try again.",
-                        "未能创建群组，可以再次尝试",
-                    )
-                })
-                .px(ui::space_xl())
-                .pb(ui::space_lg())
+                ui::error_text(|| t(Key::NshCouldnTCreateTheGroupTryAgain))
+                    .px(ui::space_xl())
+                    .pb(ui::space_lg())
             },
         ))
 }

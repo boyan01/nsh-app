@@ -1,4 +1,5 @@
 //! The editor document is presentation state; drafts and sends always use wire text.
+use crate::i18n::Key;
 use std::{
     collections::{BTreeMap, HashMap},
     rc::Rc,
@@ -269,24 +270,22 @@ impl Input {
             let selected = !state.selection().empty();
             let editable = !sending.get_untracked() && !session.composing();
             let mut items = Vec::new();
-            for (label, chinese, action, disabled) in [
-                ("Cut", "剪切", EditAction::Cut, !selected || !editable),
+            for (key, action, disabled) in [
+                (Key::NshCut, EditAction::Cut, !selected || !editable),
                 (
-                    "Copy",
-                    "复制",
+                    Key::Copy,
                     EditAction::Copy,
                     !selected || session.composing(),
                 ),
-                ("Paste", "粘贴", EditAction::Paste, !paste || !editable),
+                (Key::NshPaste, EditAction::Paste, !paste || !editable),
                 (
-                    "Select All",
-                    "全选",
+                    Key::NshSelectAll,
                     EditAction::SelectAll,
                     state.doc().content().size() <= 2 || session.composing(),
                 ),
             ] {
                 items.push(
-                    MenuItem::new(i18n.tr(label, chinese))
+                    MenuItem::new(i18n.t(key))
                         .disabled(disabled)
                         .on_select(move || {
                             self.edit(action, sending);

@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use mixin_desktop_api::CircleItem;
 
 use super::*;
@@ -87,13 +88,11 @@ fn content(
         .min_h_0()
         .child(
             parts::page_body()
-                .child(parts::note(move || {
-                    tr("Choose circles for this chat.", "选择此聊天所属的圈子。")
-                }))
+                .child(parts::note(move || t(Key::NshChooseCirclesForThisChat)))
                 .child(
                     ui::field()
-                        .label(move || tr("New circle name", "新圈子名称"))
-                        .placeholder(move || tr("New circle name", "新圈子名称").to_owned())
+                        .label(move || t(Key::NshNewCircleName))
+                        .placeholder(move || t(Key::NshNewCircleName).to_owned())
                         .max_length(64)
                         .readonly(move || busy.get() || created.with(Option::is_some))
                         .value(move || name.get())
@@ -103,9 +102,9 @@ fn content(
                     ui::action(
                         move || {
                             if created.with(Option::is_some) {
-                                tr("Retry adding chat", "重试添加聊天")
+                                t(Key::NshRetryAddingChat)
                             } else {
-                                tr("Create circle", "创建圈子")
+                                t(Key::NshCreateCircle)
                             }
                         },
                         create,
@@ -117,27 +116,18 @@ fn content(
                 .child(when(busy, move || {
                     parts::status(move || {
                         if created.with_untracked(Option::is_some) {
-                            tr("Adding chat…", "正在添加聊天…")
+                            t(Key::NshAddingChat)
                         } else {
-                            tr(
-                                "Creating circle and adding chat…",
-                                "正在创建圈子并添加聊天…",
-                            )
+                            t(Key::NshCreatingCircleAndAddingChat)
                         }
                     })
                 }))
                 .child(when(failed, move || {
                     ui::error_text(move || {
                         if created.with(Option::is_some) {
-                            tr(
-                                "Circle created, but this chat couldn’t be added. Retry adding it.",
-                                "圈子已创建，但未能添加此聊天。请重试添加。",
-                            )
+                            t(Key::NshCircleCreatedButThisChatCouldnTBeAddedRetryAddingIt)
                         } else {
-                            tr(
-                                "Couldn’t create the circle. Try again.",
-                                "无法创建圈子，请重试。",
-                            )
+                            t(Key::NshCouldnTCreateTheCircleTryAgain)
                         }
                     })
                 })),
@@ -164,9 +154,9 @@ fn content(
                                     "{}: {}",
                                     circle.name,
                                     if checked() {
-                                        tr("Added", "已添加")
+                                        t(Key::Added)
                                     } else {
-                                        tr("Not added", "未添加")
+                                        t(Key::NshNotAdded)
                                     }
                                 )
                                 .into()
@@ -217,7 +207,7 @@ fn content(
         )
         .child(when(
             move || loaded.get() && circles.with(Vec::is_empty),
-            || ui::placeholder(move || tr("No circles yet", "暂无圈子")),
+            || ui::placeholder(move || t(Key::NshNoCirclesYet)),
         ))
 }
 #[cfg(debug_assertions)]

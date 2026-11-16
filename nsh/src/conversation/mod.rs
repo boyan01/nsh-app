@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 mod circles;
 mod info;
 mod invite;
@@ -20,7 +21,7 @@ use nsh_base::alert_dialog;
 use nsh_core::prelude::*;
 
 use crate::{
-    i18n::{self, tr},
+    i18n::{self, t},
     runtime,
     ui::{self, Typography as _},
 };
@@ -41,15 +42,15 @@ enum Page {
 impl Page {
     fn title(self) -> &'static str {
         match self {
-            Self::Info => tr("Chat info", "聊天详情"),
-            Self::Edit => tr("Edit name", "编辑名称"),
-            Self::Members => tr("Group participants", "群组成员"),
-            Self::Expiry => tr("Disappearing messages", "阅后即焚"),
-            Self::Circles => tr("Circles", "圈子"),
-            Self::Shared => tr("Shared media", "共享媒体"),
-            Self::Description => tr("Group description", "群公告"),
-            Self::Groups => tr("Groups in common", "共同群组"),
-            Self::Apps => tr("Shared apps", "共享应用"),
+            Self::Info => t(Key::NshChatInfo),
+            Self::Edit => t(Key::NshEditName),
+            Self::Members => t(Key::NshGroupParticipants),
+            Self::Expiry => t(Key::NshDisappearingMessages),
+            Self::Circles => t(Key::Circles),
+            Self::Shared => t(Key::NshSharedMedia),
+            Self::Description => t(Key::NshGroupDescription),
+            Self::Groups => t(Key::NshGroupsInCommon),
+            Self::Apps => t(Key::NshSharedApps),
         }
     }
 
@@ -531,7 +532,7 @@ fn frame(state: State, content: impl IntoElement) -> View {
             .child(when(
                 move || state.loading.get() && state.row.with(Option::is_none),
                 || {
-                    parts::status(move || tr("Loading…", "加载中…"))
+                    parts::status(move || t(Key::NshLoading))
                         .px(ui::space_lg())
                         .py(ui::space_sm())
                 },

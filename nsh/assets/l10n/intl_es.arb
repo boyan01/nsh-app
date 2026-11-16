@@ -425,5 +425,833 @@
 "withdrawal" : "Retirar",
 "you" : "Tú",
 "youDeletedThisMessage" : "Has borrado este mensaje",
-"zoom" : "Zoom"
+"zoom" : "Zoom",
+  "nsh1Day": "1 día",
+  "nsh1Hour": "1 hora",
+  "nsh1Week": "1 semana",
+  "nsh1Year": "1 año",
+  "nsh10Minutes": "10 minutos",
+  "nsh2Hours": "2 horas",
+  "nsh30Seconds": "30 segundos",
+  "nsh8Hours": "8 horas",
+  "nshAGroupMember": "Un miembro del grupo",
+  "nshScreenPasscodeDescription": "Un código de bloqueo oculta el contenido de tu cuenta mientras Mixin sigue sincronizando en segundo plano.",
+  "nshAboutMixinMessenger": "Acerca de",
+  "nshAccountContentWillNoLongerBeHiddenWhenMixinLocks": "El contenido de la cuenta ya no se ocultará cuando Mixin se bloquee.",
+  "nshAction": "Acción",
+  "nshActualFit": "Ajustar a la ventana",
+  "nshAddHTTPProxy": "Añadir proxy HTTP",
+  "nshAddACaption": "Añadir un pie de foto…",
+  "nshAddAProxyBeforeEnablingIt": "Añade un proxy antes de activarlo.",
+  "nshAddAlbum": "Añadir álbum",
+  "nshAddContact": "Añadir contacto",
+  "nshAddContactMessage": "Añadir contacto",
+  "nshAddFiles": "Añadir archivos…",
+  "nshAddParticipants": "Añadir participantes",
+  "nshAddParticipantsMessage": "Añadir participantes",
+  "nshAddProxy": "Añadir proxy…",
+  "nshAddSticker": "Añadir pegatina",
+  "nshAddingChat": "Añadiendo chat…",
+  "nshAll": "Todo",
+  "nshAllChats": "Chats",
+  "nshAllow": "Permitir",
+  "nshAllowNotifications": "Permitir notificaciones",
+  "nshAllowNotificationsToReceiveNewMessageAlerts": "Permite las notificaciones para recibir avisos de nuevos mensajes.",
+  "nshAllowThisDeviceToSendChatHistoryToYourPhone": "¿Permitir que este dispositivo envíe el historial de chat a tu teléfono?",
+  "nshAllowYourPhoneToSendChatHistoryToThisDevice": "¿Permitir que tu teléfono envíe el historial de chat a este dispositivo?",
+  "nshAmount": "Importe",
+  "nshAnyoneWithThisLinkCanJoinTheGroup": "Cualquier persona con este enlace puede unirse al grupo.",
+  "nshAspectRatio": "Relación de aspecto",
+  "nshAsset": "Activo",
+  "nshAssetID": "ID del activo",
+  "nshAutomaticLock": "Bloqueo automático",
+  "nshAutomaticMediaDownload": "Descarga automática de archivos multimedia",
+  "nshAutomaticallyDownloadMediaWhenMessagesArrive": "Descargar archivos multimedia al recibir mensajes.",
+  "nshBack": "Atrás",
+  "nshBackToLatest": "Ir a los más recientes",
+  "nshBasicMember": "Miembro básico",
+  "nshBiometricUnlock": "Desbloqueo biométrico",
+  "nshBlack": "Negro",
+  "nshBlockThisUser": "¿Bloquear a este usuario?",
+  "nshBlock": "Bloquear",
+  "nshBlue": "Azul",
+  "nshBot": "Bot",
+  "nshBotWindowsUnavailable": "Las ventanas de bots no están disponibles",
+  "nshBrush": "Pincel",
+  "nshCalculatingStorage": "Calculando almacenamiento…",
+  "nshCancelDownload": "Cancelar descarga",
+  "nshCancelTransfer": "Cancelar transferencia",
+  "nshCaption": "Pie de foto",
+  "nshChangeAvatar": "Cambiar avatar…",
+  "nshChangeGroupPhoto": "Cambiar foto del grupo…",
+  "nshChatBackupAndRestore": "Copia de seguridad y restauración de chats",
+  "nshChatBackupAndRestoreMessage": "Copia de seguridad y restauración de chats",
+  "nshChatHistory": "Transcripción",
+  "nshChatInfo": "Información del chat",
+  "nshChatPreferences": "Preferencias de chat",
+  "nshChatTextSize": "Tamaño del texto del chat",
+  "nshChatsInThisCircleWillRemainAvailableInAllChats": "Los chats de este círculo seguirán disponibles en Todos los chats.",
+  "nshCheckTheLinkAndYourConnectionThenTryAgain": "Comprueba el enlace y tu conexión e inténtalo de nuevo.",
+  "nshCheckYourConnectionAndTryAgain": "Comprueba tu conexión e inténtalo de nuevo.",
+  "nshCheckYourSystemClockAndTryAgain": "Comprueba el reloj del sistema e inténtalo de nuevo.",
+  "nshCheckingNotificationPermission": "Comprobando el permiso de notificaciones…",
+  "nshCheckingScreenPrivacy": "Comprobando la privacidad de pantalla…",
+  "nshChooseASender": "Elegir remitente",
+  "nshChooseCirclesForThisChat": "Elige los círculos para este chat.",
+  "nshChooseRecipient": "Elegir destinatario",
+  "nshChooseRecipientMessage": "Elegir destinatario…",
+  "nshCircleCreatedButThisChatCouldnTBeAddedRetryAddingIt": "El círculo se creó, pero no se pudo añadir este chat. Vuelve a intentarlo.",
+  "nshCircleName": "Nombre del círculo",
+  "nshClearCache": "Borrar caché",
+  "nshClearMediaCacheDescription": "Borra los archivos multimedia en caché de este dispositivo. Los mensajes permanecen en la conversación.",
+  "nshClearChat": "¿Vaciar el chat?",
+  "nshClearChatMessage": "Vaciar la conversación",
+  "nshClearFilters": "Borrar filtros",
+  "nshClearSelectedCache": "Borrar caché seleccionada…",
+  "nshClearSender": "Borrar remitente",
+  "nshClearTheSelectedMediaCache": "¿Borrar la caché multimedia seleccionada?",
+  "nshClearingCache": "Borrando caché…",
+  "collectible": "Coleccionable",
+  "collection": "Colección",
+  "nshCollectionHash": "Hash de la colección",
+  "nshCombineAndForward": "Combinar y reenviar",
+  "nshCompleteThisPaymentInMixinOnYourPhone": "Completa este pago en Mixin en tu teléfono.",
+  "nshCompressImages": "Comprimir imágenes",
+  "nshConfirmYourPasscode": "Confirma tu código",
+  "confirmations": "Confirmaciones",
+  "nshContactCard": "Contacto",
+  "nshContactPreviewUnavailable": "Vista previa del contacto no disponible",
+  "nshContact": "Contacto",
+  "nshContentType": "Tipo de contenido",
+  "nshContentUnavailable": "Contenido no disponible",
+  "nshConversationInfo": "Información de la conversación",
+  "nshConversations": "Conversaciones",
+  "nshConversationsAddedToThisCircleWillAppearHere": "Las conversaciones añadidas a este círculo aparecerán aquí.",
+  "nshConversationsWithBotsWillAppearHere": "Las conversaciones con bots aparecerán aquí.",
+  "nshStrangerConversationsEmptyDescription": "Las conversaciones con personas fuera de tus contactos aparecerán aquí.",
+  "nshConversationsWithYourContactsWillAppearHere": "Las conversaciones con tus contactos aparecerán aquí.",
+  "copyImage": "Copiar imagen",
+  "copySelectedText": "Copiar texto seleccionado",
+  "copyText": "Copiar texto",
+  "nshCopyImage": "Copiar imagen",
+  "nshCopyLink": "Copiar enlace",
+  "nshCouldnTAddTheseFilesTryAgain": "No se pudieron añadir estos archivos. Inténtalo de nuevo.",
+  "nshCouldnTClearBrowserDataTryAgain": "No se pudieron borrar los datos del navegador. Inténtalo de nuevo.",
+  "nshCouldnTCompleteThisActionTryAgain": "No se pudo completar esta acción. Inténtalo de nuevo.",
+  "nshCouldnTCreateASignInCode": "No se pudo crear un código de inicio de sesión",
+  "nshCouldnTCreateTheCircleTryAgain": "No se pudo crear el círculo. Inténtalo de nuevo.",
+  "nshCouldnTDisplayThisPhoto": "No se pudo mostrar esta foto.",
+  "nshCouldnTDownloadThisFileTryAgain": "No se pudo descargar este archivo. Inténtalo de nuevo.",
+  "nshCouldnTEditThisImageUndoTheLastEditOrTryAgain": "No se pudo editar esta imagen. Deshaz el último cambio o inténtalo de nuevo.",
+  "nshCouldnTFindThisContactCheckTheIDAndTryAgain": "No se pudo encontrar este contacto. Comprueba el ID e inténtalo de nuevo.",
+  "nshCouldnTJoinThisGroupTryAgain": "No se pudo unir al grupo. Inténtalo de nuevo.",
+  "nshCouldnTLoadChats": "No se pudieron cargar los chats.",
+  "nshCouldnTLoadChatsTryAgain": "No se pudieron cargar los chats. Inténtalo de nuevo.",
+  "nshCouldnTLoadContent": "No se pudo cargar el contenido",
+  "nshCouldnTLoadConversations": "No se pudieron cargar las conversaciones",
+  "nshCouldnTLoadMembersTypeAgainToRetry": "No se pudieron cargar los miembros. Escribe de nuevo para reintentar.",
+  "nshCouldnTLoadMessages": "No se pudieron cargar los mensajes",
+  "nshCouldnTLoadQuickSearch": "No se pudo cargar la búsqueda rápida",
+  "nshCouldnTLoadRecentEmoji": "No se pudieron cargar los emojis recientes.",
+  "nshCouldnTLoadRecipients": "No se pudieron cargar los destinatarios.",
+  "nshCouldnTLoadSenders": "No se pudieron cargar los remitentes",
+  "nshCouldnTLoadThisRecipient": "No se pudo cargar este destinatario.",
+  "nshCouldnTLoadUnreadMessages": "No se pudieron cargar los mensajes no leídos.",
+  "nshCouldnTLoadTryAgain": "No se pudo cargar. Inténtalo de nuevo.",
+  "nshCouldnTOpenMixin": "No se pudo abrir Mixin",
+  "nshCouldnTOpenConversation": "No se pudo abrir la conversación",
+  "nshCouldnTOpenTheBrowser": "No se pudo abrir el navegador.",
+  "nshCouldnTOpenThePage": "No se pudo abrir la página",
+  "nshCouldnTOpenThisLink": "No se pudo abrir este enlace",
+  "nshCouldnTOpenThisResultCheckItAndTryAgain": "No se pudo abrir este resultado. Compruébalo e inténtalo de nuevo.",
+  "nshCouldnTOpenThisResultTryAgain": "No se pudo abrir este resultado. Inténtalo de nuevo.",
+  "nshCouldnTPrepareThePhotoTryAgain": "No se pudo preparar la foto. Inténtalo de nuevo.",
+  "nshCouldnTPrepareThisFileRemoveItOrSendAsFiles": "No se pudo preparar este archivo. Quítalo o envíalo como archivo.",
+  "nshCouldnTPrepareThisMediaSendAsFilesOrChooseOtherFiles": "No se pudo preparar este contenido. Envíalo como archivos o elige otros archivos.",
+  "nshScreenPrivacyLoadFailed": "No se pudieron leer los ajustes de privacidad de pantalla. El contenido de la cuenta sigue oculto.",
+  "nshCouldnTRefreshSavedChangesReloadBeforeSavingAgain": "No se pudieron actualizar los cambios guardados. Recarga antes de volver a guardar.",
+  "nshCouldnTRefreshYourProfileYourSavedProfileIsShown": "No se pudo actualizar tu perfil. Se muestra el perfil guardado.",
+  "nshCouldnTRespondToTheTransferRequestTryAgain": "No se pudo responder a la solicitud de transferencia. Inténtalo de nuevo.",
+  "nshCouldnTSaveEmojiPreferences": "No se pudieron guardar las preferencias de emoji.",
+  "nshCouldnTSaveOrLoadChatPreferencesTryAgain": "No se pudieron guardar o cargar las preferencias de chat. Inténtalo de nuevo.",
+  "nshCouldnTSaveSidebarSettings": "No se pudieron guardar los ajustes de la barra lateral",
+  "nshCouldnTSaveTheLanguageTryAgain": "No se pudo guardar el idioma. Inténtalo de nuevo.",
+  "nshCouldnTSaveYourDraftTryAgain": "No se pudo guardar el borrador. Inténtalo de nuevo.",
+  "nshCouldnTSaveTryAgain": "No se pudo guardar. Inténtalo de nuevo.",
+  "nshCouldnTSendThisMessageTryAgain": "No se pudo enviar este mensaje. Inténtalo de nuevo.",
+  "nshCouldnTSendYourMessageIsStillHereTryAgain": "No se pudo enviar. Tu mensaje sigue aquí. Inténtalo de nuevo.",
+  "nshCouldnTUnlockCheckYourPasscodeAndTryAgain": "No se pudo desbloquear. Comprueba tu código e inténtalo de nuevo.",
+  "nshCouldnTUpdateCirclesTryAgain": "No se pudieron actualizar los círculos. Inténtalo de nuevo.",
+  "nshCouldnTUpdateTryAgain": "No se pudo actualizar. Inténtalo de nuevo.",
+  "nshNotificationsUnavailable": "No se pudieron usar las notificaciones. Comprueba los permisos del sistema e inténtalo de nuevo.",
+  "nshCreateCircle": "Nuevo círculo",
+  "nshCreatedBy": "Creado por",
+  "createdAt": "Creado el {arg0}",
+  "@createdAt": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCreatingCircleAndAddingChat": "Creando el círculo y añadiendo el chat…",
+  "nshCreating": "Creando…",
+  "nshCropPhoto": "Recortar foto",
+  "nshCropPreviewDragOrUseArrowKeysToMoveThePhoto": "Vista previa del recorte. Arrastra o usa las flechas para mover la foto.",
+  "nshCropRatio": "Proporción del recorte",
+  "nshCustomColor": "Color personalizado…",
+  "nshCustomDrawingColor": "Color de dibujo personalizado",
+  "nshCustomTime": "Tiempo personalizado",
+  "nshDataAndStorage": "Uso de datos y almacenamiento",
+  "nshDate": "Fecha",
+  "nshDays": "Días",
+  "nshDeleteChat": "Eliminar chat",
+  "nshDeleteForEveryone": "¿Eliminar para todos?",
+  "nshDeleteForEveryoneMessage": "Eliminar para todos",
+  "nshDeleteForMe": "¿Eliminar para mí?",
+  "nshDeleteGroup": "¿Eliminar el grupo?",
+  "nshDeleteGroupMessage": "Eliminar grupo…",
+  "nshDeleteName": "¿Eliminar «{name}»?",
+  "@nshDeleteName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nshDelete": "Borrar",
+  "nshDelivered": "Entregado",
+  "nshDescription": "Descripción",
+  "disabled": "Desactivado",
+  "nshDisappearingMessages": "Mensajes que desaparecen",
+  "nshDiscardImageEdits": "¿Descartar los cambios de imagen?",
+  "nshDiscardRecordingMessage": "¿Descartar grabación?",
+  "nshDismiss": "Cerrar",
+  "nshDismissAsAdmin": "Quitar como administrador",
+  "nshDownloadPhoto": "Descargar foto",
+  "nshDragCropCornersOrMoveTheCrop": "Arrastra las esquinas del recorte o muévelo",
+  "nshDragToMoveUseTheSliderToZoomImagesUpTo10MB": "Arrastra para mover. Usa el control deslizante para ampliar. Imágenes de hasta 10 MB.",
+  "nshDraw": "Dibujar",
+  "nshDrawOnTheImage": "Dibujar en la imagen",
+  "nshEarlierMessages": "Mensajes anteriores",
+  "nshEditConversations": "Editar conversaciones",
+  "nshEditGroup": "Editar grupo",
+  "nshEditGroupMessage": "Editar grupo…",
+  "nshEditImage": "Editar imagen…",
+  "nshEditName": "Editar nombre",
+  "nshEditNameMessage": "Editar nombre",
+  "nshEditProfile": "Editar perfil",
+  "nshEnterAKeywordToSearch": "Introduce una palabra clave para buscar",
+  "nshEnterATimeBetween1SecondAnd4Weeks": "Introduce un tiempo entre 1 segundo y 4 semanas.",
+  "nshEnterAWholeNumberFrom1ToMaximum": "Introduce un número entero del 1 al {maximum}.",
+  "@nshEnterAWholeNumberFrom1ToMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "nshEraser": "Borrador",
+  "nshExitGroup": "¿Salir del grupo?",
+  "nshExitGroupMessage": "Salir del grupo",
+  "nshExpand": "Expandir",
+  "nshExpired": "Caducado",
+  "nshFilesSavedOnlyOnThisDeviceMayNotBeDownloadableAgain": "Es posible que los archivos guardados solo en este dispositivo no se puedan descargar de nuevo.",
+  "nshFiles": "Archivos",
+  "nshFlip": "Voltear",
+  "nshFollowSystem": "Seguir sistema",
+  "nshForwardMessages": "Reenviar mensajes",
+  "nshForward": "Reenviar",
+  "generateQrcode": "Generar código QR",
+  "nshGray": "Gris",
+  "nshGreen": "Verde",
+  "nshGroup": "Grupo",
+  "nshGroupConversationsWillAppearHere": "Las conversaciones de grupo aparecerán aquí.",
+  "nshGroupName": "Nombre del grupo",
+  "nshGroupParticipants": "Participantes",
+  "nshGroupsInCommon": "Grupos en común",
+  "nshHelpCenter": "Centro de ayuda",
+  "nshHi": "¡Hola!",
+  "nshHistory": "Historial",
+  "host": "Servidor",
+  "nshHours": "Horas",
+  "nshHowAreYou": "¿Cómo estás?",
+  "nshImagePreview": "Vista previa de imagen",
+  "nshImportSticker": "Importar sticker…",
+  "nshInscription": "Inscripción",
+  "nshInscriptionDetailsAreNotAvailableYet": "Los detalles de la inscripción aún no están disponibles.",
+  "nshInscriptionHash": "Hash de la inscripción",
+  "nshInvalidCard": "Tarjeta no válida",
+  "nshInvalidInvitation": "Invitación no válida",
+  "nshInvalidLocation": "Ubicación no válida",
+  "nshInvitationIsUnavailable": "La invitación no está disponible.",
+  "nshInviteToGroup": "Invitar al grupo",
+  "nshInviteToGroupMessage": "Invitar al grupo…",
+  "nshJoinGroup": "Unirse al grupo",
+  "nshJoined": "Fecha de registro",
+  "nshKeepBothDevicesConnectedUntilTheTransferFinishes": "Mantén ambos dispositivos conectados hasta que termine la transferencia.",
+  "nshTransferNetworkInstructions": "Conecta ambos dispositivos a la misma red y abre Mixin en tu teléfono. Confirma la transferencia en el otro dispositivo.",
+  "nshLanguage": "Idioma",
+  "nshLearnMore": "Obtener más información",
+  "nshLoadingContacts": "Cargando contactos…",
+  "nshLoadingContent": "Cargando contenido…",
+  "nshLoadingConversations": "Cargando conversaciones…",
+  "nshLoadingMembers": "Cargando miembros…",
+  "nshLoadingMessages": "Cargando mensajes…",
+  "nshLoadingProxies": "Cargando proxies…",
+  "nshLoadingRecipient": "Cargando destinatario…",
+  "nshLoadingSenders": "Cargando remitentes…",
+  "nshLoadingStickers": "Cargando stickers…",
+  "nshLoadingTransfer": "Cargando transferencia…",
+  "nshLoading": "Cargando...",
+  "nshLocateInChat": "Ir al chat",
+  "lock": "Bloquear",
+  "nshAutomaticLockDescription": "Bloquear cuando Mixin pierda el foco. Si vuelves antes del tiempo límite, se cancela el bloqueo.",
+  "nshLockNow": "Bloquear ahora",
+  "nshLockingMixin": "Bloqueando Mixin…",
+  "nshManageSubscriptions": "Gestionar suscripciones",
+  "nshMessage": "Mensaje",
+  "nshMessagePreview": "Vista previa del mensaje",
+  "nshMessagesFromThisUserWillBeBlocked": "Se bloquearán los mensajes de este usuario.",
+  "nshMessagesInThisChatWillBeRemovedFromThisDevice": "Los mensajes de este chat se eliminarán de este dispositivo.",
+  "nshMessagesInThisConversationAreEndToEndEncrypted": "Los mensajes de esta conversación están cifrados de extremo a extremo.",
+  "nshMinutes": "Minutos",
+  "nshMixinIDOrPhoneNumber": "ID de Mixin o Número de teléfono",
+  "nshMoveDown": "Mover abajo",
+  "nshMoveUp": "Mover arriba",
+  "nshMuteNotifications": "Silenciar notificaciones",
+  "nshMuted": "Silenciado",
+  "nshMute": "Silenciar",
+  "nshNewCircle": "Nuevo círculo",
+  "nshNewCircleName": "Nuevo nombre del círculo",
+  "nshNewCircleMessage": "Nuevo círculo",
+  "nshNewConversation": "Nueva conversación",
+  "nshNewGroup": "Nuevo grupo",
+  "nshNewMessagesDisappearAfterTheSelectedTime": "Los mensajes nuevos desaparecerán después del tiempo elegido.",
+  "nshNextPage": "Página siguiente",
+  "nshNextPhoto": "Foto siguiente",
+  "nshNextUnreadMention": "Siguiente mención no leída",
+  "nshNoAppPermissionPromptIsRequiredOnThisSystem": "Este sistema no requiere solicitar permiso de notificaciones para la aplicación.",
+  "nshNoAvailableContacts": "No hay contactos disponibles",
+  "nshNoBotConversations": "No hay conversaciones con bots",
+  "nshNoChatsFound": "No se encontraron chats",
+  "nshNoCirclesYet": "Aún no hay círculos",
+  "nshNoContactConversations": "No hay conversaciones con contactos",
+  "nshNoContactsFound": "No se encontraron contactos",
+  "nshNoConversationsFound": "No se encontraron conversaciones",
+  "nshNoConversationsInThisCircle": "No hay conversaciones en este círculo",
+  "nshNoConversationsYet": "Aún no hay conversaciones",
+  "nshNoEmojiFound": "No se encontraron emojis",
+  "nshNoFiles": "No hay archivos",
+  "nshNoGroupConversations": "No hay conversaciones de grupo",
+  "nshNoGroupsInCommon": "No hay grupos en común",
+  "nshNoMessagesFound": "No se encontraron mensajes",
+  "nshNoParticipantsFound": "No se encontraron participantes",
+  "nshNoPosts": "No hay publicaciones",
+  "nshNoRecentEmoji": "Sin emojis recientes",
+  "nshNoRecipientsFound": "No se encontraron destinatarios",
+  "nshNoResults": "SIN RESULTADOS",
+  "nshNoSendersFound": "No se encontraron remitentes",
+  "nshNoSharedApps": "No hay aplicaciones compartidas",
+  "nshNoSharedMedia": "No hay archivos multimedia compartidos",
+  "nshNoStickerAlbumsAvailable": "No hay álbumes de stickers disponibles",
+  "nshNoStickersYet": "Aún no hay stickers",
+  "nshNoStoredMedia": "No hay archivos multimedia guardados",
+  "nshNoStrangerConversations": "No hay conversaciones con desconocidos",
+  "nshNoSubscribedStickerAlbums": "No hay packs de stickers suscritos",
+  "nshNoUnreadConversations": "No hay conversaciones sin leer",
+  "nshNotAdded": "No añadido",
+  "nshNotificationsPackagedAppRequired": "Las notificaciones están disponibles al abrir la aplicación Mixin empaquetada.",
+  "nshNotificationsAreDisabledInSystemSettings": "Las notificaciones están desactivadas en los ajustes del sistema",
+  "nshNotificationsAreEnabled": "Las notificaciones están activadas",
+  "nshNotificationsAreNotAvailableOnThisPlatformYet": "Las notificaciones aún no están disponibles en esta plataforma.",
+  "nshOK": "Aceptar",
+  "nshOff": "Desactivado",
+  "open": "Abrir",
+  "nshOpenMixinOnYourPhone": "Abre Mixin Messenger en tu teléfono.",
+  "nshOpenAnotherApp": "¿Abrir otra aplicación?",
+  "nshOpenApp": "Abrir aplicación",
+  "nshOpenChat": "Abrir chat",
+  "nshOpenContent": "Abrir contenido",
+  "nshOpenHomePage": "Abrir página de inicio",
+  "nshOpenInBrowser": "Abrir en el navegador",
+  "nshOpenLink": "Abrir enlace",
+  "nshOpenLogDirectory": "abrir directorio de registro",
+  "nshOpenNavigation": "Abrir navegación",
+  "nshOpenNotificationSettings": "Abrir ajustes de notificaciones",
+  "nshOpenProfile": "Abrir perfil",
+  "nshOpenThisBotOnYourPhone": "Abre este bot en tu teléfono.",
+  "nshOpenThisLinkInMixinOnYourPhone": "Abre este enlace en Mixin en tu teléfono",
+  "nshOpenWithDefaultApp": "Abrir con la aplicación predeterminada",
+  "nshOpeningMixin": "Abriendo Mixin…",
+  "nshOriginalImage": "Original",
+  "nshPNGJPEGGIFWebPOrBMPUpTo10MB": "PNG, JPEG, GIF, WebP o BMP · hasta 10 MB",
+  "password": "Contraseña",
+  "nshPasswordOptional": "Contraseña (opcional)",
+  "nshPause": "Pausar",
+  "nshPaymentDetails": "Detalles del pago",
+  "nshPhoneNumber": "Número de teléfono",
+  "nshPhoto": "imagen",
+  "nshPhotoZoom": "Zoom de la foto",
+  "nshPhotosAndVideos": "Fotos y vídeos",
+  "nshPicturesAndVideos": "Imágenes y vídeos",
+  "nshPicturesAndVideosMessage": "Fotos y vídeos…",
+  "nshPinned": "Fijado",
+  "nshPlay": "Reproducir",
+  "nshPlaybackFailed": "Error de reproducción",
+  "nshPlaybackSpeed": "Velocidad de reproducción",
+  "port": "Puerto",
+  "nshPost": "Publicar",
+  "nshPremiumMember": "Miembro prémium",
+  "nshPreparingFiles": "Preparando archivos…",
+  "nshPreparingImage": "Preparando imagen…",
+  "nshPreparingYourCode": "Preparando tu código…",
+  "nshPreparing": "Preparando…",
+  "nshPrevious": "Anterior",
+  "nshPreviousPage": "Página anterior",
+  "nshPreviousPhoto": "Foto anterior",
+  "nshPreviousResults": "Resultados anteriores",
+  "nshPrivacyPolicy": "Política de privacidad",
+  "nshProfile": "Perfil",
+  "proxy": "Proxy",
+  "nshPurple": "Morado",
+  "nshQRCode": "Código QR",
+  "nshQuantity": "Cantidad",
+  "nshQuickSearch": "Búsqueda rápida",
+  "nshQuickSearchMessage": "Búsqueda rápida",
+  "nshRead": "Leído",
+  "nshReceivers": "Destinatarios",
+  "nshRecentChats": "CHATS",
+  "nshReconnect": "Reconectar",
+  "nshReconnecting": "Reconectando…",
+  "nshRecordAVoiceMessage": "Grabar un mensaje de voz",
+  "nshRecordAgain": "Volver a grabar",
+  "nshRecording": "Grabando…",
+  "nshRed": "Rojo",
+  "nshRedo": "Rehacer",
+  "nshRefreshPermission": "Actualizar permiso",
+  "nshReload": "Recargar",
+  "nshReloadList": "Recargar lista",
+  "nshReloadRecipient": "Recargar destinatario",
+  "nshRemove": "Quitar",
+  "nshRemoveAlbum": "Quitar álbum",
+  "nshRemoveContact": "¿Quitar contacto?",
+  "nshRemoveContactMessage": "Eliminar contacto",
+  "nshRemoveFromGroup": "Quitar del grupo…",
+  "nshRemoveParticipant": "¿Quitar participante?",
+  "nshRemoveProxy": "¿Quitar el proxy?",
+  "nshRemoveSelectedFile": "Quitar archivo seleccionado",
+  "nshRemoveMessage": "Quitar…",
+  "nshRenameCircle": "Editar nombre del círculo",
+  "nshReplyToMessage": "Responder al mensaje",
+  "nshReportAndBlock": "Denunciar y bloquear…",
+  "nshResetInvitationLink": "¿Restablecer el enlace de invitación?",
+  "nshResetLink": "Restablecer enlace",
+  "nshRetryAddingChat": "Reintentar añadir el chat",
+  "nshRetryPreview": "Reintentar vista previa",
+  "nshReturnToMessage": "Volver al mensaje",
+  "nshRotate": "Girar",
+  "nshSCAM": "ESTAFA",
+  "nshSaveAs": "Guardar como",
+  "nshSaveTheseChangesBeforeSelectingMoreThan200Chats": "Guarda estos cambios antes de seleccionar más de 200 chats.",
+  "nshSaving": "Guardando…",
+  "nshScanTheQRCodeAndConfirmSignIn": "Escanea el código QR en la pantalla y confirma tu inicio de sesión.",
+  "nshScanToSignIn": "Iniciar sesión en Mixin Messenger por código QR",
+  "nshScreenPasscode": "Código de bloqueo",
+  "nshScreenPrivacy": "Privacidad de pantalla",
+  "nshScreenPrivacyIsNotAvailableOnThisPlatformYet": "La privacidad de pantalla aún no está disponible en esta plataforma.",
+  "nshSearchMixinID": "Buscar Mixin ID",
+  "nshSearchChats": "Buscar conversación",
+  "nshSearchContacts": "Buscar contacto",
+  "nshSearchContact": "Buscar contacto",
+  "nshSearchConversationsAndContacts": "Buscar conversaciones y contactos",
+  "nshSearchEmoji": "Buscar emoji",
+  "nshSearchEmojiMessage": "Buscar emoji…",
+  "nshSearchMessages": "Buscar mensajes",
+  "nshSearchMessagesInThisConversation": "Buscar mensajes en esta conversación",
+  "nshSearchParticipants": "Buscar participantes",
+  "nshSearchSenders": "Buscar remitentes",
+  "nshSearching": "Buscando…",
+  "nshSearch": "Buscar…",
+  "nshSeconds": "Segundos",
+  "nshSeconds12419200": "Segundos (1–2419200)",
+  "nshSecondsUpTo4Weeks": "Segundos (hasta 4 semanas)",
+  "nshSelectAConversationToStartMessaging": "Selecciona una conversación y comienza a enviar un mensaje",
+  "nshSelectMessage": "Seleccionar mensaje",
+  "nshSend1File": "Enviar 1 archivo",
+  "nshSendAMessageToSayHello": "Envía un mensaje para saludar.",
+  "nshSendAMessageToStartUsingThisBot": "Envía un mensaje para empezar a usar este bot.",
+  "nshSendFile": "Añadir archivo",
+  "nshSendMessage": "Enviar mensaje",
+  "nshSendWithoutNotificationMessage": "Enviar sin notificación",
+  "nshSendCountFiles": "Enviar archivos: {count}",
+  "@nshSendCountFiles": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSender": "Remitente",
+  "nshSenders": "Remitentes",
+  "nshSending": "Enviando",
+  "nshSendingMessage": "Enviando…",
+  "nshSent": "Enviado",
+  "nshSequence": "Número de secuencia",
+  "nshSetASixDigitPasscode": "Configurar un código de seis dígitos",
+  "nshSettings": "Preferencias",
+  "nshSettingsMessage": "Preferencias",
+  "nshShareContact": "Compartir contacto",
+  "nshShareContactMessage": "Compartir contacto",
+  "nshSharedApps": "Aplicaciones compartidas",
+  "nshSharedMedia": "Medios compartidos",
+  "nshSharedMediaPreview": "Vista previa de archivos compartidos",
+  "nshShowMixinID": "Mostrar Mixin ID",
+  "nshShowInFolder": "Mostrar en la carpeta",
+  "nshNotificationPreviewDescription": "Muestra el contenido de los mensajes en las notificaciones. Desactívalo para mantenerlo privado.",
+  "nshShowTransfer": "Mostrar transferencia",
+  "nshShowingTheFirst8192Characters": "Se muestran los primeros 8.192 caracteres",
+  "nshSignOut": "Cerrar sesión",
+  "nshSignOutAndRemoveThisAccountSLocalData": "¿Cerrar sesión y eliminar los datos locales de esta cuenta?",
+  "nshSignOutMessage": "Cerrar sesión",
+  "nshSigningOut": "Cerrando sesión…",
+  "nshSixDigitScreenPasscode": "Código de pantalla de seis dígitos",
+  "nshSomeChangesCouldNotBeSavedCheckTheRemainingSelections": "No se pudieron guardar algunos cambios. Comprueba las selecciones restantes.",
+  "nshSomeFilesCouldnTBeSentTheRemainingFilesAreStillHere": "No se pudieron enviar algunos archivos. Los archivos restantes siguen aquí.",
+  "nshSomeResultsCouldNotBeLoadedTryAgain": "No se pudieron cargar algunos resultados. Inténtalo de nuevo.",
+  "nshStandardMember": "Miembro estándar",
+  "nshStartTheConversation": "Iniciar conversación",
+  "nshState": "Estado",
+  "nshStickerPreviewUnavailable": "Vista previa del sticker no disponible",
+  "nshStickerStore": "Tienda de pegatinas",
+  "nshStickers": "Stickers",
+  "nshStickersYouSendAppearHere": "Los stickers que envíes aparecerán aquí",
+  "nshStop": "Detener",
+  "nshStorageUsage": "Uso de almacenamiento",
+  "nshSubscribedStickers": "Stickers suscritos",
+  "nshSyncFromPhone": "Sincronizar desde otro dispositivo",
+  "nshSyncToPhone": "Sincronizar a otro dispositivo",
+  "nshSystemLanguage": "Seguir sistema",
+  "nshTermsOfService": "Términos de servicio",
+  "nshTextContent": "Contenido de texto",
+  "nshTextIsTooLongForAQRCode": "El texto es demasiado largo para un código QR.",
+  "nshTheAccountIsTemporarilyUnavailable": "La cuenta no está disponible temporalmente.",
+  "nshTheCircleWasCreatedRetryAddingTheRemainingChats": "El círculo se ha creado. Reintenta añadir los chats restantes.",
+  "nshTransferVersionMismatch": "Los dispositivos usan versiones de transferencia diferentes. Actualiza ambas aplicaciones e inténtalo de nuevo.",
+  "nshTheGroupWasCreatedRetryOpeningIt": "El grupo se ha creado. Reintenta abrirlo.",
+  "nshTheImageInTheSendPreviewWillStayUnchanged": "La imagen de la vista previa de envío no cambiará.",
+  "nshThePasscodesDidnTMatchTryAgain": "Los códigos no coinciden. Inténtalo de nuevo.",
+  "nshThePreviousLinkWillStopWorking": "El enlace anterior dejará de funcionar.",
+  "nshTheSystemReturnedAnUnknownNotificationPermission": "El sistema devolvió un permiso de notificaciones desconocido.",
+  "nshThereAreNoUnreadConversationsInThisCategory": "No hay conversaciones sin leer en esta categoría.",
+  "nshThereAreNoUnreadConversationsInThisCircle": "No hay conversaciones sin leer en este círculo.",
+  "nshDeleteForEveryoneDescription": "Estos mensajes se eliminarán para todos en esta conversación.",
+  "nshTheseMessagesWillBeRemovedFromThisDevice": "Estos mensajes se eliminarán de este dispositivo.",
+  "nshThisAccountWillBeReportedAndBlocked": "Esta cuenta se denunciará y bloqueará.",
+  "nshForwardedSummaryNotice": "Este mensaje reenviado solo contiene un resumen. Los mensajes y archivos originales no están disponibles.",
+  "nshThisForwardedSummaryIsUnavailable": "Este resumen reenviado no está disponible.",
+  "nshThisMessageIsNoLongerAvailable": "Este mensaje ya no está disponible.",
+  "nshThisMessageTypeIsNotSupported": "Este tipo de mensaje no es compatible.",
+  "nshThisPersonIsNotInYourContacts": "Esta persona no está en tus contactos.",
+  "nshThisRecordingWillBeDeleted": "Esta grabación se eliminará.",
+  "nshThisRemovesTheChatAndItsMessageHistoryFromThisDevice": "Esto elimina el chat y su historial de mensajes de este dispositivo.",
+  "userDeleteHint": "Este usuario ha eliminado su cuenta.",
+  "nshThisUserWillBeRemovedFromYourContacts": "Este usuario se eliminará de tus contactos.",
+  "nshThreshold": "Umbral",
+  "nshTimeUnit": "Unidad de tiempo",
+  "nshTransactionHash": "Hash de transacción",
+  "nshTransferID": "ID de transferencia",
+  "nshTransferCancelled": "Transferencia cancelada",
+  "transferCompleted": "Transferencia completada",
+  "nshTransferFailedCheckBothDevicesAndTryAgain": "Error en la transferencia. Comprueba ambos dispositivos e inténtalo de nuevo.",
+  "nshTransferringChats": "Transfiriendo chats…",
+  "nshTransferring": "Transfiriendo…",
+  "nshTryAgain": "Reintentar",
+  "nshTryAgainInSecondsS": "Inténtalo de nuevo en {seconds} s",
+  "@nshTryAgainInSecondsS": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "nshTryAnotherNameOrClearYourFilters": "Prueba otro nombre o borra los filtros.",
+  "nshTurnOff": "Desactivar",
+  "nshTurnOffScreenPasscode": "¿Desactivar el código de pantalla?",
+  "nshUnblockThisUser": "¿Desbloquear a este usuario?",
+  "nshUnblock": "Desbloquear",
+  "nshUndo": "Deshacer",
+  "unlockMixinMessenger": "Desbloquear Mixin Messenger",
+  "nshUnlockWithPasscode": "Desbloquear con código",
+  "nshUnlocking": "Desbloqueando…",
+  "nshUnread": "No leído",
+  "nshUnreadMention": "Mención sin leer",
+  "nshUpdateMixinMessengerToContinue": "Actualiza Mixin Messenger para continuar.",
+  "nshUseBiometrics": "Usar biometría",
+  "username": "Nombre de usuario",
+  "nshUsernameOptional": "Nombre de usuario (opcional)",
+  "nshVerified": "Verificado",
+  "nshViewProfile": "Ver perfil",
+  "nshVoiceMessage": "Mensaje de voz",
+  "nshVoiceMessagePosition": "Posición del mensaje de voz",
+  "nshWaitingForTheOtherDevice": "Esperando a que se conecte el otro dispositivo.",
+  "nshEncryptedSessionWaiting": "Esperando a que {sender} se conecte para establecer una sesión cifrada.",
+  "@nshEncryptedSessionWaiting": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshWatchLive": "Ver en directo",
+  "nshWebpage": "Página web",
+  "nshWeeks": "Semanas",
+  "nshWhite": "Blanco",
+  "nshWorking": "Procesando…",
+  "nshWriteAMessage": "Escribe el mensaje",
+  "nshWriteAPost": "Escribir una publicación",
+  "nshWriteInMarkdown": "Escribir en Markdown…",
+  "nshYellow": "Amarillo",
+  "nshYesterday": "Ayer",
+  "nshYouHaveNoUnreadConversations": "No tienes conversaciones sin leer.",
+  "nshYouWillLeaveThisGroupAndRemoveItsLocalConversation": "Saldrás de este grupo y se eliminará su conversación local.",
+  "nshYourAlbums": "Tus álbumes",
+  "nshYourConversationsWillAppearHereAsTheySync": "Tus conversaciones aparecerán aquí al sincronizarse.",
+  "nshZIPArchive": "Archivo ZIP",
+  "nshZoomIn": "Acercar",
+  "nshZoomOut": "Alejar",
+  "nshTheSender": "el remitente",
+  "nshYourLinkedDevice": "tu dispositivo vinculado",
+  "nshCountChats": "Chats: {count}",
+  "@nshCountChats": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDay": "{count} día",
+  "@nshCountDay": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDays": "{count} días",
+  "@nshCountDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHour": "{count} h",
+  "@nshCountHour": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHours": "{count} h",
+  "@nshCountHours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMembers": "Miembros: {count}",
+  "@nshCountMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinute": "{count} min",
+  "@nshCountMinute": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinutes": "{count} min",
+  "@nshCountMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSecond": "{count} s",
+  "@nshCountSecond": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSeconds": "{count} s",
+  "@nshCountSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSelected": "Seleccionados: {count}",
+  "@nshCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeek": "{count} semana",
+  "@nshCountWeek": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeeks": "{count} semanas",
+  "@nshCountWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshHoursH": "{hours} h",
+  "@nshHoursH": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "nshMinutesMin": "{minutes} min",
+  "@nshMinutesMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nshNamePinnedMessage": "Mensaje fijado por {name}: {message}",
+  "@nshNamePinnedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantBecameAnAdmin": "Nuevo administrador: {participant}",
+  "@nshParticipantBecameAnAdmin": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantJoinedTheGroup": "Entrada al grupo: {participant}",
+  "@nshParticipantJoinedTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantLeftTheGroup": "Salida del grupo: {participant}",
+  "@nshParticipantLeftTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderAddedParticipant": "Participante añadido: {participant} · Por: {sender}",
+  "@nshSenderAddedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderChangedDisappearingMessageSettings": "Ajustes de mensajes temporales cambiados por: {sender}",
+  "@nshSenderChangedDisappearingMessageSettings": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderCreatedThisGroup": "Grupo creado por: {sender}",
+  "@nshSenderCreatedThisGroup": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderDisabledDisappearingMessages": "Mensajes temporales desactivados por: {sender}",
+  "@nshSenderDisabledDisappearingMessages": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderPinnedMessage": "Mensaje fijado por {sender}: {message}",
+  "@nshSenderPinnedMessage": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderRemovedParticipant": "Participante eliminado: {participant} · Por: {sender}",
+  "@nshSenderRemovedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderSetDisappearingMessagesToDuration": "Mensajes temporales: {duration} · Configurado por: {sender}",
+  "@nshSenderSetDisappearingMessagesToDuration": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSelectEnterOpenEscClose": "↑↓ Seleccionar · Enter Abrir · Esc Cerrar",
+  "nshMixinIdLabel": "Mixin ID: {arg0}",
+  "@nshMixinIdLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  }
 }

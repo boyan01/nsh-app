@@ -86,7 +86,7 @@ pub(super) fn location(row: &MessageListView, actions: Actions) -> AnyElement {
         .unwrap_or_default();
     let description = format!(
         "{} {name} {address} {latitude:.5}, {longitude:.5}",
-        i18n.text(Key::Location)
+        i18n.t(Key::Location)
     );
     view()
         .w(ui::card_width())
@@ -96,7 +96,7 @@ pub(super) fn location(row: &MessageListView, actions: Actions) -> AnyElement {
 }
 
 fn invalid(actions: Actions) -> AnyElement {
-    text(move || actions.i18n.tr("Invalid location", "无法读取位置"))
+    text(move || actions.i18n.t(Key::NshInvalidLocation))
         .text_role(ui::TextRole::Body)
         .into_element()
 }
@@ -138,8 +138,10 @@ fn preview(
                 .items_center()
                 .pt_2()
                 .gap_1()
-                .child(text(move || actions.i18n.text(Key::Location)).text_role(ui::TextRole::Body))
-                .child(text(format!("{latitude:.5}, {longitude:.5}")).text_role(ui::TextRole::Caption))
+                .child(text(move || actions.i18n.t(Key::Location)).text_role(ui::TextRole::Body))
+                .child(
+                    text(format!("{latitude:.5}, {longitude:.5}")).text_role(ui::TextRole::Caption),
+                )
                 .text_color(ui::fg_secondary),
         )
         .child(each(
@@ -170,13 +172,11 @@ fn preview(
                 .justify_end()
                 .pointer_events(PointerEvents::None)
                 .child(
-                    svg(ImageSrc::svg_markup(
-                        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 33' fill='none' stroke='currentColor' stroke-width='2'><path d='M11 32V21'/><circle cx='11' cy='11' r='10'/><circle cx='11' cy='11' r='3'/></svg>",
-                    ))
-                    .w_6()
-                    .h_9()
-                    .text_color(ui::accent)
-                    .accessibility_elements_hidden(true),
+                    svg(ImageSrc::svg_markup(crate::assets::svg::ICONS_LOCATION_PIN))
+                        .w_6()
+                        .h_9()
+                        .text_color(ui::accent)
+                        .accessibility_elements_hidden(true),
                 ),
         )
         .child(

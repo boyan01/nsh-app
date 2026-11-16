@@ -170,7 +170,8 @@ impl Actions {
     fn finish(self, ok: bool) {
         self.failed.set(false);
         if !ok {
-            self.toasts.error(self.i18n.text(Key::CommandFailed));
+            self.toasts
+                .error(self.i18n.t(Key::NshCouldnTCompleteThisActionTryAgain));
         }
     }
 
@@ -334,51 +335,41 @@ fn menu_with_context<E: Interactive>(
         let mut reply = Vec::new();
         if !pinned_page && actions.can_send.get() && policy.as_ref().is_some_and(|p| p.can_reply) {
             let quoted = row.clone();
-            reply.push(item(
-                ui::MenuIcon::Reply,
-                i18n.tr("Reply", "回复"),
-                move || {
-                    if actions.can_send.get_untracked() {
-                        actions.quote.set(Some(quoted.clone()));
-                    }
-                },
-            ));
+            reply.push(item(ui::MenuIcon::Reply, i18n.t(Key::Reply), move || {
+                if actions.can_send.get_untracked() {
+                    actions.quote.set(Some(quoted.clone()));
+                }
+            }));
         }
         let mut copy = Vec::new();
         if row.category.ends_with("_IMAGE") {
             let id = row.message_id.clone();
             copy.push(
-                item(
-                    ui::MenuIcon::Copy,
-                    i18n.tr("Copy Image", "复制图片"),
-                    move || {
-                        if actions.busy.get_untracked() {
-                            return;
-                        }
-                        let id = id.clone();
-                        let client = actions.account.with(|a| a.clone());
-                        actions.busy.set(true);
-                        actions.task(async move {
-                            match runtime::run(async move {
-                                client
-                                    .attachment()
-                                    .attachment_image_data_uri(id, None)
-                                    .await
-                            })
-                            .await
-                            {
-                                Ok(uri) => {
-                                    set_clipboard_image(uri);
-                                    actions
-                                        .toasts
-                                        .success(i18n.tr("Image copied", "图片已复制"));
-                                }
-                                Err(_) => actions.finish(false),
+                item(ui::MenuIcon::Copy, i18n.t(Key::CopyImage), move || {
+                    if actions.busy.get_untracked() {
+                        return;
+                    }
+                    let id = id.clone();
+                    let client = actions.account.with(|a| a.clone());
+                    actions.busy.set(true);
+                    actions.task(async move {
+                        match runtime::run(async move {
+                            client
+                                .attachment()
+                                .attachment_image_data_uri(id, None)
+                                .await
+                        })
+                        .await
+                        {
+                            Ok(uri) => {
+                                set_clipboard_image(uri);
+                                actions.toasts.success(i18n.t(Key::NshImageCopied));
                             }
-                            actions.busy.set(false);
-                        });
-                    },
-                )
+                            Err(_) => actions.finish(false),
+                        }
+                        actions.busy.set(false);
+                    });
+                })
                 .disabled(!available(&row)),
             );
         }
@@ -396,19 +387,19 @@ fn menu_with_context<E: Interactive>(
             copy.push(item(
                 ui::MenuIcon::Copy,
                 if has_selection {
-                    i18n.tr("Copy Selected Text", "复制已选择的文本")
+                    i18n.t(Key::CopySelectedText)
                 } else {
-                    i18n.tr("Copy", "复制")
+                    i18n.t(Key::Copy)
                 },
                 move || {
                     set_clipboard(content.clone());
-                    actions.toasts.success(i18n.tr("Copied", "已复制"));
+                    actions.toasts.success(i18n.t(Key::NshCopied));
                 },
             ));
             if row.category.ends_with("_TEXT") && !row.content.is_empty() {
                 copy.push(item(
                     ui::MenuIcon::QrCode,
-                    i18n.tr("Generate QR Code", "生成二维码"),
+                    i18n.t(Key::GenerateQrcode),
                     move || {
                         actions.open_text_qr(qr_content.clone());
                     },
@@ -421,13 +412,13 @@ fn menu_with_context<E: Interactive>(
             copy.push(item(
                 ui::MenuIcon::Copy,
                 if has_selection {
-                    i18n.tr("Copy Selected Text", "复制已选择的文本")
+                    i18n.t(Key::CopySelectedText)
                 } else {
-                    i18n.tr("Copy Text", "复制文字")
+                    i18n.t(Key::CopyText)
                 },
                 move || {
                     set_clipboard(caption.clone());
-                    actions.toasts.success(i18n.tr("Copied", "已复制"));
+                    actions.toasts.success(i18n.t(Key::NshCopied));
                 },
             ));
         }
@@ -436,7 +427,7 @@ fn menu_with_context<E: Interactive>(
             let id = row.message_id.clone();
             message_group.push(item(
                 ui::MenuIcon::PositionToChat,
-                i18n.tr("Locate in Chat", "前往聊天"),
+                i18n.t(Key::LocateToChat),
                 move || locate(id.clone()),
             ));
         }
@@ -444,7 +435,7 @@ fn menu_with_context<E: Interactive>(
             let id = row.message_id.clone();
             message_group.push(item(
                 ui::MenuIcon::Forward,
-                i18n.tr("Forward", "转发"),
+                i18n.t(Key::Forward),
                 move || {
                     actions.combine.set(false);
                     actions.forwarding.set(vec![id.clone()]);
@@ -452,17 +443,13 @@ fn menu_with_context<E: Interactive>(
             ));
         }
         let id = row.message_id.clone();
-        message_group.push(item(
-            ui::MenuIcon::Select,
-            i18n.tr("Select", "选择"),
-            move || {
-                actions.selected.update(|ids| {
-                    if !ids.contains(&id) {
-                        ids.push(id.clone());
-                    }
-                })
-            },
-        ));
+        message_group.push(item(ui::MenuIcon::Select, i18n.t(Key::Select), move || {
+            actions.selected.update(|ids| {
+                if !ids.contains(&id) {
+                    ids.push(id.clone());
+                }
+            })
+        }));
         if policy.as_ref().is_some_and(|p| p.can_pin) {
             let message_id = row.message_id.clone();
             let conversation_id = row.conversation_id.clone();
@@ -473,10 +460,7 @@ fn menu_with_context<E: Interactive>(
                 } else {
                     ui::MenuIcon::UnPin
                 },
-                i18n.tr(
-                    if pin { "Pin" } else { "Unpin" },
-                    if pin { "置顶" } else { "取消置顶" },
-                ),
+                i18n.t(if pin { Key::PinTitle } else { Key::Unpin }),
                 move || {
                     let client = actions.account.with(|a| a.clone());
                     let id = message_id.clone();
@@ -497,7 +481,7 @@ fn menu_with_context<E: Interactive>(
             let name = attachment_name(&row);
             save.push(item(
                 ui::MenuIcon::Download,
-                i18n.tr("Save as", "另存为"),
+                i18n.t(Key::SaveAs),
                 move || {
                     let id = id.clone();
                     let name = name.clone();
@@ -511,7 +495,7 @@ fn menu_with_context<E: Interactive>(
                                         .save_attachment_as(id, path.to_string_lossy().into_owned())
                                         .await
                                 },
-                                i18n.tr("Saved", "已保存"),
+                                i18n.t(Key::NshSaved),
                             ),
                             Ok(None) => {}
                             Err(_) => actions.finish(false),
@@ -526,13 +510,13 @@ fn menu_with_context<E: Interactive>(
         {
             sticker.push(item(
                 ui::MenuIcon::Sticker,
-                i18n.tr("Add Sticker", "添加贴纸"),
+                i18n.t(Key::AddSticker),
                 move || {
                     let client = actions.account.with(|a| a.clone());
                     let id = id.clone();
                     actions.commit_with(
                         async move { client.sticker().add_sticker(id).await },
-                        i18n.tr("Sticker added", "已添加贴纸"),
+                        i18n.t(Key::NshStickerAdded),
                     );
                 },
             ));
@@ -544,7 +528,7 @@ fn menu_with_context<E: Interactive>(
             let image = row.clone();
             sticker.push(item(
                 ui::MenuIcon::Sticker,
-                i18n.tr("Add Sticker", "添加贴纸"),
+                i18n.t(Key::AddSticker),
                 move || {
                     actions.add_image_sticker(image.clone());
                 },
@@ -558,7 +542,7 @@ fn menu_with_context<E: Interactive>(
                 .then(|| row.content.clone());
             delete.push(item(
                 ui::MenuIcon::Recall,
-                i18n.tr("Delete for Everyone", "撤回"),
+                i18n.t(Key::DeleteForEveryone),
                 move || {
                     remove_with_reedit(
                         actions,
@@ -576,7 +560,7 @@ fn menu_with_context<E: Interactive>(
             let row = row.clone();
             delete.push(item(
                 ui::MenuIcon::Delete,
-                i18n.tr("Delete for me", "删除"),
+                i18n.t(Key::DeleteForMe),
                 move || {
                     remove(
                         actions,
@@ -611,25 +595,19 @@ fn remove_with_reedit(
     let client = actions.account.with(|a| a.clone());
     actions.task(async move {
         let title = if recall {
-            i18n.tr("Delete for everyone?", "为所有人删除消息？")
+            i18n.t(Key::NshDeleteForEveryone)
         } else {
-            i18n.tr("Delete for me?", "为我删除消息？")
+            i18n.t(Key::NshDeleteForMe)
         };
         let result = alert_dialog()
             .title(title)
             .description(if recall {
-                i18n.tr(
-                    "These messages will be removed for everyone in this conversation.",
-                    "这些消息将从此会话所有人的聊天记录中删除。",
-                )
+                i18n.t(Key::NshDeleteForEveryoneDescription)
             } else {
-                i18n.tr(
-                    "These messages will be removed from this device.",
-                    "这些消息将从此设备的聊天记录中删除。",
-                )
+                i18n.t(Key::NshTheseMessagesWillBeRemovedFromThisDevice)
             })
-            .cancel("cancel", i18n.text(Key::Cancel))
-            .destructive("delete", i18n.tr("Delete", "删除"))
+            .cancel("cancel", i18n.t(Key::Cancel))
+            .destructive("delete", i18n.t(Key::Delete))
             .show()
             .await;
         if !matches!(result, Ok(answer) if answer.action.as_deref() == Some("delete")) {

@@ -232,19 +232,19 @@ pub(super) fn card(
         .accessibility_label(move || {
             Some(
                 if expired {
-                    i18n.tr("Expired", "已过期")
+                    i18n.t(Key::NshExpired)
                 } else if transferring() {
-                    i18n.tr("Cancel transfer", "取消传输")
+                    i18n.t(Key::NshCancelTransfer)
                 } else if done {
                     if video {
-                        i18n.text(Key::Play)
+                        i18n.t(Key::NshPlay)
                     } else {
-                        i18n.text(Key::Photo)
+                        i18n.t(Key::NshPhoto)
                     }
                 } else if retry_upload {
-                    i18n.tr("Retry", "重试")
+                    i18n.t(Key::Retry)
                 } else {
-                    i18n.tr("Download", "下载")
+                    i18n.t(Key::Download)
                 }
                 .into(),
             )
@@ -282,9 +282,9 @@ pub(super) fn card(
                         .child(
                             text(move || {
                                 if video {
-                                    i18n.text(Key::Video)
+                                    i18n.t(Key::Video)
                                 } else {
-                                    i18n.text(Key::Photo)
+                                    i18n.t(Key::NshPhoto)
                                 }
                             })
                             .text_size(move || appearance.secondary_size())
@@ -359,9 +359,7 @@ pub(super) fn card(
                                             .items_center()
                                             .child(ui::busy_indicator(
                                                 move || transfer.percent().is_none(),
-                                                move || {
-                                                    i18n.tr("Transferring…", "正在传输…").into()
-                                                },
+                                                move || i18n.t(Key::NshTransferring).into(),
                                             ))
                                             .child(ui::icon(ui::Icon::Close))
                                             .child(when(
@@ -378,9 +376,9 @@ pub(super) fn card(
                                         move || !transferring(),
                                         move || {
                                             if expired || local_failed.get() {
-                                                svg(ImageSrc::svg_markup(include_str!(
-                                                    "../../assets/message/warning.svg"
-                                                )))
+                                                svg(ImageSrc::svg_markup(
+                                                    crate::assets::svg::MESSAGE_WARNING,
+                                                ))
                                                 .size(ui::icon_lg())
                                                 .text_color(ui::media_overlay_foreground)
                                                 .into_element()
@@ -400,17 +398,13 @@ pub(super) fn card(
                             )
                             .child(when(local_failed, move || {
                                 overlay_label(
-                                    move || {
-                                        i18n.tr("Couldn’t display this photo.", "无法显示此图片。")
-                                    },
+                                    move || i18n.t(Key::NshCouldnTDisplayThisPhoto),
                                     appearance,
                                 )
                             }))
                             .child(when(
                                 move || expired,
-                                move || {
-                                    overlay_label(move || i18n.tr("Expired", "已过期"), appearance)
-                                },
+                                move || overlay_label(move || i18n.t(Key::NshExpired), appearance),
                             ))
                     },
                 ))

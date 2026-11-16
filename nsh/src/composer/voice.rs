@@ -11,7 +11,7 @@ use std::sync::{
 
 pub(crate) mod surface;
 
-use super::{clear_quote, quote_id, tr};
+use super::{clear_quote, quote_id};
 use crate::media_client;
 use crate::{
     i18n::{self, Key},
@@ -91,14 +91,10 @@ impl Voice {
         self.discarding.set(true);
         self.task(async move {
             let result = nsh_base::alert_dialog()
-                .title(tr(i18n, "Discard recording?", "放弃录音？"))
-                .description(tr(
-                    i18n,
-                    "This recording will be deleted.",
-                    "这段录音将被删除。",
-                ))
-                .cancel("cancel", i18n.text(Key::Cancel))
-                .destructive("discard", tr(i18n, "Discard", "放弃"))
+                .title(i18n.t(Key::NshDiscardRecordingMessage))
+                .description(i18n.t(Key::NshThisRecordingWillBeDeleted))
+                .cancel("cancel", i18n.t(Key::Cancel))
+                .destructive("discard", i18n.t(Key::Discard))
                 .show()
                 .await;
             self.discarding.set(false);

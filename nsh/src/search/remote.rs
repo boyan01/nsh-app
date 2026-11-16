@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use mixin_desktop_api::UserProfileItem;
 use url::Url;
 
@@ -142,14 +143,8 @@ pub(super) fn banner(
             move || users_empty.get() && numeric(),
             move || {
                 parts::compact_row().disabled(busy).on_press(lookup).child(
-                    text(move || {
-                        format!(
-                            "{} {}",
-                            tr("Search Mixin ID", "搜索 Mixin ID"),
-                            query.get().trim()
-                        )
-                    })
-                    .text_role(ui::TextRole::Body),
+                    text(move || format!("{} {}", t(Key::NshSearchMixinID), query.get().trim()))
+                        .text_role(ui::TextRole::Body),
                 )
             },
         ))
@@ -164,22 +159,14 @@ pub(super) fn banner(
                         }
                     })
                     .child(
-                        text(move || {
-                            format!("{} {}", tr("Open link", "打开链接"), query.get().trim())
-                        })
-                        .text_role(ui::TextRole::Body)
-                        .number_of_lines(2),
+                        text(move || format!("{} {}", t(Key::NshOpenLink), query.get().trim()))
+                            .text_role(ui::TextRole::Body)
+                            .number_of_lines(2),
                     )
             },
         ))
         .child(when(failed, || {
-            ui::error_text(move || {
-                tr(
-                    "Couldn’t open this result. Check it and try again.",
-                    "无法打开此结果，请检查后重试。",
-                )
-            })
-            .px_4()
+            ui::error_text(move || t(Key::NshCouldnTOpenThisResultCheckItAndTryAgain)).px_4()
         }))
 }
 

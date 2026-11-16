@@ -1,5 +1,6 @@
 //! The group announcement banner and its conversation-scoped dismissal.
 
+use crate::i18n::Key;
 use std::sync::Arc;
 
 use futures::StreamExt as _;
@@ -103,7 +104,7 @@ pub(super) fn banner(account: Arc<AccountClient>, conversation_id: String) -> im
                         .px_0()
                         .py_0()
                         .disabled(busy)
-                        .accessibility_label(move || Some(i18n.tr("Close", "关闭").into()))
+                        .accessibility_label(move || Some(i18n.t(Key::Close).into()))
                         .on_press(move || {
                             if busy.get_untracked() {
                                 return;

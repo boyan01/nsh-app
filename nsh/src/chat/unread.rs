@@ -339,7 +339,7 @@ impl Unread {
                         Some(
                             format!(
                                 "{} ({})",
-                                i18n.tr("Next unread mention", "下一条未读提及"),
+                                i18n.t(Key::NshNextUnreadMention),
                                 self.mentions.with(Vec::len)
                             )
                             .into(),
@@ -385,10 +385,7 @@ impl Unread {
                     if self.marking.get_untracked() {
                         return Vec::new();
                     }
-                    vec![
-                        MenuItem::new(i18n.tr("Clear", "清除"))
-                            .on_select(move || self.clear_mentions()),
-                    ]
+                    vec![MenuItem::new(i18n.t(Key::Clear)).on_select(move || self.clear_mentions())]
                 })
             },
         )
@@ -435,7 +432,7 @@ impl Unread {
                     .py(ui::space_xs())
                     .bg(|| ui::bubble_in().opacity(ui::glass_tint_opacity()))
                     .child(
-                        text(move || i18n.tr("Unread messages", "未读消息"))
+                        text(move || i18n.t(Key::UnreadMessages))
                             .text_size(move || appearance.secondary_size())
                             .text_color(ui::fg_secondary),
                     )
@@ -450,7 +447,7 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
         .flex_row()
         .gap_2()
         .child(ui::error_text(move || {
-            i18n.tr("Couldn’t load unread messages.", "无法加载未读消息。")
+            i18n.t(Key::NshCouldnTLoadUnreadMessages)
         }))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }

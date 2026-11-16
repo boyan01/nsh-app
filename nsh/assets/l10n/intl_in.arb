@@ -228,5 +228,897 @@
 "waitingOtherDeviceConnection" : "Menunggu perangkat lain terhubung.",
 "withdrawal" : "Penarikan",
 "you" : "Anda",
-"youDeletedThisMessage" : "Anda menghapus pesan ini"
+"youDeletedThisMessage" : "Anda menghapus pesan ini",
+  "nsh1Day": "1 hari",
+  "nsh1Hour": "1 Jam",
+  "nsh1Week": "1 minggu",
+  "nsh1Year": "1 Tahun",
+  "nsh10Minutes": "10 menit",
+  "nsh2Hours": "2 jam",
+  "nsh30Seconds": "30 detik",
+  "nsh8Hours": "8 jam",
+  "nshAGroupMember": "Anggota grup",
+  "nshScreenPasscodeDescription": "Kode layar menyembunyikan konten akun sementara Mixin tetap menyinkronkan di latar belakang.",
+  "nshAboutMixinMessenger": "Tentang",
+  "nshAccountContentWillNoLongerBeHiddenWhenMixinLocks": "Konten akun tidak lagi disembunyikan saat Mixin terkunci.",
+  "nshAction": "Tindakan",
+  "nshActualFit": "Sesuaikan ke jendela",
+  "add": "Tambah",
+  "nshAddHTTPProxy": "Tambah proxy HTTP",
+  "addSticker": "Tambah stiker",
+  "nshAddACaption": "Tambah keterangan…",
+  "nshAddAProxyBeforeEnablingIt": "Tambahkan proxy sebelum mengaktifkannya.",
+  "nshAddAlbum": "Tambah album",
+  "nshAddContact": "Tambah Kontak",
+  "nshAddContactMessage": "Tambah Kontak",
+  "nshAddFiles": "Tambahkan file…",
+  "nshAddParticipants": "Tambah Peserta",
+  "nshAddParticipantsMessage": "Tambah Peserta",
+  "nshAddProxy": "Tambah proxy…",
+  "nshAddSticker": "Tambah stiker",
+  "addToCircle": "Tambahkan ke lingkaran",
+  "added": "Ditambahkan",
+  "nshAddingChat": "Menambahkan chat…",
+  "nshAll": "Semua",
+  "nshAllChats": "Semua obrolan",
+  "nshAllow": "Izinkan",
+  "nshAllowNotifications": "Izinkan notifikasi",
+  "nshAllowNotificationsToReceiveNewMessageAlerts": "Izinkan notifikasi untuk menerima pemberitahuan pesan baru.",
+  "nshAllowThisDeviceToSendChatHistoryToYourPhone": "Izinkan perangkat ini mengirim riwayat obrolan ke ponsel Anda?",
+  "nshAllowYourPhoneToSendChatHistoryToThisDevice": "Izinkan ponsel Anda mengirim riwayat obrolan ke perangkat ini?",
+  "nshAmount": "Jumlah",
+  "nshAnyoneWithThisLinkCanJoinTheGroup": "Siapa pun dengan tautan ini dapat bergabung ke grup.",
+  "unpinAllMessagesConfirmation": "Yakin ingin melepas sematan semua pesan?",
+  "nshAspectRatio": "Rasio aspek",
+  "nshAsset": "Aset",
+  "nshAssetID": "ID aset",
+  "nshAutomaticLock": "Kunci otomatis",
+  "nshAutomaticMediaDownload": "Unduh media otomatis",
+  "nshAutomaticallyDownloadMediaWhenMessagesArrive": "Unduh media secara otomatis saat pesan tiba.",
+  "nshBack": "Kembali",
+  "nshBackToLatest": "Kembali ke pesan terbaru",
+  "nshBasicMember": "Anggota dasar",
+  "biography": "Biografi",
+  "nshBiometricUnlock": "Buka dengan biometrik",
+  "nshBlack": "Hitam",
+  "nshBlockThisUser": "Blokir pengguna ini?",
+  "nshBlock": "Blokir",
+  "nshBlue": "Biru",
+  "nshBot": "Bot",
+  "nshBotWindowsUnavailable": "Jendela bot tidak tersedia",
+  "nshBrush": "Kuas",
+  "nshCalculatingStorage": "Menghitung penyimpanan…",
+  "nshCancelDownload": "Batalkan unduhan",
+  "nshCancelTransfer": "Batalkan transfer",
+  "nshCaption": "Keterangan",
+  "nshChangeAvatar": "Ubah avatar…",
+  "nshChangeGroupPhoto": "Ubah foto grup…",
+  "nshChatBackupAndRestore": "Cadangkan dan Pulihkan Chat",
+  "nshChatBackupAndRestoreMessage": "Cadangkan dan Pulihkan Chat",
+  "nshChatHistory": "Riwayat obrolan",
+  "nshChatInfo": "Info obrolan",
+  "nshChatPreferences": "Preferensi obrolan",
+  "nshChatTextSize": "Ukuran teks obrolan",
+  "allChats": "Obrolan",
+  "nshChatsInThisCircleWillRemainAvailableInAllChats": "Obrolan di lingkaran ini tetap tersedia di Semua obrolan.",
+  "checkNewVersion": "Periksa pembaruan",
+  "nshCheckTheLinkAndYourConnectionThenTryAgain": "Periksa tautan dan koneksi Anda, lalu coba lagi.",
+  "nshCheckYourConnectionAndTryAgain": "Periksa koneksi Anda dan coba lagi.",
+  "nshCheckYourSystemClockAndTryAgain": "Periksa jam sistem dan coba lagi.",
+  "nshCheckingNotificationPermission": "Memeriksa izin notifikasi…",
+  "nshCheckingScreenPrivacy": "Memeriksa privasi layar…",
+  "nshChooseASender": "Pilih pengirim",
+  "nshChooseCirclesForThisChat": "Pilih lingkaran untuk obrolan ini.",
+  "nshChooseRecipient": "Pilih penerima",
+  "nshChooseRecipientMessage": "Pilih penerima…",
+  "nshCircleCreatedButThisChatCouldnTBeAddedRetryAddingIt": "Lingkaran dibuat, tetapi chat ini tidak dapat ditambahkan. Coba tambahkan lagi.",
+  "nshCircleName": "Nama lingkaran",
+  "nshClearCache": "Hapus cache",
+  "nshClearMediaCacheDescription": "Hapus cache media dari perangkat ini. Pesan tetap ada dalam percakapan.",
+  "nshClearChat": "Hapus isi obrolan?",
+  "nshClearChatMessage": "Bersihkan Obrolan",
+  "nshClearFilters": "Hapus filter",
+  "nshClearSelectedCache": "Hapus cache terpilih…",
+  "nshClearSender": "Hapus pengirim",
+  "nshClearTheSelectedMediaCache": "Hapus cache media terpilih?",
+  "nshClearingCache": "Menghapus cache…",
+  "close": "Tutup",
+  "closeWindow": "Tutup jendela",
+  "collapse": "Ciutkan",
+  "collectible": "Item koleksi",
+  "collection": "Koleksi",
+  "nshCollectionHash": "Hash koleksi",
+  "nshCombineAndForward": "Gabungkan dan teruskan…",
+  "nshCompleteThisPaymentInMixinOnYourPhone": "Selesaikan pembayaran ini di Mixin pada ponsel Anda.",
+  "nshCompressImages": "Kompres gambar",
+  "nshConfirmYourPasscode": "Konfirmasi kode layar",
+  "confirmations": "Konfirmasi",
+  "nshContactCard": "Kontak",
+  "nshContactPreviewUnavailable": "Pratinjau kontak tidak tersedia",
+  "contactTitle": "Kontak",
+  "nshContact": "Kontak",
+  "nshContentType": "Jenis konten",
+  "nshContentUnavailable": "Konten tidak tersedia",
+  "nshConversationInfo": "Info percakapan",
+  "nshConversations": "Percakapan",
+  "nshConversationsAddedToThisCircleWillAppearHere": "Percakapan yang ditambahkan ke lingkaran ini akan muncul di sini.",
+  "nshConversationsWithBotsWillAppearHere": "Percakapan dengan bot akan muncul di sini.",
+  "nshStrangerConversationsEmptyDescription": "Percakapan dengan orang di luar kontak Anda akan muncul di sini.",
+  "nshConversationsWithYourContactsWillAppearHere": "Percakapan dengan kontak Anda akan muncul di sini.",
+  "copyImage": "Salin gambar",
+  "copySelectedText": "Salin teks yang dipilih",
+  "copyText": "Salin teks",
+  "nshCopyImage": "Salin gambar",
+  "nshCopyLink": "Salin tautan",
+  "nshCouldnTAddTheseFilesTryAgain": "File ini tidak dapat ditambahkan. Coba lagi.",
+  "nshCouldnTClearBrowserDataTryAgain": "Tidak dapat menghapus data browser. Coba lagi.",
+  "nshCouldnTCompleteThisActionTryAgain": "Tidak dapat menyelesaikan tindakan ini. Coba lagi.",
+  "nshCouldnTCreateASignInCode": "Tidak dapat membuat kode masuk",
+  "nshCouldnTCreateTheCircleTryAgain": "Tidak dapat membuat lingkaran. Coba lagi.",
+  "nshCouldnTDisplayThisPhoto": "Tidak dapat menampilkan foto ini.",
+  "nshCouldnTDownloadThisFileTryAgain": "Tidak dapat mengunduh berkas ini. Coba lagi.",
+  "nshCouldnTEditThisImageUndoTheLastEditOrTryAgain": "Tidak dapat mengedit gambar ini. Urungkan edit terakhir atau coba lagi.",
+  "nshCouldnTFindThisContactCheckTheIDAndTryAgain": "Tidak dapat menemukan kontak ini. Periksa ID dan coba lagi.",
+  "nshCouldnTJoinThisGroupTryAgain": "Tidak dapat bergabung ke grup ini. Coba lagi.",
+  "nshCouldnTLoadChats": "Tidak dapat memuat chat.",
+  "nshCouldnTLoadChatsTryAgain": "Tidak dapat memuat obrolan. Coba lagi.",
+  "nshCouldnTLoadContent": "Tidak dapat memuat konten",
+  "nshCouldnTLoadConversations": "Tidak dapat memuat percakapan",
+  "nshCouldnTLoadMembersTypeAgainToRetry": "Tidak dapat memuat anggota. Ketik lagi untuk mencoba ulang.",
+  "nshCouldnTLoadMessages": "Tidak dapat memuat pesan",
+  "nshCouldnTLoadQuickSearch": "Tidak dapat memuat pencarian cepat",
+  "nshCouldnTLoadRecentEmoji": "Tidak dapat memuat emoji terbaru.",
+  "nshCouldnTLoadRecipients": "Tidak dapat memuat penerima.",
+  "nshCouldnTLoadSenders": "Tidak dapat memuat pengirim",
+  "nshCouldnTLoadThisRecipient": "Tidak dapat memuat penerima ini.",
+  "nshCouldnTLoadUnreadMessages": "Tidak dapat memuat pesan belum dibaca.",
+  "nshCouldnTLoadTryAgain": "Tidak dapat memuat. Coba lagi.",
+  "nshCouldnTOpenMixin": "Tidak dapat membuka Mixin",
+  "nshCouldnTOpenConversation": "Tidak dapat membuka percakapan",
+  "nshCouldnTOpenTheBrowser": "Tidak dapat membuka peramban.",
+  "nshCouldnTOpenThePage": "Tidak dapat membuka halaman",
+  "nshCouldnTOpenThisLink": "Tidak dapat membuka tautan ini",
+  "nshCouldnTOpenThisResultCheckItAndTryAgain": "Tidak dapat membuka hasil ini. Periksa dan coba lagi.",
+  "nshCouldnTOpenThisResultTryAgain": "Tidak dapat membuka hasil ini. Coba lagi.",
+  "nshCouldnTPrepareThePhotoTryAgain": "Tidak dapat menyiapkan foto. Coba lagi.",
+  "nshCouldnTPrepareThisFileRemoveItOrSendAsFiles": "Tidak dapat menyiapkan file ini. Hapus atau kirim sebagai file.",
+  "nshCouldnTPrepareThisMediaSendAsFilesOrChooseOtherFiles": "Tidak dapat menyiapkan media ini. Kirim sebagai berkas atau pilih berkas lain.",
+  "nshScreenPrivacyLoadFailed": "Tidak dapat membaca pengaturan privasi layar. Konten akun tetap tersembunyi.",
+  "nshCouldnTRefreshSavedChangesReloadBeforeSavingAgain": "Tidak dapat memperbarui perubahan tersimpan. Muat ulang sebelum menyimpan lagi.",
+  "nshCouldnTRefreshYourProfileYourSavedProfileIsShown": "Tidak dapat memperbarui profil Anda. Profil tersimpan ditampilkan.",
+  "nshCouldnTRespondToTheTransferRequestTryAgain": "Tidak dapat merespons permintaan transfer. Coba lagi.",
+  "nshCouldnTSaveEmojiPreferences": "Tidak dapat menyimpan preferensi emoji.",
+  "nshCouldnTSaveOrLoadChatPreferencesTryAgain": "Tidak dapat menyimpan atau memuat preferensi obrolan. Coba lagi.",
+  "nshCouldnTSaveSidebarSettings": "Tidak dapat menyimpan pengaturan bilah samping",
+  "nshCouldnTSaveTheLanguageTryAgain": "Tidak dapat menyimpan bahasa. Coba lagi.",
+  "nshCouldnTSaveYourDraftTryAgain": "Tidak dapat menyimpan draf Anda. Coba lagi.",
+  "nshCouldnTSaveTryAgain": "Tidak dapat menyimpan. Coba lagi.",
+  "nshCouldnTSendThisMessageTryAgain": "Tidak dapat mengirim pesan ini. Coba lagi.",
+  "nshCouldnTSendYourMessageIsStillHereTryAgain": "Tidak dapat mengirim. Pesan Anda tetap di sini. Coba lagi.",
+  "nshCouldnTUnlockCheckYourPasscodeAndTryAgain": "Tidak dapat membuka kunci. Periksa kode layar dan coba lagi.",
+  "nshCouldnTUpdateCirclesTryAgain": "Tidak dapat memperbarui lingkaran. Coba lagi.",
+  "nshCouldnTUpdateTryAgain": "Tidak dapat memperbarui. Coba lagi.",
+  "nshNotificationsUnavailable": "Tidak dapat menggunakan notifikasi. Periksa izin sistem dan coba lagi.",
+  "nshCreateCircle": "Buat lingkaran",
+  "nshCreatedBy": "Dibuat oleh",
+  "createdAt": "Dibuat {arg0}",
+  "@createdAt": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCreatingCircleAndAddingChat": "Membuat lingkaran dan menambahkan chat…",
+  "nshCreating": "Membuat…",
+  "nshCropPhoto": "Potong foto",
+  "nshCropPreviewDragOrUseArrowKeysToMoveThePhoto": "Pratinjau potongan. Seret atau gunakan tombol panah untuk memindahkan foto.",
+  "nshCropRatio": "Rasio potong",
+  "nshCustomColor": "Warna khusus…",
+  "nshCustomDrawingColor": "Warna gambar khusus",
+  "nshCustomTime": "Waktu khusus",
+  "dark": "Gelap",
+  "nshDataAndStorage": "Penggunaan Data dan Penyimpanan",
+  "nshDate": "Tanggal",
+  "nshDays": "Hari",
+  "delete": "Hapus",
+  "deleteChat": "Hapus obrolan",
+  "deleteCircle": "Hapus lingkaran",
+  "nshDeleteChat": "Hapus obrolan…",
+  "nshDeleteForEveryone": "Hapus untuk semua orang?",
+  "nshDeleteForEveryoneMessage": "Hapus untuk Semua Orang",
+  "nshDeleteForMe": "Hapus untuk saya?",
+  "nshDeleteGroup": "Hapus grup?",
+  "nshDeleteGroupMessage": "Hapus grup…",
+  "nshDeleteName": "Hapus “{name}”?",
+  "@nshDeleteName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "nshDelete": "Hapus…",
+  "nshDelivered": "Terkirim ke penerima",
+  "nshDescription": "Deskripsi",
+  "disabled": "Dinonaktifkan",
+  "nshDisappearingMessages": "Pesan menghilang",
+  "discard": "Buang",
+  "nshDiscardImageEdits": "Buang edit gambar?",
+  "nshDiscardRecordingMessage": "Buang rekaman?",
+  "nshDismiss": "Tutup",
+  "nshDismissAsAdmin": "Hapus sebagai admin",
+  "download": "Unduh",
+  "nshDownloadPhoto": "Unduh foto",
+  "draft": "Draf",
+  "nshDragCropCornersOrMoveTheCrop": "Seret sudut potongan atau pindahkan area potong",
+  "nshDragToMoveUseTheSliderToZoomImagesUpTo10MB": "Seret untuk memindahkan. Gunakan penggeser untuk memperbesar. Gambar hingga 10 MB.",
+  "nshDraw": "Gambar",
+  "nshDrawOnTheImage": "Gambar pada gambar",
+  "nshEarlierMessages": "Pesan sebelumnya",
+  "edit": "Edit",
+  "nshEditConversations": "Edit Percakapan",
+  "nshEditGroup": "Edit grup",
+  "nshEditGroupMessage": "Edit grup…",
+  "nshEditImage": "Edit gambar…",
+  "nshEditName": "Edit Nama",
+  "nshEditNameMessage": "Edit Nama",
+  "nshEditProfile": "Edit profil",
+  "chatHintE2e": "Terenkripsi ujung ke ujung",
+  "nshEnterAKeywordToSearch": "Masukkan kata kunci untuk mencari",
+  "nshEnterATimeBetween1SecondAnd4Weeks": "Masukkan waktu antara 1 detik dan 4 minggu.",
+  "nshEnterAWholeNumberFrom1ToMaximum": "Masukkan bilangan bulat dari 1 hingga {maximum}.",
+  "@nshEnterAWholeNumberFrom1ToMaximum": {
+    "placeholders": {
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "nshEraser": "Penghapus",
+  "nshExitGroup": "Keluar dari grup?",
+  "nshExitGroupMessage": "Keluar dari Grup",
+  "nshExpand": "Perluas",
+  "nshExpired": "Kedaluwarsa",
+  "failed": "Gagal",
+  "nshFilesSavedOnlyOnThisDeviceMayNotBeDownloadableAgain": "Berkas yang hanya tersimpan di perangkat ini mungkin tidak dapat diunduh lagi.",
+  "nshFiles": "File",
+  "nshFlip": "Balik",
+  "nshFollowSystem": "Ikuti Sistem",
+  "nshForwardMessages": "Teruskan pesan",
+  "nshForward": "Teruskan",
+  "from": "Dari",
+  "generateQrcode": "Buat kode QR",
+  "nshGray": "Abu-abu",
+  "nshGreen": "Hijau",
+  "nshGroup": "Grup",
+  "nshGroupConversationsWillAppearHere": "Percakapan grup akan muncul di sini.",
+  "nshGroupName": "Nama Grup",
+  "nshGroupParticipants": "Peserta grup",
+  "groups": "Grup",
+  "nshGroupsInCommon": "Grup bersama",
+  "help": "Bantuan",
+  "nshHelpCenter": "Pusat bantuan",
+  "nshHi": "Hai!",
+  "hideMixin": "Sembunyikan Mixin",
+  "nshHistory": "Riwayat",
+  "host": "Host",
+  "nshHours": "Jam",
+  "nshHowAreYou": "Apa kabar?",
+  "nshImagePreview": "Pratinjau gambar",
+  "nshImportSticker": "Impor stiker…",
+  "nshInscription": "Inskripsi",
+  "nshInscriptionDetailsAreNotAvailableYet": "Detail inskripsi belum tersedia.",
+  "nshInscriptionHash": "Hash inskripsi",
+  "nshInvalidCard": "Kartu tidak valid",
+  "nshInvalidInvitation": "Undangan tidak valid",
+  "nshInvalidLocation": "Lokasi tidak valid",
+  "nshInvitationIsUnavailable": "Undangan tidak tersedia.",
+  "nshInviteToGroup": "Undang ke grup",
+  "nshInviteToGroupMessage": "Undang ke grup…",
+  "nshJoinGroup": "Gabung ke grup",
+  "nshJoined": "Bergabung",
+  "nshKeepBothDevicesConnectedUntilTheTransferFinishes": "Biarkan kedua perangkat tetap terhubung hingga transfer selesai.",
+  "nshTransferNetworkInstructions": "Hubungkan kedua perangkat ke jaringan yang sama dan buka Mixin di ponsel Anda. Konfirmasi transfer di perangkat lain.",
+  "nshLanguage": "Bahasa",
+  "nshLearnMore": "Pelajari Selengkapnya",
+  "light": "Terang",
+  "nshLoadingContacts": "Memuat kontak…",
+  "nshLoadingContent": "Memuat konten…",
+  "nshLoadingConversations": "Memuat percakapan…",
+  "nshLoadingMembers": "Memuat anggota…",
+  "nshLoadingMessages": "Memuat pesan…",
+  "nshLoadingProxies": "Memuat proxy…",
+  "nshLoadingRecipient": "Memuat penerima…",
+  "nshLoadingSenders": "Memuat pengirim…",
+  "nshLoadingStickers": "Memuat stiker…",
+  "nshLoadingTransfer": "Memuat transfer…",
+  "loading": "Memuat...",
+  "nshLoading": "Memuat…",
+  "locateToChat": "Temukan dalam obrolan",
+  "nshLocateInChat": "Temukan dalam obrolan",
+  "lock": "Kunci",
+  "nshAutomaticLockDescription": "Kunci setelah Mixin tidak lagi aktif. Kembali sebelum batas waktu membatalkan penguncian.",
+  "nshLockNow": "Kunci sekarang",
+  "nshLockingMixin": "Mengunci Mixin…",
+  "nshManageSubscriptions": "Kelola langganan",
+  "nshMessage": "Pesan",
+  "nshMessagePreview": "Pratinjau pesan",
+  "messages": "Pesan",
+  "nshMessagesFromThisUserWillBeBlocked": "Pesan dari pengguna ini akan diblokir.",
+  "nshMessagesInThisChatWillBeRemovedFromThisDevice": "Pesan di obrolan ini akan dihapus dari perangkat ini.",
+  "nshMessagesInThisConversationAreEndToEndEncrypted": "Pesan dalam percakapan ini dienkripsi secara menyeluruh.",
+  "nshMinutes": "Menit",
+  "nshMixinIDOrPhoneNumber": "Mixin ID atau nomor telepon",
+  "nshMoveDown": "Pindah ke bawah",
+  "nshMoveUp": "Pindah ke atas",
+  "mute": "Bisukan",
+  "nshMuteNotifications": "Bisukan notifikasi",
+  "nshMuted": "Dibisukan",
+  "nshMute": "Bisukan",
+  "nshNewCircle": "Lingkaran baru",
+  "nshNewCircleName": "Nama lingkaran baru",
+  "nshNewCircleMessage": "Lingkaran baru…",
+  "nshNewConversation": "Percakapan baru…",
+  "nshNewGroup": "Grup baru…",
+  "nshNewMessagesDisappearAfterTheSelectedTime": "Pesan baru menghilang setelah waktu yang dipilih.",
+  "nextConversation": "Percakapan berikutnya",
+  "nshNextPage": "Halaman berikutnya",
+  "nshNextPhoto": "Foto berikutnya",
+  "nshNextUnreadMention": "Sebutan belum dibaca berikutnya",
+  "nshNoAppPermissionPromptIsRequiredOnThisSystem": "Sistem ini tidak memerlukan permintaan izin notifikasi untuk aplikasi.",
+  "nshNoAvailableContacts": "Tidak ada kontak tersedia",
+  "nshNoBotConversations": "Tidak ada percakapan bot",
+  "nshNoChatsFound": "Obrolan tidak ditemukan",
+  "nshNoCirclesYet": "Belum ada lingkaran",
+  "nshNoContactConversations": "Tidak ada percakapan kontak",
+  "nshNoContactsFound": "Kontak tidak ditemukan",
+  "nshNoConversationsFound": "Percakapan tidak ditemukan",
+  "nshNoConversationsInThisCircle": "Tidak ada percakapan di lingkaran ini",
+  "nshNoConversationsYet": "Belum ada percakapan",
+  "nshNoEmojiFound": "Emoji tidak ditemukan",
+  "nshNoFiles": "Tidak ada berkas",
+  "nshNoGroupConversations": "Tidak ada percakapan grup",
+  "nshNoGroupsInCommon": "Tidak ada grup bersama",
+  "nshNoMessagesFound": "Pesan tidak ditemukan",
+  "nshNoParticipantsFound": "Peserta tidak ditemukan",
+  "nshNoPosts": "Tidak ada postingan",
+  "nshNoRecentEmoji": "Tidak ada emoji terbaru",
+  "nshNoRecipientsFound": "Penerima tidak ditemukan",
+  "nshNoResults": "Tidak ada hasil",
+  "nshNoSendersFound": "Pengirim tidak ditemukan",
+  "nshNoSharedApps": "Tidak ada aplikasi bersama",
+  "nshNoSharedMedia": "Tidak ada media bersama",
+  "nshNoStickerAlbumsAvailable": "Tidak ada album stiker",
+  "nshNoStickersYet": "Belum ada stiker",
+  "nshNoStoredMedia": "Tidak ada media tersimpan",
+  "nshNoStrangerConversations": "Tidak ada percakapan orang asing",
+  "nshNoSubscribedStickerAlbums": "Belum ada paket stiker langganan",
+  "nshNoUnreadConversations": "Tidak ada percakapan belum dibaca",
+  "nshNotAdded": "Belum ditambahkan",
+  "nshNotificationsPackagedAppRequired": "Notifikasi tersedia saat Anda membuka aplikasi Mixin yang telah dipaketkan.",
+  "nshNotificationsAreDisabledInSystemSettings": "Notifikasi dinonaktifkan di pengaturan sistem",
+  "nshNotificationsAreEnabled": "Notifikasi diaktifkan",
+  "nshNotificationsAreNotAvailableOnThisPlatformYet": "Notifikasi belum tersedia di platform ini.",
+  "nshOK": "OK",
+  "nshOff": "Nonaktif",
+  "open": "Buka",
+  "nshOpenMixinOnYourPhone": "Buka Mixin di ponsel Anda.",
+  "nshOpenAnotherApp": "Buka aplikasi lain?",
+  "nshOpenApp": "Buka aplikasi",
+  "nshOpenChat": "Buka obrolan",
+  "nshOpenContent": "Buka konten",
+  "nshOpenHomePage": "Buka halaman utama",
+  "nshOpenInBrowser": "Buka di peramban",
+  "nshOpenLink": "Buka tautan",
+  "nshOpenLogDirectory": "Buka direktori log",
+  "nshOpenNavigation": "Buka navigasi",
+  "nshOpenNotificationSettings": "Buka pengaturan notifikasi",
+  "nshOpenProfile": "Buka profil",
+  "nshOpenThisBotOnYourPhone": "Buka bot ini di ponsel Anda.",
+  "nshOpenThisLinkInMixinOnYourPhone": "Buka tautan ini di Mixin pada ponsel Anda",
+  "nshOpenWithDefaultApp": "Buka dengan aplikasi bawaan",
+  "nshOpeningMixin": "Membuka Mixin…",
+  "nshOriginalImage": "Gambar asli",
+  "nshPNGJPEGGIFWebPOrBMPUpTo10MB": "PNG, JPEG, GIF, WebP atau BMP · hingga 10 MB",
+  "groupParticipants": "Peserta",
+  "password": "Kata sandi",
+  "nshPasswordOptional": "Kata sandi (opsional)",
+  "nshPause": "Jeda",
+  "nshPaymentDetails": "Detail pembayaran",
+  "nshPhoneNumber": "Nomor Telepon",
+  "nshPhoto": "Foto",
+  "nshPhotoZoom": "Zoom foto",
+  "nshPhotosAndVideos": "Foto dan video",
+  "nshPicturesAndVideos": "Gambar dan video",
+  "nshPicturesAndVideosMessage": "Gambar dan video…",
+  "pinTitle": "Sematkan",
+  "nshPinned": "Disematkan",
+  "nshPlay": "Putar",
+  "nshPlaybackFailed": "Pemutaran gagal",
+  "nshPlaybackSpeed": "Kecepatan pemutaran",
+  "port": "Port",
+  "nshPost": "Postingan",
+  "nshPremiumMember": "Anggota premium",
+  "nshPreparingFiles": "Menyiapkan berkas…",
+  "nshPreparingImage": "Menyiapkan gambar…",
+  "nshPreparingYourCode": "Menyiapkan kode Anda…",
+  "nshPreparing": "Menyiapkan…",
+  "nshPrevious": "Sebelumnya",
+  "previousConversation": "Percakapan sebelumnya",
+  "nshPreviousPage": "Halaman sebelumnya",
+  "nshPreviousPhoto": "Foto sebelumnya",
+  "nshPreviousResults": "Hasil sebelumnya",
+  "nshPrivacyPolicy": "Kebijakan Privasi",
+  "nshProfile": "Profil",
+  "proxy": "Proxy",
+  "nshPurple": "Ungu",
+  "nshQRCode": "Kode QR",
+  "nshQuantity": "Jumlah",
+  "nshQuickSearch": "Pencarian cepat",
+  "nshQuickSearchMessage": "Pencarian cepat…",
+  "quitMixin": "Keluar dari Mixin",
+  "reedit": "Edit ulang",
+  "nshRead": "Dibaca",
+  "nshReceivers": "Penerima",
+  "nshRecentChats": "CHAT TERBARU",
+  "nshReconnect": "Hubungkan kembali",
+  "nshReconnecting": "Menghubungkan kembali…",
+  "nshRecordAVoiceMessage": "Rekam pesan suara",
+  "nshRecordAgain": "Rekam ulang",
+  "nshRecording": "Merekam…",
+  "nshRed": "Merah",
+  "nshRedo": "Ulangi",
+  "nshRefreshPermission": "Perbarui izin",
+  "nshReload": "Muat ulang",
+  "nshReloadList": "Muat ulang daftar",
+  "nshReloadRecipient": "Muat ulang penerima",
+  "nshRemove": "Hapus",
+  "removeChatFromCircle": "Hapus obrolan dari lingkaran",
+  "nshRemoveAlbum": "Hapus album",
+  "nshRemoveContact": "Hapus kontak?",
+  "nshRemoveContactMessage": "Hapus kontak",
+  "nshRemoveFromGroup": "Hapus dari grup…",
+  "nshRemoveParticipant": "Hapus peserta?",
+  "nshRemoveProxy": "Hapus proxy?",
+  "nshRemoveSelectedFile": "Hapus berkas terpilih",
+  "nshRemoveMessage": "Hapus…",
+  "nshRenameCircle": "Edit Nama Lingkaran",
+  "reply": "Balas",
+  "nshReplyToMessage": "Balas pesan",
+  "reportAndBlock": "Laporkan dan blokir?",
+  "nshReportAndBlock": "Laporkan dan blokir…",
+  "reset": "Setel ulang",
+  "nshResetInvitationLink": "Setel ulang tautan undangan?",
+  "nshResetLink": "Setel ulang tautan…",
+  "nshRetryAddingChat": "Coba tambahkan chat lagi",
+  "nshRetryPreview": "Coba ulang pratinjau",
+  "nshReturnToMessage": "Kembali ke pesan",
+  "nshRotate": "Putar",
+  "nshSCAM": "PENIPUAN",
+  "saveAs": "Simpan sebagai",
+  "nshSaveAs": "Simpan sebagai…",
+  "nshSaveTheseChangesBeforeSelectingMoreThan200Chats": "Simpan perubahan ini sebelum memilih lebih dari 200 obrolan.",
+  "nshSaving": "Menyimpan…",
+  "nshScanTheQRCodeAndConfirmSignIn": "Pindai kode QR dan konfirmasi masuk.",
+  "nshScanToSignIn": "Pindai untuk masuk",
+  "nshScreenPasscode": "Kode layar",
+  "nshScreenPrivacy": "Privasi layar",
+  "nshScreenPrivacyIsNotAvailableOnThisPlatformYet": "Privasi layar belum tersedia di platform ini.",
+  "nshSearchMixinID": "Cari Mixin ID",
+  "nshSearchChats": "Cari Percakapan",
+  "nshSearchContacts": "Cari kontak",
+  "nshSearchContact": "Cari kontak…",
+  "nshSearchConversationsAndContacts": "Cari percakapan dan kontak",
+  "nshSearchEmoji": "Cari emoji",
+  "nshSearchEmojiMessage": "Cari emoji…",
+  "nshSearchMessages": "Cari pesan",
+  "nshSearchMessagesInThisConversation": "Cari pesan dalam percakapan ini",
+  "nshSearchParticipants": "Cari peserta",
+  "nshSearchSenders": "Cari pengirim",
+  "nshSearching": "Mencari…",
+  "nshSearch": "Cari…",
+  "nshSeconds": "Detik",
+  "nshSeconds12419200": "Detik (1–2419200)",
+  "nshSecondsUpTo4Weeks": "Detik (hingga 4 minggu)",
+  "nshSelectAConversationToStartMessaging": "Pilih percakapan untuk mulai mengirim pesan",
+  "nshSelectMessage": "Pilih pesan",
+  "nshSend1File": "Kirim 1 file",
+  "nshSendAMessageToSayHello": "Kirim pesan untuk menyapa.",
+  "nshSendAMessageToStartUsingThisBot": "Kirim pesan untuk mulai menggunakan bot ini.",
+  "nshSendFile": "Kirim berkas…",
+  "nshSendMessage": "Kirim pesan",
+  "nshSendWithoutNotificationMessage": "Kirim tanpa notifikasi",
+  "nshSendCountFiles": "Kirim berkas: {count}",
+  "@nshSendCountFiles": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSender": "Pengirim",
+  "nshSenders": "Pengirim",
+  "nshSending": "Mengirim",
+  "nshSendingMessage": "Mengirim…",
+  "nshSent": "Terkirim",
+  "nshSequence": "Nomor urut",
+  "set": "Tetapkan",
+  "nshSetASixDigitPasscode": "Tetapkan kode layar enam digit",
+  "nshSettings": "Pengaturan",
+  "nshSettingsMessage": "Pengaturan…",
+  "nshShareContact": "Bagikan kontak",
+  "nshShareContactMessage": "Bagikan kontak…",
+  "nshSharedApps": "Aplikasi bersama",
+  "nshSharedMedia": "Media Bersama",
+  "nshSharedMediaPreview": "Pratinjau media bersama",
+  "showMixin": "Tampilkan Mixin",
+  "nshShowMixinID": "Tampilkan Mixin ID",
+  "showAvatar": "Tampilkan avatar",
+  "nshShowInFolder": "Tampilkan dalam folder",
+  "nshNotificationPreviewDescription": "Tampilkan isi pesan dalam notifikasi. Nonaktifkan untuk menjaga privasi isi pesan.",
+  "nshShowTransfer": "Tampilkan transfer",
+  "nshShowingTheFirst8192Characters": "Menampilkan 8.192 karakter pertama",
+  "nshSignOut": "Keluar",
+  "nshSignOutAndRemoveThisAccountSLocalData": "Keluar dan hapus data lokal akun ini?",
+  "nshSignOutMessage": "Keluar…",
+  "nshSigningOut": "Keluar…",
+  "nshSixDigitScreenPasscode": "Kode layar enam digit",
+  "nshSomeChangesCouldNotBeSavedCheckTheRemainingSelections": "Beberapa perubahan tidak dapat disimpan. Periksa pilihan yang tersisa.",
+  "nshSomeFilesCouldnTBeSentTheRemainingFilesAreStillHere": "Beberapa berkas tidak dapat dikirim. Berkas yang tersisa tetap di sini.",
+  "nshSomeResultsCouldNotBeLoadedTryAgain": "Beberapa hasil tidak dapat dimuat. Coba lagi.",
+  "nshStandardMember": "Anggota standar",
+  "nshStartTheConversation": "Mulai percakapan",
+  "nshState": "Status",
+  "nshStickerPreviewUnavailable": "Pratinjau stiker tidak tersedia",
+  "nshStickerStore": "Toko stiker",
+  "nshStickers": "Stiker",
+  "nshStickersYouSendAppearHere": "Stiker yang Anda kirim akan muncul di sini",
+  "nshStop": "Hentikan",
+  "nshStorageUsage": "Penggunaan Penyimpanan",
+  "strangers": "Orang asing",
+  "nshSubscribedStickers": "Stiker langganan",
+  "nshSyncFromPhone": "Sinkronkan dari perangkat lain",
+  "nshSyncToPhone": "Sinkronkan ke perangkat lain",
+  "nshSystemLanguage": "Ikuti Sistem",
+  "nshTermsOfService": "Ketentuan Layanan",
+  "text": "Teks",
+  "nshTextContent": "Konten teks",
+  "nshTextIsTooLongForAQRCode": "Teks terlalu panjang untuk kode QR.",
+  "nshTheAccountIsTemporarilyUnavailable": "Akun sementara tidak tersedia.",
+  "nshTheCircleWasCreatedRetryAddingTheRemainingChats": "Lingkaran telah dibuat. Coba lagi menambahkan obrolan yang tersisa.",
+  "nshTransferVersionMismatch": "Kedua perangkat menggunakan versi transfer berbeda. Perbarui kedua aplikasi dan coba lagi.",
+  "nshTheGroupWasCreatedRetryOpeningIt": "Grup telah dibuat. Coba buka lagi.",
+  "nshTheImageInTheSendPreviewWillStayUnchanged": "Gambar dalam pratinjau pengiriman akan tetap sama.",
+  "nshThePasscodesDidnTMatchTryAgain": "Kode layar tidak cocok. Coba lagi.",
+  "nshThePreviousLinkWillStopWorking": "Tautan sebelumnya akan berhenti berfungsi.",
+  "nshTheSystemReturnedAnUnknownNotificationPermission": "Sistem mengembalikan izin notifikasi yang tidak dikenal.",
+  "nshThereAreNoUnreadConversationsInThisCategory": "Tidak ada percakapan belum dibaca di kategori ini.",
+  "nshThereAreNoUnreadConversationsInThisCircle": "Tidak ada percakapan belum dibaca di lingkaran ini.",
+  "nshDeleteForEveryoneDescription": "Pesan ini akan dihapus untuk semua orang dalam percakapan ini.",
+  "nshTheseMessagesWillBeRemovedFromThisDevice": "Pesan ini akan dihapus dari perangkat ini.",
+  "nshThisAccountWillBeReportedAndBlocked": "Akun ini akan dilaporkan dan diblokir.",
+  "nshForwardedSummaryNotice": "Pesan terusan ini hanya berisi ringkasan. Pesan dan lampiran asli tidak tersedia.",
+  "nshThisForwardedSummaryIsUnavailable": "Ringkasan terusan ini tidak tersedia.",
+  "nshThisMessageIsNoLongerAvailable": "Pesan ini tidak lagi tersedia.",
+  "nshThisMessageTypeIsNotSupported": "Jenis pesan ini tidak didukung.",
+  "nshThisPersonIsNotInYourContacts": "Orang ini tidak ada di kontak Anda.",
+  "nshThisRecordingWillBeDeleted": "Rekaman ini akan dihapus.",
+  "nshThisRemovesTheChatAndItsMessageHistoryFromThisDevice": "Ini menghapus obrolan dan riwayat pesannya dari perangkat ini.",
+  "userDeleteHint": "Pengguna ini telah menghapus akunnya.",
+  "nshThisUserWillBeRemovedFromYourContacts": "Pengguna ini akan dihapus dari kontak Anda.",
+  "nshThreshold": "Ambang",
+  "nshTimeUnit": "Satuan waktu",
+  "toggleChatInfo": "Alihkan info obrolan",
+  "nshTransactionHash": "Hash Transaksi",
+  "nshTransferID": "ID transfer",
+  "nshTransferCancelled": "Transfer dibatalkan",
+  "transferCompleted": "Transfer selesai",
+  "nshTransferFailedCheckBothDevicesAndTryAgain": "Transfer gagal. Periksa kedua perangkat dan coba lagi.",
+  "nshTransferringChats": "Mentransfer obrolan…",
+  "nshTransferring": "Mentransfer…",
+  "nshTryAgain": "COBA LAGI",
+  "nshTryAgainInSecondsS": "Coba lagi dalam {seconds} dtk",
+  "@nshTryAgainInSecondsS": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "nshTryAnotherNameOrClearYourFilters": "Coba nama lain atau hapus filter Anda.",
+  "nshTurnOff": "Matikan",
+  "nshTurnOffScreenPasscode": "Matikan kode sandi layar?",
+  "unableToOpenFile": "Tidak dapat membuka berkas: {arg0}",
+  "@unableToOpenFile": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "nshUnblockThisUser": "Buka blokir pengguna ini?",
+  "nshUnblock": "Batal Blokir",
+  "nshUndo": "Urungkan",
+  "unlockMixinMessenger": "Buka kunci Mixin Messenger",
+  "nshUnlockWithPasscode": "Buka dengan kode layar",
+  "nshUnlocking": "Membuka kunci…",
+  "unpin": "Lepas sematan",
+  "unpinAllMessages": "Lepas sematan semua pesan",
+  "nshUnread": "Belum dibaca",
+  "nshUnreadMention": "Sebutan belum dibaca",
+  "unreadMessages": "Pesan belum dibaca",
+  "nshUpdateMixinMessengerToContinue": "Perbarui Mixin Messenger untuk melanjutkan.",
+  "nshUseBiometrics": "Gunakan biometrik",
+  "username": "Nama pengguna",
+  "nshUsernameOptional": "Nama pengguna (opsional)",
+  "nshVerified": "Terverifikasi",
+  "nshViewProfile": "Lihat profil",
+  "nshVoiceMessage": "Pesan suara",
+  "nshVoiceMessagePosition": "Posisi pesan suara",
+  "nshWaitingForTheOtherDevice": "Menunggu perangkat lain terhubung.",
+  "waitingForThisMessage": "Menunggu pesan ini.",
+  "nshEncryptedSessionWaiting": "Menunggu {sender} online untuk membuat sesi terenkripsi.",
+  "@nshEncryptedSessionWaiting": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshWatchLive": "Tonton siaran langsung",
+  "nshWebpage": "Halaman web",
+  "nshWeeks": "Minggu",
+  "nshWhite": "Putih",
+  "window": "Jendela",
+  "nshWorking": "Memproses…",
+  "nshWriteAMessage": "Tulis pesan…",
+  "nshWriteAPost": "Tulis kiriman",
+  "nshWriteInMarkdown": "Tulis dalam Markdown…",
+  "nshYellow": "Kuning",
+  "nshYesterday": "Kemarin",
+  "nshYouHaveNoUnreadConversations": "Anda tidak memiliki percakapan belum dibaca.",
+  "nshYouWillLeaveThisGroupAndRemoveItsLocalConversation": "Anda akan keluar dari grup ini dan menghapus percakapan lokalnya.",
+  "nshYourAlbums": "Album Anda",
+  "nshYourConversationsWillAppearHereAsTheySync": "Percakapan Anda akan muncul di sini saat disinkronkan.",
+  "nshZIPArchive": "Arsip ZIP",
+  "nshZoomIn": "Perbesar",
+  "nshZoomOut": "Perkecil",
+  "aMessage": "sebuah pesan",
+  "nshTheSender": "pengirim",
+  "nshYourLinkedDevice": "perangkat tertaut Anda",
+  "nshCountChats": "Obrolan: {count}",
+  "@nshCountChats": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDay": "{count} hari",
+  "@nshCountDay": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountDays": "{count} hari",
+  "@nshCountDays": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHour": "{count} jam",
+  "@nshCountHour": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountHours": "{count} jam",
+  "@nshCountHours": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMembers": "Anggota: {count}",
+  "@nshCountMembers": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinute": "{count} mnt",
+  "@nshCountMinute": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountMinutes": "{count} mnt",
+  "@nshCountMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSecond": "{count} dtk",
+  "@nshCountSecond": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSeconds": "{count} dtk",
+  "@nshCountSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountSelected": "Dipilih: {count}",
+  "@nshCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeek": "{count} minggu",
+  "@nshCountWeek": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshCountWeeks": "{count} minggu",
+  "@nshCountWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nshHoursH": "{hours} jam",
+  "@nshHoursH": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "nshMinutesMin": "{minutes} mnt",
+  "@nshMinutesMin": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "nshNamePinnedMessage": "{name} menyematkan {message}",
+  "@nshNamePinnedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantBecameAnAdmin": "{participant} menjadi admin",
+  "@nshParticipantBecameAnAdmin": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantJoinedTheGroup": "{participant} bergabung ke grup",
+  "@nshParticipantJoinedTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshParticipantLeftTheGroup": "{participant} keluar dari grup",
+  "@nshParticipantLeftTheGroup": {
+    "placeholders": {
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderAddedParticipant": "{sender} menambahkan {participant}",
+  "@nshSenderAddedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderChangedDisappearingMessageSettings": "{sender} mengubah pengaturan pesan sementara",
+  "@nshSenderChangedDisappearingMessageSettings": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderCreatedThisGroup": "{sender} membuat grup ini",
+  "@nshSenderCreatedThisGroup": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderDisabledDisappearingMessages": "{sender} menonaktifkan pesan sementara",
+  "@nshSenderDisabledDisappearingMessages": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderPinnedMessage": "{sender} menyematkan {message}",
+  "@nshSenderPinnedMessage": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderRemovedParticipant": "{sender} menghapus {participant}",
+  "@nshSenderRemovedParticipant": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "participant": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSenderSetDisappearingMessagesToDuration": "{sender} mengatur pesan sementara menjadi {duration}",
+  "@nshSenderSetDisappearingMessagesToDuration": {
+    "placeholders": {
+      "sender": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "nshSelectEnterOpenEscClose": "↑↓ Pilih · Enter Buka · Esc Tutup",
+  "nshMixinIdLabel": "Mixin ID: {arg0}",
+  "@nshMixinIdLabel": {
+    "placeholders": {
+      "arg0": {
+        "type": "String"
+      }
+    }
+  },
+  "participantsCount": "Anggota: {arg0}",
+  "@participantsCount": {"placeholders": {"arg0": {"type": "String"}}}
 }

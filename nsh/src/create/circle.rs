@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use std::collections::BTreeMap;
 
 use super::*;
@@ -137,14 +138,14 @@ fn form(
     focus: bool,
 ) -> View {
     panel()
-        .child(ui::dialog_title(move || tr("New circle", "新建圈子")))
+        .child(ui::dialog_title(move || t(Key::NshNewCircle)))
         .child(when(
             move || !selecting.get(),
             move || {
                 ui::field()
                     .flex_none()
-                    .label(move || tr("Circle name", "圈子名称"))
-                    .placeholder(move || tr("Circle name", "圈子名称").to_owned())
+                    .label(move || t(Key::NshCircleName))
+                    .placeholder(move || t(Key::NshCircleName).to_owned())
                     .auto_focus(focus)
                     .max_length(64)
                     .value(move || name.get())
@@ -175,15 +176,9 @@ fn form(
         .child(when(failed, move || {
             ui::error_text(move || {
                 if created.with(Option::is_some) {
-                    tr(
-                        "The circle was created. Retry adding the remaining chats.",
-                        "圈子已创建，请重试添加剩余聊天。",
-                    )
+                    t(Key::NshTheCircleWasCreatedRetryAddingTheRemainingChats)
                 } else {
-                    tr(
-                        "Couldn’t create the circle. Try again.",
-                        "无法创建圈子，请重试。",
-                    )
+                    t(Key::NshCouldnTCreateTheCircleTryAgain)
                 }
             })
         }))
@@ -196,8 +191,7 @@ fn form(
                 .child(view().flex_1().min_w_0().child(when(selecting, move || {
                     text(move || {
                         i18n::current().format(
-                            "{count} chats",
-                            "{count} 个聊天",
+                            Key::NshCountChats,
                             &[("count", &selected.with(BTreeMap::len).to_string())],
                         )
                     })
@@ -205,9 +199,9 @@ fn form(
                     .number_of_lines(1)
                     .text_color(ui::fg_secondary)
                 })))
-                .child(ui::action(move || tr("Cancel", "取消"), cancel).disabled(busy))
+                .child(ui::action(move || t(Key::Cancel), cancel).disabled(busy))
                 .child(when(selecting, move || {
-                    ui::action(move || tr("Back", "返回"), move || selecting.set(false))
+                    ui::action(move || t(Key::NshBack), move || selecting.set(false))
                         .disabled(move || busy.get() || created.with(Option::is_some))
                 }))
                 .child(
@@ -222,11 +216,11 @@ fn form(
                         })
                         .child(text(move || {
                             if created.with(Option::is_some) {
-                                tr("Retry", "重试")
+                                t(Key::Retry)
                             } else if selecting.get() {
-                                tr("Create", "创建")
+                                t(Key::Create)
                             } else {
-                                tr("Next", "下一步")
+                                t(Key::Next)
                             }
                         })),
                 ),

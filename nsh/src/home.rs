@@ -364,7 +364,7 @@ impl Home {
                                 .min_h_0()
                                 .pt(inset)
                                 .child(when(window.loading, move || {
-                                    ui::placeholder(move || i18n.text(Key::LoadingChats))
+                                    ui::placeholder(move || i18n.t(Key::NshLoadingConversations))
                                 }))
                                 .child(when(window.failed, move || {
                                     load_error(move || window.retry(), || true)
@@ -474,7 +474,9 @@ impl Home {
                                 .min_h_0()
                                 .bg(ui::surface_chat)
                                 .child(ui::title_bar())
-                                .child(ui::placeholder(move || i18n.text(Key::PickConversation)))
+                                .child(ui::placeholder(move || {
+                                    i18n.t(Key::NshSelectAConversationToStartMessaging)
+                                }))
                                 .into_element()
                         },
                         move |conversation, ready| {
@@ -566,7 +568,7 @@ pub(crate) fn list_header(
         .child(ui::glass_button(
             ui::round_button()
                 .selected(unread)
-                .accessibility_label(move || Some(i18n.text(Key::Unread).into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshUnread).into()))
                 .on_press(move || unread.update(|value| *value = !*value))
                 .child(ui::icon(ui::Icon::Filter).text_color(move || {
                     if unread.get() {
@@ -592,12 +594,12 @@ fn search_field(
                 .element_ref(&search)
                 .placeholder(move || {
                     if unread.get() {
-                        i18n.tr("Search Unread", "搜索未读会话").to_owned()
+                        i18n.t(Key::SearchUnread).to_owned()
                     } else {
-                        format!("{} ({})", i18n.text(Key::Search), key_label("mod+k"))
+                        format!("{} ({})", i18n.t(Key::Search), key_label("mod+k"))
                     }
                 })
-                .label(move || i18n.text(Key::Search))
+                .label(move || i18n.t(Key::Search))
                 .value(move || query.get())
                 .on_change(move |value: &str| query.set(value.to_owned()))
                 .on_key_press(move |key: &str| {
@@ -613,7 +615,7 @@ fn search_field(
                 ui::round_button()
                     .size_6()
                     .disabled(composing)
-                    .accessibility_label(move || Some(i18n.tr("Clear", "清除").into()))
+                    .accessibility_label(move || Some(i18n.t(Key::Clear).into()))
                     .on_press(move || {
                         query.set(String::new());
                         search.focus();
@@ -630,17 +632,9 @@ pub(crate) fn health_banner(health: Signal<String>) -> impl IntoElement {
         move || {
             list_notice().child(
                 ui::error_text(move || match health.get().as_str() {
-                    "time_inaccurate" => i18n.tr(
-                        "Check your system clock and try again.",
-                        "系统时间不准确，请校准后重试。",
-                    ),
-                    "update_required" => {
-                        i18n.tr("Update Mixin Messenger to continue.", "当前版本需要更新。")
-                    }
-                    _ => i18n.tr(
-                        "The account is temporarily unavailable.",
-                        "账号暂时不可用。",
-                    ),
+                    "time_inaccurate" => i18n.t(Key::NshCheckYourSystemClockAndTryAgain),
+                    "update_required" => i18n.t(Key::NshUpdateMixinMessengerToContinue),
+                    _ => i18n.t(Key::NshTheAccountIsTemporarilyUnavailable),
                 })
                 .text_role(ui::TextRole::Caption),
             )
@@ -671,7 +665,7 @@ pub(crate) fn connection_banner(
                     .flex_row()
                     .items_center()
                     .child(
-                        text(move || i18n.text(Key::Connecting))
+                        text(move || i18n.t(Key::NshReconnecting))
                             .text_role(ui::TextRole::Caption)
                             .flex_1(),
                     )
@@ -679,7 +673,7 @@ pub(crate) fn connection_banner(
                         ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
                             .on_press(retry)
                             .child(
-                                text(move || i18n.text(Key::Reconnect))
+                                text(move || i18n.t(Key::NshReconnect))
                                     .text_role(ui::TextRole::Caption),
                             ),
                     ),
@@ -690,54 +684,31 @@ pub(crate) fn connection_banner(
 
 fn empty_title(i18n: I18n, category: &str, circle: bool, unread: bool) -> &'static str {
     if unread {
-        return i18n.tr("No unread conversations", "暂无未读会话");
+        return i18n.t(Key::NshNoUnreadConversations);
     }
     if circle {
-        return i18n.tr("No conversations in this circle", "此圈子暂无会话");
+        return i18n.t(Key::NshNoConversationsInThisCircle);
     }
     match category {
-        "contacts" => i18n.tr("No contact conversations", "暂无联系人会话"),
-        "groups" => i18n.tr("No group conversations", "暂无群组会话"),
-        "bots" => i18n.tr("No bot conversations", "暂无机器人会话"),
-        "strangers" => i18n.tr("No stranger conversations", "暂无陌生人会话"),
-        _ => i18n.text(Key::NoChats),
+        "contacts" => i18n.t(Key::NshNoContactConversations),
+        "groups" => i18n.t(Key::NshNoGroupConversations),
+        "bots" => i18n.t(Key::NshNoBotConversations),
+        "strangers" => i18n.t(Key::NshNoStrangerConversations),
+        _ => i18n.t(Key::NshNoConversationsYet),
     }
 }
 
 fn empty_body(i18n: I18n, category: &str, circle: bool, unread: bool) -> &'static str {
     match (unread, circle, category) {
-        (true, true, _) => i18n.tr(
-            "There are no unread conversations in this circle.",
-            "此圈子中没有未读会话。",
-        ),
-        (true, false, "chats") => {
-            i18n.tr("You have no unread conversations.", "当前没有未读会话。")
-        }
-        (true, false, _) => i18n.tr(
-            "There are no unread conversations in this category.",
-            "当前分类中没有未读会话。",
-        ),
-        (false, true, _) => i18n.tr(
-            "Conversations added to this circle will appear here.",
-            "加入此圈子的会话会显示在这里。",
-        ),
-        (false, false, "contacts") => i18n.tr(
-            "Conversations with your contacts will appear here.",
-            "与联系人的会话会显示在这里。",
-        ),
-        (false, false, "groups") => i18n.tr(
-            "Group conversations will appear here.",
-            "群组会话会显示在这里。",
-        ),
-        (false, false, "bots") => i18n.tr(
-            "Conversations with bots will appear here.",
-            "与机器人的会话会显示在这里。",
-        ),
-        (false, false, "strangers") => i18n.tr(
-            "Conversations with people outside your contacts will appear here.",
-            "与非联系人的会话会显示在这里。",
-        ),
-        (false, false, _) => i18n.text(Key::NoChatsBody),
+        (true, true, _) => i18n.t(Key::NshThereAreNoUnreadConversationsInThisCircle),
+        (true, false, "chats") => i18n.t(Key::NshYouHaveNoUnreadConversations),
+        (true, false, _) => i18n.t(Key::NshThereAreNoUnreadConversationsInThisCategory),
+        (false, true, _) => i18n.t(Key::NshConversationsAddedToThisCircleWillAppearHere),
+        (false, false, "contacts") => i18n.t(Key::NshConversationsWithYourContactsWillAppearHere),
+        (false, false, "groups") => i18n.t(Key::NshGroupConversationsWillAppearHere),
+        (false, false, "bots") => i18n.t(Key::NshConversationsWithBotsWillAppearHere),
+        (false, false, "strangers") => i18n.t(Key::NshStrangerConversationsEmptyDescription),
+        (false, false, _) => i18n.t(Key::NshYourConversationsWillAppearHereAsTheySync),
     }
 }
 
@@ -747,8 +718,10 @@ pub(crate) fn load_error(retry: impl Fn() + 'static, empty: impl Fn() -> bool + 
         .p_4()
         .gap_3()
         .style_when(empty, |s| s.flex_1())
-        .child(ui::error_text(move || i18n.text(Key::ChatsFailed)))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || {
+            i18n.t(Key::NshCouldnTLoadConversations)
+        }))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 pub(crate) fn empty_filtered(
@@ -772,7 +745,7 @@ pub(crate) fn empty_filtered(
     )
     .child(when(unread, move || {
         ui::action(
-            move || i18n.text(Key::ClearFilters),
+            move || i18n.t(Key::NshClearFilters),
             move || unread.set(false),
         )
     }))

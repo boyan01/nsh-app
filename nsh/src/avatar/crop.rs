@@ -1,7 +1,8 @@
 //! Native Canvas uses the same raster coordinates and ImageEdit contract as the composer.
 use super::Picker;
+use crate::i18n::Key;
 use crate::{
-    i18n::tr,
+    i18n::t,
     runtime,
     ui::parts,
     ui::{self, Typography as _},
@@ -157,16 +158,11 @@ fn card(
 ) -> View {
     ui::dialog_card(ui::DialogWidth::Regular)
         .max_h(relative(1.0))
-        .child(ui::dialog_title(move || tr("Crop photo", "裁剪头像")))
+        .child(ui::dialog_title(move || t(Key::NshCropPhoto)))
         .child(
-            text(move || {
-                tr(
-                    "Drag to move. Use the slider to zoom. Images up to 10 MB.",
-                    "拖动调整位置，使用滑块缩放。图片最大 10 MB。",
-                )
-            })
-            .text_role(ui::TextRole::Body)
-            .text_color(ui::fg_secondary),
+            text(move || t(Key::NshDragToMoveUseTheSliderToZoomImagesUpTo10MB))
+                .text_role(ui::TextRole::Body)
+                .text_color(ui::fg_secondary),
         )
         .child(
             view()
@@ -207,12 +203,7 @@ fn card(
                     .w_full()
                     .h_full()
                     .focusable(true)
-                    .label(move || {
-                        tr(
-                            "Crop preview. Drag or use arrow keys to move the photo.",
-                            "头像裁剪预览。拖动或使用方向键移动图片。",
-                        )
-                    })
+                    .label(move || t(Key::NshCropPreviewDragOrUseArrowKeysToMoveThePhoto))
                     .focus(ui::ring)
                     .on_focus(move || focused.set(true))
                     .on_blur(move || focused.set(false))
@@ -250,7 +241,7 @@ fn card(
                 .step(0.01)
                 .value(move || Some(SliderValue::Single(crop.zoom.get())))
                 .disabled(saving)
-                .accessibility_label(move || Some(tr("Photo zoom", "头像缩放").into()))
+                .accessibility_label(move || Some(t(Key::NshPhotoZoom).into()))
                 .on_change(move |value: &SliderValue| {
                     if let SliderValue::Single(zoom) = value {
                         crop.set_zoom(*zoom);
@@ -258,18 +249,13 @@ fn card(
                 }),
         )
         .child(when(failed, move || {
-            ui::error_text(move || {
-                tr(
-                    "Couldn’t prepare the photo. Try again.",
-                    "无法处理头像，请重试。",
-                )
-            })
+            ui::error_text(move || t(Key::NshCouldnTPrepareThePhotoTryAgain))
         }))
         .child(
             parts::dialog_actions()
                 .child(
                     ui::action(
-                        move || tr("Reset", "重置"),
+                        move || t(Key::Reset),
                         move || {
                             crop.zoom.set(1.0);
                             crop.center.set((width / 2.0, height / 2.0));
@@ -277,16 +263,16 @@ fn card(
                     )
                     .disabled(saving),
                 )
-                .child(ui::action(move || tr("Cancel", "取消"), cancel))
+                .child(ui::action(move || t(Key::Cancel), cancel))
                 .child(
                     ui::primary()
                         .disabled(saving)
                         .on_press(done)
                         .child(text(move || {
                             if saving.get() {
-                                tr("Preparing…", "正在处理…")
+                                t(Key::NshPreparing)
                             } else {
-                                tr("Save", "保存")
+                                t(Key::Save)
                             }
                         })),
                 ),

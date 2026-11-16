@@ -34,7 +34,7 @@ use mixin_desktop_api::MessageListView;
 use nsh_base::ButtonElement;
 use nsh_core::prelude::*;
 
-use crate::{i18n::I18n, ui};
+use crate::ui;
 
 #[derive(Clone, PartialEq)]
 pub(crate) enum AttachmentSource {
@@ -43,10 +43,6 @@ pub(crate) enum AttachmentSource {
         name: String,
         bytes: std::sync::Arc<Vec<u8>>,
     },
-}
-
-fn tr(i18n: I18n, en: &'static str, zh: &'static str) -> &'static str {
-    i18n.tr(en, zh)
 }
 
 fn quote_id(quote: Signal<Option<MessageListView>>) -> Option<String> {

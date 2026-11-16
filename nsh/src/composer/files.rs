@@ -2,7 +2,7 @@ use mixin_desktop_api::{AccountClient, MediaClient, MessageListView, PreparedAtt
 use nsh_core::prelude::*;
 use std::{rc::Rc, sync::Arc};
 
-use super::{AttachmentSource, clear_quote, quote_id, tr};
+use super::{AttachmentSource, clear_quote, quote_id};
 use crate::media_client;
 use crate::{
     i18n::{self, I18n, Key},
@@ -330,7 +330,7 @@ impl Preview {
                 let dialog = nsh_core::file_dialog::OpenDialog::files().multiple(true);
                 let dialog = if media {
                     dialog.filter(nsh_core::file_dialog::FileFilter::new(
-                        tr(i18n, "Pictures and videos", "图片和视频"),
+                        i18n.t(Key::NshPicturesAndVideos),
                         MEDIA_EXTENSIONS,
                     ))
                 } else {
@@ -662,7 +662,7 @@ impl Preview {
                                             Some(item) => file_content(item).into_element(),
                                             None => ui::busy_indicator(
                                                 || true,
-                                                move || tr(i18n, "Preparing…", "准备中…").into(),
+                                                move || i18n.t(Key::NshPreparing).into(),
                                             )
                                             .into_element(),
                                         })
@@ -673,9 +673,7 @@ impl Preview {
                                     item().is_some_and(|item| item.kind == "IMAGE")
                                 })
                                 .disabled(move || self.busy.get() || self.loading.get())
-                                .accessibility_label(move || {
-                                    Some(tr(i18n, "Remove", "移除").into())
-                                })
+                                .accessibility_label(move || Some(i18n.t(Key::NshRemove).into()))
                                 .on_press(move || {
                                     if let Some(index) = index() {
                                         self.remove_at(index);
@@ -693,9 +691,7 @@ impl Preview {
                         .rounded(ui::radius_thumb())
                         .bg(ui::input_fill)
                         .disabled(move || self.busy.get() || self.picking.get())
-                        .accessibility_label(move || {
-                            Some(tr(i18n, "Add files…", "添加文件…").into())
-                        })
+                        .accessibility_label(move || Some(i18n.t(Key::NshAddFiles).into()))
                         .on_press(move || self.pick_more(false))
                         .child(ui::icon(ui::Icon::Add).size(ui::icon_lg())),
                 ),
@@ -716,13 +712,7 @@ impl Preview {
         view()
             .gap_2()
             .child(when(self.input_rejected, move || {
-                ui::error_text(move || {
-                    tr(
-                        i18n,
-                        "Couldn’t add these files. Try again.",
-                        "无法添加这些文件，请重试。",
-                    )
-                })
+                ui::error_text(move || i18n.t(Key::NshCouldnTAddTheseFilesTryAgain))
             }))
             .child(when(
                 move || self.prepare_error.with(Option::is_some),
@@ -734,11 +724,7 @@ impl Preview {
             ))
             .child(when(self.send_failed, move || {
                 ui::error_text(move || {
-                    tr(
-                        i18n,
-                        "Some files couldn’t be sent. The remaining files are still here.",
-                        "部分文件发送失败，尚未发送的文件已保留。",
-                    )
+                    i18n.t(Key::NshSomeFilesCouldnTBeSentTheRemainingFilesAreStillHere)
                 })
             }))
     }
@@ -788,31 +774,18 @@ pub(crate) fn original_toggle(
             .selected(selected)
             .disabled(disabled)
             .selected_style(|s| s.bg(ui::state_selected).text_color(ui::accent))
-            .accessibility_label(move || Some(tr(i18n, "Send original images", "发送原图").into()))
+            .accessibility_label(move || Some(i18n.t(Key::NshSendOriginalImages).into()))
             .on_press(change)
             .child(ui::icon(ui::Icon::Original)),
         move || {
             if archive() {
-                tr(
-                    i18n,
-                    "ZIP keeps originals · Turn off ZIP to change quality",
-                    "ZIP 保留原文件，关闭打包后可切换画质",
-                )
-                .to_owned()
+                i18n.t(Key::NshZIPKeepsOriginalsTurnOffZIPToChangeQuality)
+                    .to_owned()
             } else if selected() {
-                tr(
-                    i18n,
-                    "Original images · Click to compress",
-                    "原图发送已开启，点击改为压缩图片",
-                )
-                .to_owned()
+                i18n.t(Key::NshOriginalImagesClickToCompress).to_owned()
             } else {
-                tr(
-                    i18n,
-                    "Compressed images · Click to send originals",
-                    "当前压缩发送，点击发送原图",
-                )
-                .to_owned()
+                i18n.t(Key::NshCompressedImagesClickToSendOriginals)
+                    .to_owned()
             }
         },
     )
@@ -830,19 +803,14 @@ pub(crate) fn zip_toggle(
             .selected(selected)
             .disabled(disabled)
             .selected_style(|s| s.bg(ui::state_selected).text_color(ui::accent))
-            .accessibility_label(move || Some(tr(i18n, "ZIP archive", "ZIP 打包").into()))
+            .accessibility_label(move || Some(i18n.t(Key::NshZIPArchive).into()))
             .on_press(change)
             .child(ui::icon(ui::Icon::Archive)),
         move || {
             if selected() {
-                tr(
-                    i18n,
-                    "ZIP enabled · Click to send separately",
-                    "ZIP 打包已开启，点击分别发送",
-                )
-                .to_owned()
+                i18n.t(Key::NshZIPEnabledClickToSendSeparately).to_owned()
             } else {
-                format!("{} · {}", tr(i18n, "Combine into ZIP", "打包 ZIP"), count())
+                format!("{} · {}", i18n.t(Key::NshCombineIntoZIP), count())
             }
         },
     )
@@ -946,15 +914,12 @@ pub(crate) fn attachment_strip(
                         .min_w_0()
                         .gap_1()
                         .child(
-                            text(move || tr(i18n, "ZIP archive", "ZIP 压缩包"))
-                                .text_role(ui::TextRole::Body),
+                            text(move || i18n.t(Key::NshZIPArchive)).text_role(ui::TextRole::Body),
                         )
                         .child(
-                            text(move || {
-                                format!("{} {}", count(), tr(i18n, "attachments", "个附件"))
-                            })
-                            .text_role(ui::TextRole::Caption)
-                            .text_color(ui::fg_secondary),
+                            text(move || format!("{} {}", count(), i18n.t(Key::NshAttachments)))
+                                .text_role(ui::TextRole::Caption)
+                                .text_color(ui::fg_secondary),
                         ),
                 )
                 .child(options),
@@ -967,10 +932,8 @@ pub(crate) fn archive_password(password: Signal<String>, busy: Signal<bool>) -> 
         ui::popover_flush()
             .trigger(
                 super::surface::menu_trigger()
-                    .optional_label(move || Some(tr(i18n, "ZIP password", "ZIP 密码").into()))
-                    .tooltip(ui::hint(move || {
-                        tr(i18n, "ZIP password", "ZIP 密码").into()
-                    }))
+                    .optional_label(move || Some(i18n.t(Key::NshZIPPassword).into()))
+                    .tooltip(ui::hint(move || i18n.t(Key::NshZIPPassword).into()))
                     .style_when(
                         move || password.with(|s| !s.is_empty()),
                         |s| s.text_color(ui::accent),
@@ -982,10 +945,8 @@ pub(crate) fn archive_password(password: Signal<String>, busy: Signal<bool>) -> 
                 view().p_3().w(ui::card_width()).child(
                     ui::field()
                         .masked(true)
-                        .label(move || tr(i18n, "ZIP password (optional)", "ZIP 密码（可选）"))
-                        .placeholder(move || {
-                            tr(i18n, "ZIP password (optional)", "ZIP 密码（可选）").to_owned()
-                        })
+                        .label(move || i18n.t(Key::NshZIPPasswordOptional))
+                        .placeholder(move || i18n.t(Key::NshZIPPasswordOptional).to_owned())
                         .readonly(busy)
                         .value(move || password.get())
                         .on_change(move |value: &str| password.set(value.to_owned())),
@@ -1109,16 +1070,12 @@ pub(crate) fn preparation_error(
     view()
         .gap_2()
         .child(ui::error_text(move || {
-            tr(
-                i18n,
-                "Couldn’t prepare this file. Remove it or send as files.",
-                "无法准备此文件。可以将其移除，或改为文件发送。",
-            )
+            i18n.t(Key::NshCouldnTPrepareThisFileRemoveItOrSendAsFiles)
         }))
         .child(
             text(move || problem.get().unwrap_or_default())
                 .text_role(ui::TextRole::Caption)
                 .text_color(ui::fg_secondary),
         )
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }

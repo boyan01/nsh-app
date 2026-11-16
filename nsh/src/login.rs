@@ -118,10 +118,10 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                     .justify_center()
                                     .child(ui::busy_indicator(
                                         || true,
-                                        move || i18n.text(Key::Preparing).into(),
+                                        move || i18n.t(Key::NshPreparingYourCode).into(),
                                     ))
                                     .child(
-                                        text(move || i18n.text(Key::Preparing))
+                                        text(move || i18n.t(Key::NshPreparingYourCode))
                                             .text_role(ui::TextRole::Body)
                                             .text_center()
                                             .text_color(ui::fg_secondary),
@@ -129,7 +129,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                     .into_element(),
                                 LoginPhase::Waiting(source) => image(source)
                                     .size_40()
-                                    .label(move || i18n.text(Key::ScanTitle))
+                                    .label(move || i18n.t(Key::NshScanToSignIn))
                                     .into_element(),
                                 LoginPhase::Failed => view()
                                     .size_40()
@@ -137,30 +137,38 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                     .items_center()
                                     .justify_center()
                                     .child(
-                                        ui::error_text(move || i18n.text(Key::LoginFailed))
-                                            .text_center(),
+                                        ui::error_text(move || {
+                                            i18n.t(Key::NshCouldnTCreateASignInCode)
+                                        })
+                                        .text_center(),
                                     )
                                     .child(ui::link(
-                                        move || i18n.text(Key::Retry),
+                                        move || i18n.t(Key::NshTryAgain),
                                         move || retry.update(|v| *v += 1),
                                     ))
                                     .into_element(),
                             })),
                     )
-                    .child(text(move || i18n.text(Key::ScanTitle)).text_role(ui::TextRole::Label))
+                    .child(
+                        text(move || i18n.t(Key::NshScanToSignIn)).text_role(ui::TextRole::Label),
+                    )
                     .child(
                         view()
                             .gap_1()
                             .max_w_96()
                             .child(
-                                text(move || format!("1. {}", i18n.text(Key::ScanInstructions1)))
-                                    .text_role(ui::TextRole::Body)
-                                    .text_color(ui::fg_secondary),
+                                text(move || {
+                                    format!("1. {}", i18n.t(Key::NshOpenMixinOnYourPhone))
+                                })
+                                .text_role(ui::TextRole::Body)
+                                .text_color(ui::fg_secondary),
                             )
                             .child(
-                                text(move || format!("2. {}", i18n.text(Key::ScanInstructions2)))
-                                    .text_role(ui::TextRole::Body)
-                                    .text_color(ui::fg_secondary),
+                                text(move || {
+                                    format!("2. {}", i18n.t(Key::NshScanTheQRCodeAndConfirmSignIn))
+                                })
+                                .text_role(ui::TextRole::Body)
+                                .text_color(ui::fg_secondary),
                             ),
                     ),
             ),

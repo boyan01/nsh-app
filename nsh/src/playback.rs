@@ -1,4 +1,5 @@
 //! Account-session playback presentation and controls shared across chat navigation.
+use crate::i18n::Key;
 use std::sync::Arc;
 
 mod queue;
@@ -261,9 +262,7 @@ pub(crate) fn mount(account: Arc<AccountClient>) -> Playback {
     state
 }
 
-fn tr(en: &'static str, zh: &'static str) -> &'static str {
-    crate::i18n::tr(en, zh)
-}
+use crate::i18n::t;
 
 pub(crate) fn bar(
     state: Playback,
@@ -324,7 +323,7 @@ pub(crate) fn bar(
                                 .trigger(
                                     ui::command()
                                         .accessibility_label(|| {
-                                            Some(tr("Playback speed", "播放速度").into())
+                                            Some(t(Key::NshPlaybackSpeed).into())
                                         })
                                         .child(
                                             text(move || {
@@ -368,17 +367,19 @@ pub(crate) fn bar(
                                             .snapshot
                                             .with(|s| s.status == AudioPlaybackStatus::Playing)
                                         {
-                                            tr("Pause", "暂停")
+                                            t(Key::NshPause)
                                         } else {
-                                            tr("Play", "播放")
+                                            t(Key::NshPlay)
                                         }
                                     })
                                     .text_role(ui::TextRole::Caption),
                                 ),
                         )
-                        .child(ui::command().on_press(move || state.stop()).child(
-                            text(move || tr("Close", "关闭")).text_role(ui::TextRole::Caption),
-                        )),
+                        .child(
+                            ui::command().on_press(move || state.stop()).child(
+                                text(move || t(Key::Close)).text_role(ui::TextRole::Caption),
+                            ),
+                        ),
                 )
                 .child(
                     ui::slider_compact()
@@ -390,9 +391,7 @@ pub(crate) fn bar(
                                 state.snapshot.with(|s| s.position_millis as f64),
                             ))
                         })
-                        .accessibility_label(|| {
-                            Some(tr("Voice message position", "语音播放进度").into())
-                        })
+                        .accessibility_label(|| Some(t(Key::NshVoiceMessagePosition).into()))
                         .disabled(move || state.snapshot.with(|s| s.duration_millis == 0))
                         .on_change(move |value: &SliderValue| {
                             if let SliderValue::Single(value) = value {
@@ -416,7 +415,7 @@ pub(crate) fn bar(
                     .text_color(ui::fg_secondary),
                 )
                 .child(when(state.failed, || {
-                    ui::error_text(move || tr("Playback failed", "播放失败"))
+                    ui::error_text(move || t(Key::NshPlaybackFailed))
                 }))
         },
     ))

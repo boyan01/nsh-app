@@ -6,18 +6,18 @@ use crate::{presentation::PreviewIcon, ui};
 pub(crate) fn preview_icon_reactive(icon: Memo<Option<PreviewIcon>>) -> impl IntoElement {
     svg(move || {
         let markup = match icon.get() {
-            Some(PreviewIcon::Transfer) => include_str!("../../assets/quote/transfer.svg"),
-            Some(PreviewIcon::Sticker) => include_str!("../../assets/ic_sticker.svg"),
-            Some(PreviewIcon::Image) => include_str!("../../assets/quote/image.svg"),
-            Some(PreviewIcon::Video) => include_str!("../../assets/quote/video.svg"),
-            Some(PreviewIcon::Live) => include_str!("../../assets/quote/live.svg"),
-            Some(PreviewIcon::File) => include_str!("../../assets/quote/file.svg"),
-            Some(PreviewIcon::Location) => include_str!("../../assets/quote/location.svg"),
-            Some(PreviewIcon::Audio) => include_str!("../../assets/quote/audio.svg"),
-            Some(PreviewIcon::App) => include_str!("../../assets/quote/app_button.svg"),
-            Some(PreviewIcon::Contact) => include_str!("../../assets/quote/contact.svg"),
-            Some(PreviewIcon::Call) => include_str!("../../assets/quote/video_call.svg"),
-            Some(PreviewIcon::Recall) => include_str!("../../assets/quote/recall.svg"),
+            Some(PreviewIcon::Transfer) => crate::assets::svg::QUOTE_TRANSFER,
+            Some(PreviewIcon::Sticker) => crate::assets::svg::IC_STICKER,
+            Some(PreviewIcon::Image) => crate::assets::svg::QUOTE_IMAGE,
+            Some(PreviewIcon::Video) => crate::assets::svg::QUOTE_VIDEO,
+            Some(PreviewIcon::Live) => crate::assets::svg::QUOTE_LIVE,
+            Some(PreviewIcon::File) => crate::assets::svg::QUOTE_FILE,
+            Some(PreviewIcon::Location) => crate::assets::svg::QUOTE_LOCATION,
+            Some(PreviewIcon::Audio) => crate::assets::svg::QUOTE_AUDIO,
+            Some(PreviewIcon::App) => crate::assets::svg::QUOTE_APP_BUTTON,
+            Some(PreviewIcon::Contact) => crate::assets::svg::QUOTE_CONTACT,
+            Some(PreviewIcon::Call) => crate::assets::svg::QUOTE_VIDEO_CALL,
+            Some(PreviewIcon::Recall) => crate::assets::svg::QUOTE_RECALL,
             None => return ImageSrc::from(""),
         };
         ImageSrc::svg_markup(markup)

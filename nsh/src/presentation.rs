@@ -87,11 +87,10 @@ fn conversation_preview_with_sender(
 }
 
 fn pinned_preview(i18n: I18n, sender: &str, content: &str) -> String {
-    let message = preview::pin_message(|en, zh| i18n.tr(en, zh), content)
-        .unwrap_or_else(|| i18n.tr("a message", "一条消息").into());
+    let message = preview::pin_message(|key| i18n.t(key), content)
+        .unwrap_or_else(|| i18n.t(Key::AMessage).into());
     i18n.format(
-        "{sender} pinned {message}",
-        "{sender}置顶了{message}",
+        Key::NshSenderPinnedMessage,
         &[("sender", sender), ("message", &message)],
     )
 }
@@ -145,29 +144,29 @@ pub(crate) fn preview(i18n: I18n, category: &str, content: &str) -> String {
         return content.to_owned();
     }
     let key = if category.ends_with("_IMAGE") {
-        Key::Photo
+        Key::NshPhoto
     } else if category.ends_with("_VIDEO") {
         Key::Video
     } else if category.ends_with("_AUDIO") {
-        Key::Audio
+        Key::NshVoiceMessage
     } else if category.ends_with("_DATA") {
         Key::File
     } else if category.ends_with("_STICKER") {
         Key::Sticker
     } else if category.ends_with("_CONTACT") {
-        Key::Contact
+        Key::NshContactCard
     } else if category.ends_with("_LOCATION") {
         Key::Location
     } else if category.ends_with("_POST") {
         Key::Post
     } else if category.ends_with("_TRANSCRIPT") {
-        Key::Transcript
+        Key::NshChatHistory
     } else if category.starts_with("SYSTEM_ACCOUNT_SNAPSHOT") {
         Key::Transfer
     } else {
-        Key::Message
+        Key::NshMessage
     };
-    i18n.text(key).to_owned()
+    i18n.t(key).to_owned()
 }
 
 pub(crate) fn message_preview(
@@ -177,13 +176,7 @@ pub(crate) fn message_preview(
     status: Option<&str>,
     current_user: bool,
 ) -> String {
-    preview::message(
-        |en, zh| i18n.tr(en, zh),
-        category,
-        content,
-        status,
-        current_user,
-    )
+    preview::message(|key| i18n.t(key), category, content, status, current_user)
 }
 
 pub(crate) fn time(i18n: I18n, millis: i64) -> String {
@@ -221,9 +214,9 @@ pub(crate) fn day(i18n: I18n, micros: i64) -> String {
     let date = date.with_timezone(&Local).date_naive();
     let today = Local::now().date_naive();
     if date == today {
-        i18n.text(Key::Today).into()
+        i18n.t(Key::Today).into()
     } else if today.signed_duration_since(date).num_days() == 1 {
-        i18n.text(Key::Yesterday).into()
+        i18n.t(Key::NshYesterday).into()
     } else {
         datetime::day(date, today, i18n.locale_tag())
     }

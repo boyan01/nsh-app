@@ -16,7 +16,7 @@ pub(super) fn screen() -> impl IntoElement {
                     .py_6()
                     .child(ui::logo().size_20().mb_3())
                     .child(
-                        text(move || i18n.tr("Mixin Messenger Desktop", "Mixin Messenger 桌面"))
+                        text(move || i18n.t(Key::MixinMessengerDesktop))
                             .text_role(ui::TextRole::Headline),
                     )
                     .child(
@@ -28,27 +28,24 @@ pub(super) fn screen() -> impl IntoElement {
             .child(
                 ui::card().children(
                     [
-                        ("Follow us on X", "关注 X", "https://x.com/MixinMessenger"),
+                        (Key::FollowUsOnX, "https://x.com/MixinMessenger"),
                         (
-                            "Follow us on Facebook",
-                            "关注 Facebook",
+                            Key::FollowUsOnFacebook,
                             "https://fb.com/MixinMessenger",
                         ),
-                        ("Help center", "帮助中心", "https://support.mixin.one"),
+                        (Key::NshHelpCenter, "https://support.mixin.one"),
                         (
-                            "Terms of service",
-                            "服务条款",
+                            Key::NshTermsOfService,
                             "https://mixin.one/pages/terms",
                         ),
                         (
-                            "Privacy policy",
-                            "隐私政策",
+                            Key::NshPrivacyPolicy,
                             "https://mixin.one/pages/privacy",
                         ),
                     ]
                     .into_iter()
-                    .map(move |(en, zh, url)| {
-                        ui::settings_row(None, move || i18n.tr(en, zh))
+                    .map(move |(key, url)| {
+                        ui::settings_row(None, move || i18n.t(key))
                             .child(ui::chevron())
                             .on_press(move || {
                                 spawn(async move {
@@ -63,7 +60,7 @@ pub(super) fn screen() -> impl IntoElement {
                     .child(when(
                         || !cfg!(target_os = "macos"),
                         move || {
-                            ui::settings_row(None, move || i18n.tr("Check for updates", "检查更新"))
+                            ui::settings_row(None, move || i18n.t(Key::CheckNewVersion))
                                 .child(ui::chevron())
                                 .on_press(move || {
                                     spawn(async move {
@@ -79,7 +76,7 @@ pub(super) fn screen() -> impl IntoElement {
                     ))
                     .child(
                         ui::settings_row(None, move || {
-                            i18n.tr("Open log directory", "打开日志目录")
+                            i18n.t(Key::NshOpenLogDirectory)
                         })
                         .child(ui::chevron())
                         .on_press(move || {
@@ -93,7 +90,7 @@ pub(super) fn screen() -> impl IntoElement {
                     ),
             )
             .child(when(failed, move || {
-                ui::error_text(move || i18n.text(Key::CommandFailed))
+                ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
             })),
     )
 }

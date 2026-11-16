@@ -1,4 +1,5 @@
 use super::Feedback;
+use crate::i18n::Key;
 use crate::{i18n, runtime, ui};
 use mixin_desktop_api::{AccountClient, AccountProfile};
 use nsh_core::prelude::*;
@@ -48,7 +49,7 @@ fn command(
     ui::command()
         .text_color(ui::accent)
         .disabled(disabled)
-        .child(text(move || i18n.tr("Change avatar…", "更换头像…")))
+        .child(text(move || i18n.t(Key::NshChangeAvatar)))
         .on_press(press)
 }
 #[cfg(debug_assertions)]

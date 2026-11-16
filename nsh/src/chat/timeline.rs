@@ -750,7 +750,7 @@ impl Timeline {
             .justify_center()
             .gap_2()
             .child(when(self.missing_target, move || {
-                text(move || i18n.tr("This message is no longer available.", "此消息已不可用。"))
+                text(move || i18n.t(Key::NshThisMessageIsNoLongerAvailable))
                     .text_role(ui::TextRole::Caption)
                     .text_color(ui::fg_secondary)
             }))
@@ -775,21 +775,20 @@ impl Timeline {
         when(
             move || presence.mounted(),
             move || {
-                let arrow = include_str!("../../assets/jump_current_arrow.svg")
-                    .replace("fill=\"white\"", "fill=\"currentColor\"");
+                let arrow = crate::assets::svg::JUMP_CURRENT_ARROW;
                 presence.surface(floating_disc()).child(
                     ui::round_button()
                         .size(ui::glass_bar_height())
                         .accessibility_label(move || {
                             Some(if self.return_target.with(Option::is_some) {
-                                i18n.tr("Return to message", "返回消息").into()
+                                i18n.t(Key::NshReturnToMessage).into()
                             } else {
-                                i18n.text(Key::Latest).into()
+                                i18n.t(Key::NshBackToLatest).into()
                             })
                         })
                         .on_press(move || self.latest())
                         .child(
-                            svg(ImageSrc::svg_markup(&arrow))
+                            svg(ImageSrc::svg_markup(arrow))
                                 .size(ui::icon_sm())
                                 .text_color(ui::fg_primary),
                         ),
@@ -804,8 +803,8 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     view()
         .flex_row()
         .gap_2()
-        .child(ui::error_text(move || i18n.text(Key::MessagesFailed)))
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::error_text(move || i18n.t(Key::NshCouldnTLoadMessages)))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 #[cfg(test)]

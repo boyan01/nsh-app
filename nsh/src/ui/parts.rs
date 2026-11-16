@@ -8,7 +8,7 @@ use nsh_base::{ButtonElement, alert_dialog};
 use nsh_core::prelude::*;
 
 use crate::{
-    i18n::{self, Key, tr},
+    i18n::{self, Key, t},
     navigation::Navigation,
     ui::{self, Typography as _},
 };
@@ -22,7 +22,7 @@ pub(crate) fn back_button(on_press: impl Fn() + 'static) -> ButtonElement {
     ui::glass(ui::round_button())
         .size(ui::glass_bar_height())
         .rounded(ui::glass_radius())
-        .accessibility_label(move || Some(i18n.text(Key::Back).into()))
+        .accessibility_label(move || Some(i18n.t(Key::NshBack).into()))
         .on_press(on_press)
         .child(ui::icon(ui::Icon::ArrowLeft))
 }
@@ -33,7 +33,7 @@ pub(crate) fn close_button(on_press: impl Fn() + 'static) -> ButtonElement {
     ui::glass(ui::round_button())
         .size(ui::glass_bar_height())
         .rounded(ui::glass_radius())
-        .accessibility_label(move || Some(i18n.tr("Close", "关闭").into()))
+        .accessibility_label(move || Some(i18n.t(Key::Close).into()))
         .on_press(on_press)
         .child(ui::icon(ui::Icon::Close))
 }
@@ -259,7 +259,7 @@ pub(crate) fn failure(
         .gap(ui::space_sm())
         .items_center()
         .child(ui::error_text(message).flex_1().min_w_0())
-        .child(ui::link(move || i18n.text(Key::Retry), retry))
+        .child(ui::link(move || i18n.t(Key::NshTryAgain), retry))
 }
 
 /// A `Regular` dialog card that holds a page or a long list.
@@ -345,7 +345,7 @@ pub(crate) async fn confirm(prompt: Prompt) -> bool {
         alert_dialog()
             .title(prompt.title)
             .description(prompt.description)
-            .cancel("cancel", tr("Cancel", "取消"))
+            .cancel("cancel", t(Key::Cancel))
             .destructive("apply", prompt.action)
             .show()
             .await,

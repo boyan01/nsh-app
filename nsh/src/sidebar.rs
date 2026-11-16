@@ -78,9 +78,7 @@ pub(crate) fn trigger(nav: Navigation) -> impl IntoElement {
             ui::glass_button(
                 ui::round_button()
                     .on_press(move || nav.open_drawer())
-                    .accessibility_label(move || {
-                        Some(i18n.tr("Open navigation", "打开导航").into())
-                    })
+                    .accessibility_label(move || Some(i18n.t(Key::NshOpenNavigation).into()))
                     .child(ui::icon(ui::Icon::Menu)),
             )
         },
@@ -232,11 +230,11 @@ impl Rail {
             .child(ui::title_bar())
             .child(self.account_item())
             .child(view().h_2())
-            .child(self.category(ui::Icon::Chat, Key::AllChats, "chats"))
+            .child(self.category(ui::Icon::Chat, Key::NshAllChats, "chats"))
             .child(ui::divider())
-            .child(self.category(ui::Icon::Contacts, Key::Contacts, "contacts"))
+            .child(self.category(ui::Icon::Contacts, Key::ContactTitle, "contacts"))
             .child(self.category(ui::Icon::Groups, Key::Groups, "groups"))
-            .child(self.category(ui::Icon::Bot, Key::Bots, "bots"))
+            .child(self.category(ui::Icon::Bot, Key::BotsTitle, "bots"))
             .child(self.category(ui::Icon::Strangers, Key::Strangers, "strangers"))
             .child(match self.services {
                 Some(services) => services
@@ -275,7 +273,7 @@ impl Rail {
                         nav.close_drawer();
                     })
                 })
-                .accessibility_label(move || Some(i18n.text(Key::Settings).into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshSettings).into()))
                 .child(ui::avatar_view(
                     move || profile.with(|p| p.user_id.clone()),
                     move || profile.with(|p| p.full_name.clone().into()),
@@ -320,11 +318,11 @@ impl Rail {
         let count = move || unseen.get().0;
         let muted = move || unseen.get().1;
         let item = ui::nav_row()
-            .accessibility_label(move || Some(i18n.text(label).into()))
+            .accessibility_label(move || Some(i18n.t(label).into()))
             .selected(move || !nav.settings.get() && nav.category.get() == value)
             .on_press(move || nav.select(value, None))
             .child(navigation_icon(ui::icon(icon), nav, count, muted))
-            .child(labels.bind_text(text(move || i18n.text(label))))
+            .child(labels.bind_text(text(move || i18n.t(label))))
             .child(when(
                 move || count() > 0 && !nav.compact(),
                 move || ui::count_pill(move || count().to_string(), || false),
@@ -334,9 +332,9 @@ impl Rail {
             .tooltip(
                 ui::hint(move || {
                     if count() > 0 {
-                        format!("{} ({})", i18n.text(label), count())
+                        format!("{} ({})", i18n.t(label), count())
                     } else {
-                        i18n.text(label).into()
+                        i18n.t(label).into()
                     }
                 })
                 .disabled(move || !nav.compact()),
@@ -356,8 +354,8 @@ impl Rail {
         ui::nav_row()
             .accessibility_label(move || {
                 Some(
-                    i18n.text(if nav.compact() {
-                        Key::Expand
+                    i18n.t(if nav.compact() {
+                        Key::NshExpand
                     } else {
                         Key::Collapse
                     })
@@ -381,7 +379,7 @@ impl Rail {
                     ui::Icon::Collapse
                 })
             }))
-            .child(labels.bind_text(text(move || i18n.text(Key::Collapse))))
+            .child(labels.bind_text(text(move || i18n.t(Key::Collapse))))
     }
 }
 

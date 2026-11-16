@@ -4,6 +4,9 @@ version = "7.0.0"
 edition = "2024"
 publish = false
 
+[build-dependencies]
+serde_json = "1"
+
 [dependencies]
 nsh-core = { git = "https://github.com/longbridge/nsh", branch = "main" }
 nsh-base = { git = "https://github.com/longbridge/nsh", branch = "main" }
@@ -76,6 +79,7 @@ windows = { version = "0.62", features = [
 ] }
 
 [dev-dependencies]
+roxmltree = "0.21"
 tokio = { version = "1", features = ["test-util"] }
 nsh-engine = { git = "https://github.com/longbridge/nsh", branch = "main", default-features = false }
 nsh-testing = { git = "https://github.com/longbridge/nsh", branch = "main", default-features = false }

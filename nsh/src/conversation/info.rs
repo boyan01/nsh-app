@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use nsh_base::SelectItem;
 use unicode_segmentation::UnicodeSegmentation as _;
 
@@ -52,7 +53,7 @@ pub(super) fn screen(state: State) -> impl IntoElement {
                     .child(
                         icon_row(
                             ui::Icon::Circle,
-                            move || tr("Circles", "圈子"),
+                            move || t(Key::Circles),
                             move || state.page.set(Page::Circles),
                         )
                         .child(ui::chevron()),
@@ -75,11 +76,7 @@ pub(super) fn screen(state: State) -> impl IntoElement {
                                         i18n::current(),
                                         detail.created_at_millis,
                                     );
-                                    i18n::current().format(
-                                        "Created {arg0}",
-                                        "创建于 {arg0}",
-                                        &[("arg0", &date)],
-                                    )
+                                    i18n::current().format(Key::CreatedAt, &[("arg0", &date)])
                                 })
                                 .unwrap_or_default()
                         })
@@ -141,7 +138,10 @@ fn identity(state: State) -> impl IntoElement {
             text(move || {
                 row_text(state, |row| {
                     if row.category == "GROUP" {
-                        i18n::current().members(row.participant_count)
+                        i18n::current().format(
+                            Key::ParticipantsCount,
+                            &[("arg0", &row.participant_count.to_string())],
+                        )
                     } else {
                         row.identity_number.clone()
                     }
@@ -165,13 +165,13 @@ fn quick_actions(state: State) -> impl IntoElement {
     parts::group()
         .child(icon_row(
             ui::Icon::Search,
-            move || tr("Search messages", "搜索聊天记录"),
+            move || t(Key::NshSearchMessages),
             move || navigation.open_search_from_info(),
         ))
         .child(
             icon_row(
                 ui::Icon::Image,
-                move || tr("Shared media", "共享媒体"),
+                move || t(Key::NshSharedMedia),
                 move || state.page.set(Page::Shared),
             )
             .child(ui::chevron()),
@@ -186,11 +186,7 @@ fn quick_actions(state: State) -> impl IntoElement {
                         ui::Icon::Bell
                     },
                     move || {
-                        if muted {
-                            tr("Unmute", "取消静音")
-                        } else {
-                            tr("Mute", "静音")
-                        }
+                        if muted { t(Key::Unmute) } else { t(Key::Mute) }
                     },
                     move || {
                         if muted {
@@ -267,9 +263,9 @@ fn description(state: State) -> impl IntoElement {
                     ui::link(
                         move || {
                             if expanded.get() {
-                                tr("Show less", "收起")
+                                t(Key::NshShowLess)
                             } else {
-                                tr("Show more", "展开")
+                                t(Key::NshShowMore)
                             }
                         },
                         move || expanded.set(!expanded.get()),
@@ -288,7 +284,7 @@ fn about_rows(state: State, links: crate::links::LinkNavigation) -> impl IntoEle
             move || {
                 icon_row(
                     ui::Icon::Groups,
-                    move || tr("Group participants", "群组成员"),
+                    move || t(Key::NshGroupParticipants),
                     move || state.page.set(Page::Members),
                 )
                 .child(ui::chevron())
@@ -300,13 +296,13 @@ fn about_rows(state: State, links: crate::links::LinkNavigation) -> impl IntoEle
                 view()
                     .child(icon_row(
                         ui::Icon::Share,
-                        move || tr("Share contact…", "分享联系人…"),
+                        move || t(Key::NshShareContactMessage),
                         move || links.open(user::contact_uri(&state.owner_id()), None),
                     ))
                     .child(
                         icon_row(
                             ui::Icon::Groups,
-                            move || tr("Groups in common", "共同群组"),
+                            move || t(Key::NshGroupsInCommon),
                             move || state.page.set(Page::Groups),
                         )
                         .child(ui::chevron()),
@@ -322,7 +318,7 @@ fn about_rows(state: State, links: crate::links::LinkNavigation) -> impl IntoEle
             move || {
                 icon_row(
                     ui::Icon::Person,
-                    move || tr("Created by", "开发者"),
+                    move || t(Key::NshCreatedBy),
                     move || {
                         if let Some(id) = state.creator.get_untracked() {
                             links.open(format!("mixin://users/{id}"), None);
@@ -337,7 +333,7 @@ fn about_rows(state: State, links: crate::links::LinkNavigation) -> impl IntoEle
 fn edit_rows(state: State, avatar: crate::avatar::Picker) -> impl IntoElement {
     parts::group()
         .child(row(
-            move || tr("Edit name…", "编辑名称…"),
+            move || t(Key::NshEditNameMessage),
             move || state.page.set(Page::Edit),
         ))
         .child(when(
@@ -346,7 +342,7 @@ fn edit_rows(state: State, avatar: crate::avatar::Picker) -> impl IntoElement {
                 view()
                     .child(
                         row(
-                            move || tr("Change group photo…", "更换群头像…"),
+                            move || t(Key::NshChangeGroupPhoto),
                             move || {
                                 if state.busy.get_untracked() || !state.can_manage() {
                                     return;
@@ -368,9 +364,9 @@ fn edit_rows(state: State, avatar: crate::avatar::Picker) -> impl IntoElement {
                                     .as_ref()
                                     .is_none_or(|detail| detail.announcement.is_empty())
                             }) {
-                                tr("Add group description…", "添加群公告…")
+                                t(Key::NshAddGroupDescription)
                             } else {
-                                tr("Edit group description…", "编辑群公告…")
+                                t(Key::NshEditGroupDescription)
                             }
                         },
                         move || state.page.set(Page::Description),
@@ -382,7 +378,7 @@ fn edit_rows(state: State, avatar: crate::avatar::Picker) -> impl IntoElement {
 fn shared_apps_row(state: State) -> impl IntoElement {
     icon_row(
         ui::Icon::Bot,
-        move || tr("Shared apps", "共享应用"),
+        move || t(Key::NshSharedApps),
         move || state.page.set(Page::Apps),
     )
     .child(dynamic(move || {
@@ -413,7 +409,7 @@ fn shared_apps_row(state: State) -> impl IntoElement {
 }
 
 fn expiry_row(state: State) -> impl IntoElement {
-    let label = move || tr("Disappearing messages", "阅后即焚");
+    let label = move || t(Key::NshDisappearingMessages);
     let value = move || {
         text(move || {
             let seconds = state
@@ -422,7 +418,7 @@ fn expiry_row(state: State) -> impl IntoElement {
             if seconds > 0 {
                 crate::presentation::system_message::expire_duration(i18n::current(), seconds)
             } else {
-                tr("Off", "关闭").to_owned()
+                t(Key::NshOff).to_owned()
             }
         })
         .text_role(ui::TextRole::Body)
@@ -460,8 +456,7 @@ fn mute_until(state: State) -> String {
         .filter(|_| millis > 0)
         .map(|date| {
             i18n::current().format(
-                "Muted until {arg0}",
-                "静音至 {arg0}",
+                Key::NshMutedUntilArg0,
                 &[(
                     "arg0",
                     &format!(
@@ -500,12 +495,12 @@ fn choose_mute(state: State) {
     state.owner.run(|| {
         spawn(async move {
             let answer = alert_dialog()
-                .title(tr("Mute notifications", "消息免打扰"))
-                .action("hour", tr("1 hour", "1 小时"))
-                .action("eight-hours", tr("8 hours", "8 小时"))
-                .action("week", tr("1 week", "1 周"))
-                .action("year", tr("1 year", "1 年"))
-                .cancel("cancel", tr("Cancel", "取消"))
+                .title(t(Key::NshMuteNotifications))
+                .action("hour", t(Key::Nsh1Hour))
+                .action("eight-hours", t(Key::Nsh8Hours))
+                .action("week", t(Key::Nsh1Week))
+                .action("year", t(Key::Nsh1Year))
+                .cancel("cancel", t(Key::Cancel))
                 .show()
                 .await;
             let duration = match answer.ok().and_then(|answer| answer.action).as_deref() {
@@ -527,18 +522,15 @@ fn danger_rows(state: State) -> impl IntoElement {
         .child(when(other, move || user::sidebar_relationship(state)))
         .child(
             row(
-                move || tr("Clear chat…", "清空聊天记录…"),
+                move || t(Key::NshClearChatMessage),
                 move || {
                     let client = state.client();
                     let id = state.id();
                     state.confirm_then(
                         Prompt::new(
-                            tr("Clear chat?", "清空聊天记录？"),
-                            tr(
-                                "Messages in this chat will be removed from this device.",
-                                "将从此设备移除这段聊天的消息。",
-                            ),
-                            tr("Clear", "清空"),
+                            t(Key::NshClearChat),
+                            t(Key::NshMessagesInThisChatWillBeRemovedFromThisDevice),
+                            t(Key::Clear),
                         ),
                         move || async move { client.conversation().clear_conversation(id).await },
                     );
@@ -553,9 +545,9 @@ fn danger_rows(state: State) -> impl IntoElement {
                 row(
                     move || {
                         if exited_group(state) {
-                            tr("Delete group…", "删除群组…")
+                            t(Key::NshDeleteGroupMessage)
                         } else {
-                            tr("Exit group…", "退出群组…")
+                            t(Key::NshExitGroupMessage)
                         }
                     },
                     move || leave_group(state),
@@ -573,12 +565,9 @@ fn leave_group(state: State) {
     if untracked(|| exited_group(state)) {
         state.confirm_then_finish(
             Prompt::new(
-                tr("Delete group?", "删除群组？"),
-                tr(
-                    "This removes the chat and its message history from this device.",
-                    "此操作将从此设备删除会话及其聊天记录。",
-                ),
-                tr("Delete", "删除"),
+                t(Key::NshDeleteGroup),
+                t(Key::NshThisRemovesTheChatAndItsMessageHistoryFromThisDevice),
+                t(Key::Delete),
             ),
             move || async move { client.conversation().delete_conversation(id).await },
             move || state.close(),
@@ -586,12 +575,9 @@ fn leave_group(state: State) {
     } else {
         state.confirm_then(
             Prompt::new(
-                tr("Exit group?", "退出群组？"),
-                tr(
-                    "You will leave this group and remove its local conversation.",
-                    "你将退出此群组并移除本地会话。",
-                ),
-                tr("Exit", "退出"),
+                t(Key::NshExitGroup),
+                t(Key::NshYouWillLeaveThisGroupAndRemoveItsLocalConversation),
+                t(Key::Exit),
             ),
             move || async move { client.conversation().exit_group(id).await },
         );
@@ -650,9 +636,9 @@ pub(super) fn edit(state: State, description: bool) -> impl IntoElement {
     };
     let label = move || {
         if description {
-            tr("Description", "群公告")
+            t(Key::NshDescription)
         } else {
-            tr("Name", "名称")
+            t(Key::Name)
         }
     };
     let field = if description {
@@ -733,16 +719,16 @@ pub(super) fn edit(state: State, description: bool) -> impl IntoElement {
                         },
                     );
                 })
-                .child(text(move || tr("Save", "保存"))),
+                .child(text(move || t(Key::Save))),
         )
 }
 
-const EXPIRY_UNITS: [(i64, i64, &str, &str); 5] = [
-    (1, 59, "Seconds", "秒"),
-    (60, 59, "Minutes", "分钟"),
-    (3600, 23, "Hours", "小时"),
-    (86400, 6, "Days", "天"),
-    (604800, 4, "Weeks", "周"),
+const EXPIRY_UNITS: [(i64, i64, Key); 5] = [
+    (1, 59, Key::NshSeconds),
+    (60, 59, Key::NshMinutes),
+    (3600, 23, Key::NshHours),
+    (86400, 6, Key::NshDays),
+    (604800, 4, Key::NshWeeks),
 ];
 
 pub(super) fn expiry(state: State) -> impl IntoElement {
@@ -755,7 +741,7 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
     let custom = signal(String::new());
     let unit = signal(0_usize);
     let custom_seconds = computed(move || {
-        let (factor, maximum, _, _) = EXPIRY_UNITS[unit.get()];
+        let (factor, maximum, _) = EXPIRY_UNITS[unit.get()];
         custom
             .get()
             .trim()
@@ -784,15 +770,15 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
         );
     };
     let unit_label = move || {
-        let (_, _, en, zh) = EXPIRY_UNITS[unit.get()];
-        tr(en, zh)
+        let (_, _, key) = EXPIRY_UNITS[unit.get()];
+        t(key)
     };
-    let quantity = parts::labeled(move || tr("Quantity", "数量"))
+    let quantity = parts::labeled(move || t(Key::NshQuantity))
         .flex_1()
         .min_w_0()
         .child(
             ui::field()
-                .label(move || tr("Quantity", "数量"))
+                .label(move || t(Key::NshQuantity))
                 .max_length(2)
                 .disabled(disabled)
                 .value(move || custom.get())
@@ -801,7 +787,7 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
                     invalid.set(false);
                 }),
         );
-    let time_unit = parts::labeled(move || tr("Time unit", "时间单位"))
+    let time_unit = parts::labeled(move || t(Key::NshTimeUnit))
         .flex_1()
         .min_w_0()
         .child(
@@ -810,14 +796,12 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
                     EXPIRY_UNITS
                         .into_iter()
                         .enumerate()
-                        .map(|(index, (_, _, en, zh))| {
-                            SelectItem::new(index.to_string(), tr(en, zh))
-                        })
+                        .map(|(index, (_, _, key))| SelectItem::new(index.to_string(), t(key)))
                         .collect::<Vec<_>>()
                 })
                 .value(move || Some(SharedString::from(unit.get().to_string())))
                 .disabled(disabled)
-                .accessibility_label(move || Some(tr("Time unit", "时间单位").into()))
+                .accessibility_label(move || Some(t(Key::NshTimeUnit).into()))
                 .trigger(ui::select_trigger(unit_label))
                 .on_change(move |next: &Option<SharedString>| {
                     if let Some(index) = next
@@ -833,24 +817,21 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
     scroll().flex_1().min_h_0().child(
         parts::grouped_page()
             .child(parts::note(move || {
-                tr(
-                    "New messages disappear after the selected time.",
-                    "新消息将在所选时间后自动消失。",
-                )
+                t(Key::NshNewMessagesDisappearAfterTheSelectedTime)
             }))
             .child(
                 parts::group().children(
                     [
-                        (0, "Off", "关闭"),
-                        (30, "30 seconds", "30 秒"),
-                        (600, "10 minutes", "10 分钟"),
-                        (7200, "2 hours", "2 小时"),
-                        (86400, "1 day", "1 天"),
-                        (604800, "1 week", "1 周"),
+                        (0, Key::NshOff),
+                        (30, Key::Nsh30Seconds),
+                        (600, Key::Nsh10Minutes),
+                        (7200, Key::Nsh2Hours),
+                        (86400, Key::Nsh1Day),
+                        (604800, Key::Nsh1Week),
                     ]
                     .into_iter()
-                    .map(move |(seconds, en, zh)| {
-                        parts::group_row(None, move || tr(en, zh))
+                    .map(move |(seconds, key)| {
+                        parts::group_row(None, move || t(key))
                             .selected(move || value() == seconds)
                             .disabled(disabled)
                             .on_press(move || apply(seconds))
@@ -867,7 +848,7 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
                     view()
                         .p(ui::space_lg())
                         .gap(ui::space_md())
-                        .child(ui::section_label(move || tr("Custom time", "自定义时间")))
+                        .child(ui::section_label(move || t(Key::NshCustomTime)))
                         .child(
                             view()
                                 .flex_row()
@@ -879,8 +860,7 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
                         .child(
                             text(move || {
                                 i18n.format(
-                                    "Enter a whole number from 1 to {maximum}.",
-                                    "请输入 1 到 {maximum} 之间的整数。",
+                                    Key::NshEnterAWholeNumberFrom1ToMaximum,
                                     &[("maximum", &EXPIRY_UNITS[unit.get()].1.to_string())],
                                 )
                             })
@@ -901,7 +881,7 @@ pub(super) fn expiry(state: State) -> impl IntoElement {
                                     Some(seconds) => apply(seconds),
                                     None => invalid.set(true),
                                 })
-                                .child(text(move || tr("Set", "设置"))),
+                                .child(text(move || t(Key::Set))),
                         ),
                 ),
             ),

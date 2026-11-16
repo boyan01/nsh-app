@@ -86,7 +86,7 @@ pub(super) fn bar(
             ui::glass_button(
                 ui::round_button()
                     .on_press(back)
-                    .accessibility_label(move || Some(i18n.text(Key::Back).into()))
+                    .accessibility_label(move || Some(i18n.t(Key::NshBack).into()))
                     .child(ui::icon(ui::Icon::ArrowLeft)),
             )
             .style_when(move || !narrow(), |style| style.hidden()),
@@ -107,7 +107,7 @@ pub(super) fn bar(
                         .pr_4()
                         .py_0()
                         .gap_2()
-                        .accessibility_label(move || Some(i18n.text(Key::ChatInfo).into()))
+                        .accessibility_label(move || Some(i18n.t(Key::NshConversationInfo).into()))
                         .on_press(move || navigation.toggle_panel(Panel::Info))
                         .child(ui::conversation_avatar(
                             move || {
@@ -155,7 +155,14 @@ pub(super) fn bar(
                                 .child(
                                     text(move || {
                                         if group {
-                                            i18n.members(row.with(|row| row.participant_count))
+                                            i18n.format(
+                                                Key::ParticipantsCount,
+                                                &[(
+                                                    "arg0",
+                                                    &row.with(|row| row.participant_count)
+                                                        .to_string(),
+                                                )],
+                                            )
                                         } else {
                                             row.with(|row| row.identity_number.clone())
                                         }
@@ -179,7 +186,7 @@ pub(super) fn bar(
         .child(when(
             move || !group && row.with(|row| row.is_bot && !row.owner_id.is_empty()),
             move || {
-                let open = move || i18n.tr("Open app", "打开应用");
+                let open = move || i18n.t(Key::NshOpenApp);
                 view()
                     .flex_none()
                     .tooltip(ui::hint(move || open().to_owned()))
@@ -208,7 +215,7 @@ pub(super) fn bar(
                 .child(panel_toggle(
                     navigation,
                     ui::Icon::Search,
-                    Key::SearchMessages,
+                    Key::NshSearchMessages,
                     Panel::Search,
                 )),
         )
@@ -216,12 +223,12 @@ pub(super) fn bar(
             view()
                 .flex_none()
                 .tooltip(
-                    ui::hint(move || i18n.tr("Chat details", "聊天详情").to_owned())
+                    ui::hint(move || i18n.t(Key::NshChatDetails).to_owned())
                         .disabled(move || navigation.panel.get() == Some(Panel::Info)),
                 )
                 .child(ui::glass_button(
                     ui::round_button()
-                        .accessibility_label(move || Some(i18n.tr("More", "更多").into()))
+                        .accessibility_label(move || Some(i18n.t(Key::More).into()))
                         .selected(move || navigation.panel.get() == Some(Panel::Info))
                         .on_press(move || navigation.toggle_panel(Panel::Info))
                         .child(ui::icon(ui::Icon::More)),
@@ -238,7 +245,7 @@ fn panel_toggle(
     let i18n = i18n::current();
     ui::glass_button(
         ui::round_button()
-            .accessibility_label(move || Some(i18n.text(label).into()))
+            .accessibility_label(move || Some(i18n.t(label).into()))
             .selected(move || navigation.panel.get() == Some(mode))
             .on_press(move || navigation.toggle_panel(mode))
             .child(ui::icon(icon)),

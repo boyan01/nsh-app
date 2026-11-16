@@ -274,8 +274,8 @@ pub(crate) fn screen(
                         .pt(chrome_inset)
                         .pb(composer_inset)
                         .child(ui::empty(
-                            move || i18n.text(Key::NoMessages),
-                            move || i18n.text(Key::NoMessagesBody),
+                            move || i18n.t(Key::NshStartTheConversation),
+                            move || i18n.t(Key::NshSendAMessageToSayHello),
                         ))
                 }))
                 .child(when(
@@ -414,7 +414,7 @@ pub(crate) fn screen(
                             .text_color(ui::accent),
                     )
                     .child(
-                        text(move || i18n.tr("Drop files to send", "拖拽文件到此处"))
+                        text(move || i18n.t(Key::NshDropFilesToSend))
                             .text_role(ui::TextRole::Title)
                             .text_color(ui::accent),
                     )

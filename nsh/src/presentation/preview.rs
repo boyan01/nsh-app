@@ -1,4 +1,5 @@
 //! Pure subtitle rules shared by conversation and search presentation.
+use crate::i18n::Key;
 use nsh_base::text_view::Parser;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -137,21 +138,18 @@ pub(crate) fn preview_icon(
 }
 
 pub(super) fn message(
-    tr: impl Fn(&'static str, &'static str) -> &'static str + Copy,
+    t: impl Fn(Key) -> &'static str + Copy,
     category: &str,
     content: &str,
     status: Option<&str>,
     current_user: bool,
 ) -> String {
-    let unsupported = tr(
-        "This type of message is not supported, please upgrade Mixin to the latest version.",
-        "不支持此类消息，请升级 Mixin 到最新版本。",
-    );
+    let unsupported = t(Key::MessageNotSupport);
     if !legal_category(category) {
         return unsupported.into();
     }
     if status == Some("FAILED") {
-        return tr("Waiting for this message.", "正在等待这条消息。").into();
+        return t(Key::WaitingForThisMessage).into();
     }
     if status == Some("UNKNOWN") {
         return unsupported.into();
@@ -235,34 +233,28 @@ pub(super) fn message(
                 }
                 value["title"].as_str().map(str::to_owned)
             });
-        return format!(
-            "[{}]",
-            title.as_deref().unwrap_or_else(|| tr("Card", "卡片"))
-        );
+        return format!("[{}]", title.as_deref().unwrap_or_else(|| t(Key::Card)));
     }
     let label = match category {
-        "SYSTEM_ACCOUNT_SNAPSHOT" | "SYSTEM_SAFE_SNAPSHOT" => tr("Transfer", "转账"),
-        "SYSTEM_SAFE_INSCRIPTION" => tr("Collectible", "藏品"),
-        "MESSAGE_RECALL" if current_user => tr("You deleted this message", "你撤回了一条消息"),
-        "MESSAGE_RECALL" => tr("This message was deleted", "此消息已撤回"),
-        _ if category.ends_with("_STICKER") => tr("Sticker", "贴纸"),
-        _ if category.ends_with("_IMAGE") => tr("Image", "图像"),
-        _ if category.ends_with("_VIDEO") => tr("Video", "视频"),
-        _ if category.ends_with("_LIVE") => tr("Live", "直播"),
-        _ if category.ends_with("_DATA") => tr("File", "文件"),
-        _ if category.ends_with("_LOCATION") => tr("Location", "位置"),
-        _ if category.ends_with("_AUDIO") => tr("Audio", "语音"),
-        _ if category.ends_with("_CONTACT") => tr("Contact", "联系人"),
-        _ if category.ends_with("_TRANSCRIPT") => tr("Transcript", "聊天记录"),
+        "SYSTEM_ACCOUNT_SNAPSHOT" | "SYSTEM_SAFE_SNAPSHOT" => t(Key::Transfer),
+        "SYSTEM_SAFE_INSCRIPTION" => t(Key::Collectible),
+        "MESSAGE_RECALL" if current_user => t(Key::YouDeletedThisMessage),
+        "MESSAGE_RECALL" => t(Key::ThisMessageWasDeleted),
+        _ if category.ends_with("_STICKER") => t(Key::Sticker),
+        _ if category.ends_with("_IMAGE") => t(Key::Image),
+        _ if category.ends_with("_VIDEO") => t(Key::Video),
+        _ if category.ends_with("_LIVE") => t(Key::Live),
+        _ if category.ends_with("_DATA") => t(Key::File),
+        _ if category.ends_with("_LOCATION") => t(Key::Location),
+        _ if category.ends_with("_AUDIO") => t(Key::Audio),
+        _ if category.ends_with("_CONTACT") => t(Key::Contact),
+        _ if category.ends_with("_TRANSCRIPT") => t(Key::Transcript),
         _ => return unsupported.into(),
     };
     format!("[{label}]")
 }
 
-pub(super) fn pin_message(
-    tr: impl Fn(&'static str, &'static str) -> &'static str + Copy,
-    content: &str,
-) -> Option<String> {
+pub(super) fn pin_message(t: impl Fn(Key) -> &'static str + Copy, content: &str) -> Option<String> {
     let pin = serde_json::from_str::<serde_json::Value>(content).ok()?;
     pin["message_id"].as_str()?;
     let category = pin["category"].as_str()?;
@@ -274,7 +266,7 @@ pub(super) fn pin_message(
         content.into()
     } else {
         // Flutter's pin helper requests a group preview without a sender name.
-        let body = message(tr, category, content, None, false);
+        let body = message(t, category, content, None, false);
         if body.is_empty() {
             body
         } else {

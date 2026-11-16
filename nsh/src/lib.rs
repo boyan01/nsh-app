@@ -24,6 +24,7 @@ macro_rules! fixture_image {
 }
 
 mod appearance;
+mod assets;
 mod attachment_progress;
 mod avatar;
 #[cfg(target_os = "macos")]
@@ -215,10 +216,10 @@ fn app_surface() -> impl IntoElement {
                         .gap_2()
                         .child(ui::busy_indicator(
                             || true,
-                            move || i18n.text(i18n::Key::Opening).into(),
+                            move || i18n.t(i18n::Key::NshOpeningMixin).into(),
                         ))
                         .child(
-                            text(move || i18n.text(i18n::Key::Opening))
+                            text(move || i18n.t(i18n::Key::NshOpeningMixin))
                                 .text_role(ui::TextRole::Body)
                                 .text_color(ui::fg_secondary),
                         ),
@@ -358,14 +359,16 @@ pub(crate) fn launch_error(retry: impl Fn() + 'static) -> View {
     view()
         .gap_3()
         .items_center()
-        .child(text(move || i18n.text(i18n::Key::OpenFailed)).text_role(ui::TextRole::Headline))
         .child(
-            text(move || i18n.text(i18n::Key::OpenFailedBody))
+            text(move || i18n.t(i18n::Key::NshCouldnTOpenMixin)).text_role(ui::TextRole::Headline),
+        )
+        .child(
+            text(move || i18n.t(i18n::Key::NshCheckYourConnectionAndTryAgain))
                 .text_role(ui::TextRole::Body)
                 .text_center()
                 .text_color(ui::fg_secondary),
         )
-        .child(ui::link(move || i18n.text(i18n::Key::Retry), retry))
+        .child(ui::link(move || i18n.t(i18n::Key::NshTryAgain), retry))
 }
 
 #[cfg(debug_assertions)]

@@ -1,4 +1,5 @@
 //! Shared native Markdown presentation for posts and downloaded documents.
+use crate::i18n::Key;
 use nsh_base::{
     TextViewCodeAction, TextViewElement, TextViewLinkPressEvent, TextViewStyles,
     text_view::{PartStyle, text_view},
@@ -69,7 +70,7 @@ pub(crate) fn markdown_reader(
                             .code_block_actions(move || {
                                 vec![
                                     TextViewCodeAction::new("copy")
-                                        .with_label(i18n.tr("Copy code", "复制代码")),
+                                        .with_label(i18n.t(Key::NshCopyCode)),
                                 ]
                             })
                             .on_link_press(on_link),

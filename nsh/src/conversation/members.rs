@@ -1,3 +1,4 @@
+use crate::i18n::Key;
 use std::collections::HashSet;
 
 use mixin_desktop_api::{ConversationParticipantItem, UserProfileItem};
@@ -39,7 +40,7 @@ pub(super) fn screen(state: State) -> impl IntoElement {
         .min_h_0()
         .child(
             parts::page_header(
-                move || tr("Group participants", "群组成员"),
+                move || t(Key::NshGroupParticipants),
                 Some(parts::back_button(move || state.page.set(Page::Info))),
                 None,
             )
@@ -63,19 +64,19 @@ pub(super) fn screen(state: State) -> impl IntoElement {
                                         .rounded(ui::glass_radius())
                                         .disabled(state.busy)
                                         .accessibility_label(move || {
-                                            Some(tr("Participant actions", "群成员操作").into())
+                                            Some(t(Key::NshParticipantActions).into())
                                         })
                                         .child(ui::icon(ui::Icon::Add)),
                                 )
                                 .child(
                                     ui::menu_row_icon(Some(ui::MenuIcon::SearchUser), move || {
-                                        tr("Add participants…", "添加成员…")
+                                        t(Key::NshAddParticipantsMessage)
                                     })
                                     .on_select(move || adding.set(true)),
                                 )
                                 .child(
                                     ui::menu_row_icon(Some(ui::MenuIcon::Link), move || {
-                                        tr("Group invite link…", "群邀请链接…")
+                                        t(Key::NshGroupInviteLinkMessage)
                                     })
                                     .on_select(move || {
                                         invite_failed.set(false);
@@ -91,8 +92,8 @@ pub(super) fn screen(state: State) -> impl IntoElement {
                 // The shared pill's zero flex basis would collapse its height in this column.
                 ui::search_pill().flex_auto().flex_none().child(
                     ui::search_input()
-                        .label(move || tr("Search participants", "搜索群成员"))
-                        .placeholder(move || tr("Search", "搜索").to_owned())
+                        .label(move || t(Key::NshSearchParticipants))
+                        .placeholder(move || t(Key::Search).to_owned())
                         .value(move || query.get())
                         .on_change(move |text: &str| query.set(text.into())),
                 ),
@@ -131,7 +132,7 @@ pub(super) fn screen(state: State) -> impl IntoElement {
         )
         .child(when(
             move || filtered.with(Vec::is_empty) && !state.loading.get(),
-            || ui::placeholder(move || tr("No participants found", "未找到群成员")),
+            || ui::placeholder(move || t(Key::NshNoParticipantsFound)),
         ))
         .child(when(
             move || invite_presence.mounted(),
@@ -165,11 +166,11 @@ fn member_row(
     ui::menu()
         .trigger(member_summary(member))
         .child(
-            ui::menu_row_icon(None, move || tr("Profile", "个人资料"))
+            ui::menu_row_icon(None, move || t(Key::NshProfile))
                 .on_select(move || profile.set(member())),
         )
         .child(
-            ui::menu_row_icon(Some(ui::MenuIcon::Chat), move || tr("Message", "发消息")).on_select(
+            ui::menu_row_icon(Some(ui::MenuIcon::Chat), move || t(Key::NshMessage)).on_select(
                 move || {
                     if let Some(member) = member() {
                         navigation.open_user(state.client(), member.user_id, state.failed);
@@ -193,9 +194,9 @@ fn member_row(
                             }),
                             move || {
                                 if admin {
-                                    tr("Dismiss as admin", "取消管理员")
+                                    t(Key::NshDismissAsAdmin)
                                 } else {
-                                    tr("Make group admin", "设为管理员")
+                                    t(Key::MakeGroupAdmin)
                                 }
                             },
                         )
@@ -218,7 +219,7 @@ fn member_row(
             },
             move || {
                 ui::menu_row_icon(Some(ui::MenuIcon::Delete), move || {
-                    tr("Remove from group…", "移出群组…")
+                    t(Key::NshRemoveFromGroup)
                 })
                 .text_color(ui::danger)
                 .disabled(state.busy)
@@ -292,8 +293,8 @@ fn member_summary(
             text(move || {
                 member()
                     .map(|member| match member.role.as_deref() {
-                        Some("OWNER") => tr("Owner", "群主"),
-                        Some("ADMIN") => tr("Admin", "管理员"),
+                        Some("OWNER") => t(Key::Owner),
+                        Some("ADMIN") => t(Key::Admin),
                         _ => "",
                     })
                     .unwrap_or_default()
@@ -323,9 +324,9 @@ fn remove_member(state: State, member: ConversationParticipantItem) {
     let id = state.id();
     state.confirm_then(
         Prompt::new(
-            tr("Remove participant?", "移除群成员？"),
+            t(Key::NshRemoveParticipant),
             member.full_name,
-            tr("Remove", "移除"),
+            t(Key::NshRemove),
         ),
         move || async move {
             client
@@ -446,14 +447,12 @@ fn add_view(
 ) -> View {
     parts::tall_dialog_card()
         .gap(ui::space_md())
-        .child(ui::dialog_title(move || {
-            tr("Add participants", "添加群成员")
-        }))
+        .child(ui::dialog_title(move || t(Key::NshAddParticipants)))
         .child(
             ui::search_pill().flex_none().child(
                 ui::search_input()
-                    .label(move || tr("Search contacts", "搜索联系人"))
-                    .placeholder(move || tr("Search contacts", "搜索联系人").to_owned())
+                    .label(move || t(Key::NshSearchContacts))
+                    .placeholder(move || t(Key::NshSearchContacts).to_owned())
                     .value(move || query.get())
                     .on_change(move |text: &str| {
                         if query.with_untracked(|query| query == text) {
@@ -470,11 +469,11 @@ fn add_view(
         )
         .child(when(
             move || loading.get() && users.with(Vec::is_empty),
-            || parts::status(move || tr("Loading…", "加载中…")),
+            || parts::status(move || t(Key::NshLoading)),
         ))
         .child(when(failed, move || {
             parts::failure(
-                move || tr("Couldn’t load. Try again.", "加载失败，请重试。"),
+                move || t(Key::NshCouldnTLoadTryAgain),
                 move || revision.update(|value| *value += 1),
             )
         }))
@@ -534,11 +533,11 @@ fn add_view(
         )
         .child(when(
             move || !loading.get() && !failed.get() && users.with(Vec::is_empty),
-            || ui::placeholder(move || tr("No available contacts", "没有可添加的联系人")),
+            || ui::placeholder(move || t(Key::NshNoAvailableContacts)),
         ))
         .child(
             parts::dialog_actions()
-                .child(ui::action(move || tr("Cancel", "取消"), close).disabled(state.busy))
+                .child(ui::action(move || t(Key::Cancel), close).disabled(state.busy))
                 .child(
                     ui::primary()
                         .disabled(move || {
@@ -565,7 +564,7 @@ fn add_view(
                             );
                         })
                         .child(text(move || {
-                            format!("{} ({})", tr("Add", "添加"), selected.with(HashSet::len))
+                            format!("{} ({})", t(Key::Add), selected.with(HashSet::len))
                         })),
                 ),
         )

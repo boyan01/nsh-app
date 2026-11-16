@@ -95,11 +95,7 @@ fn selection(
                 .child(
                     text(move || {
                         let count = actions.selected.with(Vec::len);
-                        i18n.format(
-                            "{count} selected",
-                            "已选择 {count} 条消息",
-                            &[("count", &count.to_string())],
-                        )
+                        i18n.format(Key::NshCountSelected, &[("count", &count.to_string())])
                     })
                     .text_role(ui::TextRole::Body)
                     .flex_none()
@@ -107,7 +103,7 @@ fn selection(
                 )
                 .child(
                     ui::action(
-                        move || i18n.tr("Forward…", "转发…"),
+                        move || i18n.t(Key::NshForward),
                         move || {
                             let ids = actions.selected.with(|ids| ids.to_vec());
                             actions.combine.set(false);
@@ -128,14 +124,14 @@ fn selection(
                 )
                 .child(
                     ui::action(
-                        move || i18n.tr("Copy", "复制"),
+                        move || i18n.t(Key::Copy),
                         move || copy::selected(actions, conversation_id.with(|id| id.clone())),
                     )
                     .disabled(actions.busy),
                 )
                 .child(
                     ui::action(
-                        move || i18n.tr("Combine and forward…", "合并转发…"),
+                        move || i18n.t(Key::NshCombineAndForward),
                         move || {
                             actions.combine.set(true);
                             actions.forwarding.set(actions.selected.get_untracked());
@@ -155,7 +151,7 @@ fn selection(
                 )
                 .child(
                     ui::action(
-                        move || i18n.tr("Delete for everyone…", "为所有人删除…"),
+                        move || i18n.t(Key::NshDeleteForEveryoneMessage),
                         move || {
                             remove(
                                 actions,
@@ -179,7 +175,7 @@ fn selection(
                 )
                 .child(
                     ui::action(
-                        move || i18n.tr("Delete…", "删除…"),
+                        move || i18n.t(Key::NshDelete),
                         move || {
                             let ids = actions.selected.with(|ids| ids.to_vec());
                             remove(
@@ -195,7 +191,7 @@ fn selection(
                 )
                 .child(
                     ui::action(
-                        move || i18n.text(Key::Cancel),
+                        move || i18n.t(Key::Cancel),
                         move || actions.selected.set(Vec::new()),
                     )
                     .disabled(actions.busy),

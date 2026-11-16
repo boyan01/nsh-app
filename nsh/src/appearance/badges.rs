@@ -11,7 +11,7 @@ use nsh_core::{
 };
 
 use crate::{
-    i18n::{self, Key, tr},
+    i18n::{self, Key, t},
     ui,
 };
 
@@ -59,9 +59,9 @@ impl IdentityBadgeKind {
 
     fn source(self) -> ImageSrc {
         let markup = match self {
-            Self::Group => include_str!("../../assets/badges/group_badge.svg"),
-            Self::Verified => include_str!("../../assets/badges/verified.svg"),
-            Self::Bot => include_str!("../../assets/badges/bot_fill.svg"),
+            Self::Group => crate::assets::svg::BADGES_GROUP_BADGE,
+            Self::Verified => crate::assets::svg::BADGES_VERIFIED,
+            Self::Bot => crate::assets::svg::BADGES_BOT_FILL,
             Self::Basic => {
                 static SOURCE: LazyLock<SharedString> = LazyLock::new(|| {
                     format!(
@@ -98,12 +98,12 @@ impl IdentityBadgeKind {
 
     fn label(self, i18n: i18n::I18n) -> &'static str {
         match self {
-            Self::Group => i18n.tr("Group", "群组"),
-            Self::Basic => i18n.tr("Basic member", "基础会员"),
-            Self::Standard => i18n.tr("Standard member", "标准会员"),
-            Self::Premium => i18n.tr("Premium member", "高级会员"),
-            Self::Verified => i18n.tr("Verified", "已认证"),
-            Self::Bot => i18n.tr("Bot", "机器人"),
+            Self::Group => i18n.t(Key::NshGroup),
+            Self::Basic => i18n.t(Key::NshBasicMember),
+            Self::Standard => i18n.t(Key::NshStandardMember),
+            Self::Premium => i18n.t(Key::NshPremiumMember),
+            Self::Verified => i18n.t(Key::NshVerified),
+            Self::Bot => i18n.t(Key::NshBot),
         }
     }
 
@@ -192,17 +192,17 @@ pub(crate) fn status_icon_reactive(pinned: impl Fn() -> bool + Copy + 'static) -
     let i18n = i18n::current();
     svg(move || {
         ImageSrc::svg_markup(if pinned() {
-            include_str!("../../assets/badges/pin.svg")
+            crate::assets::svg::BADGES_PIN
         } else {
-            include_str!("../../assets/badges/mute.svg")
+            crate::assets::svg::BADGES_MUTE
         })
     })
     .size_3p5()
     .label(move || {
         if pinned() {
-            i18n.tr("Pinned", "已置顶")
+            i18n.t(Key::NshPinned)
         } else {
-            i18n.tr("Muted", "已静音")
+            i18n.t(Key::NshMuted)
         }
     })
     .text_color(ui::fg_secondary)
@@ -247,19 +247,19 @@ impl DeliveryGlyph {
 
     fn source(self) -> ImageSrc {
         ImageSrc::svg_markup(match self {
-            Self::Read => include_str!("../../assets/badges/read.svg"),
-            Self::Delivered => include_str!("../../assets/badges/delivered.svg"),
-            Self::Sent => include_str!("../../assets/badges/sent.svg"),
-            Self::Failed => include_str!("../../assets/message/warning.svg"),
+            Self::Read => crate::assets::svg::BADGES_READ,
+            Self::Delivered => crate::assets::svg::BADGES_DELIVERED,
+            Self::Sent => crate::assets::svg::BADGES_SENT,
+            Self::Failed => crate::assets::svg::MESSAGE_WARNING,
         })
     }
 
     fn label(self, i18n: i18n::I18n) -> &'static str {
         match self {
-            Self::Read => i18n.text(Key::Read),
-            Self::Delivered => i18n.tr("Delivered", "已送达"),
-            Self::Sent => i18n.text(Key::Sent),
-            Self::Failed => i18n.text(Key::Failed),
+            Self::Read => i18n.t(Key::NshRead),
+            Self::Delivered => i18n.t(Key::NshDelivered),
+            Self::Sent => i18n.t(Key::NshSent),
+            Self::Failed => i18n.t(Key::Failed),
         }
     }
 
@@ -360,20 +360,14 @@ fn sending_clock(on_media: bool) -> View {
         .flex_shrink_0()
         .relative()
         .child(
-            svg(ImageSrc::svg_markup(include_str!(
-                "../../assets/message/sending_frame.svg"
-            )))
+            svg(ImageSrc::svg_markup(
+                crate::assets::svg::MESSAGE_SENDING_FRAME,
+            ))
             .absolute()
             .inset_0()
-            .label(tr("Sending", "发送中"))
+            .label(t(Key::NshSending))
             .text_color(move || quiet_foreground(on_media)),
         )
-        .child(hand(
-            include_str!("../../assets/message/sending_hour.svg"),
-            &hour,
-        ))
-        .child(hand(
-            include_str!("../../assets/message/sending_minute.svg"),
-            &minute,
-        ))
+        .child(hand(crate::assets::svg::MESSAGE_SENDING_HOUR, &hour))
+        .child(hand(crate::assets::svg::MESSAGE_SENDING_MINUTE, &minute))
 }

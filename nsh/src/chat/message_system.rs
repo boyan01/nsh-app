@@ -1,4 +1,5 @@
 use super::message_actions::Actions;
+use crate::i18n::Key;
 use crate::{
     i18n::I18n,
     presentation, runtime,
@@ -58,28 +59,23 @@ pub(super) fn unavailable(row: &MessageListView, actions: Actions) -> Option<Any
     }
     let unsupported = row.status == "UNKNOWN" || !supported(&row.category);
     let description = if unsupported {
-        i18n.tr("This message type is not supported.", "暂不支持此类消息。")
-            .to_owned()
+        i18n.t(Key::NshThisMessageTypeIsNotSupported).to_owned()
     } else {
         let sender = if row.sender_relationship == "ME" {
-            i18n.tr("your linked device", "你的关联设备")
+            i18n.t(Key::NshYourLinkedDevice)
         } else if row.sender_name.is_empty() {
-            i18n.tr("the sender", "发送者")
+            i18n.t(Key::NshTheSender)
         } else {
             &row.sender_name
         };
-        i18n.format(
-            "Waiting for {sender} to get online and establish an encrypted session.",
-            "等待{sender}上线后建立加密会话。",
-            &[("sender", sender)],
-        )
+        i18n.format(Key::NshEncryptedSessionWaiting, &[("sender", sender)])
     };
     Some(
         view()
             .gap_1()
             .child(text(description))
             .child(ui::link(
-                move || i18n.tr("Learn more", "了解更多"),
+                move || i18n.t(Key::NshLearnMore),
                 move || help(actions, false),
             ))
             .into_element(),
@@ -135,11 +131,10 @@ pub(super) fn notice(
                     )
                 })
                 .filter(|preview| !preview.is_empty())
-                .unwrap_or_else(|| i18n.tr("a message", "一条消息").into());
+                .unwrap_or_else(|| i18n.t(Key::AMessage).into());
             let sender = actor(i18n, &row.sender_id, &row.sender_name, actions);
             let description = i18n.format(
-                "{sender} pinned {message}",
-                "{sender}置顶了{message}",
+                Key::NshSenderPinnedMessage,
                 &[
                     ("sender", &sender),
                     ("message", preview.lines().next().unwrap_or_default()),
@@ -205,15 +200,10 @@ pub(super) fn encryption_notice(actions: Actions) -> impl IntoElement {
                     .rounded(ui::radius_chip())
                     .on_press(move || help(actions, true))
                     .child(
-                        text(move || {
-                            i18n.tr(
-                                "Messages in this conversation are end-to-end encrypted. Tap for more info.",
-                                "此对话中的消息使用端对端加密。点击了解详情。",
-                            )
-                        })
-                        .text_center()
-                        .text_size(move || appearance.secondary_size())
-                        .text_color(ui::notice_foreground),
+                        text(move || i18n.t(Key::MessageE2ee))
+                            .text_center()
+                            .text_size(move || appearance.secondary_size())
+                            .text_color(ui::notice_foreground),
                     ),
             ),
     )
@@ -262,15 +252,9 @@ fn stranger(row: MessageListView, actions: Actions) -> impl IntoElement {
         .child(
             text(move || {
                 if bot {
-                    i18n.tr(
-                        "Send a message to start using this bot.",
-                        "发送消息以开始使用此机器人。",
-                    )
+                    i18n.t(Key::NshSendAMessageToStartUsingThisBot)
                 } else {
-                    i18n.tr(
-                        "This person is not in your contacts.",
-                        "对方不在你的联系人中。",
-                    )
+                    i18n.t(Key::NshThisPersonIsNotInYourContacts)
                 }
             })
             .text_size(move || appearance.primary_size()),
@@ -284,9 +268,9 @@ fn stranger(row: MessageListView, actions: Actions) -> impl IntoElement {
                 .child(stranger_button(
                     move || {
                         if bot {
-                            i18n.tr("Open home page", "打开主页")
+                            i18n.t(Key::NshOpenHomePage)
                         } else {
-                            i18n.tr("Block", "屏蔽")
+                            i18n.t(Key::Block)
                         }
                     },
                     move || {
@@ -322,9 +306,9 @@ fn stranger(row: MessageListView, actions: Actions) -> impl IntoElement {
                 .child(stranger_button(
                     move || {
                         if bot {
-                            i18n.tr("Say Hi", "打招呼")
+                            i18n.t(Key::SayHi)
                         } else {
-                            i18n.tr("Add contact", "添加联系人")
+                            i18n.t(Key::NshAddContact)
                         }
                     },
                     move || {
@@ -389,7 +373,7 @@ pub(super) fn inscription(row: &MessageListView, actions: Actions) -> impl IntoE
             row.inscription_name
                 .clone()
                 .filter(|name| !name.is_empty())
-                .unwrap_or_else(|| i18n.tr("Inscription", "铭文").into()),
+                .unwrap_or_else(|| i18n.t(Key::NshInscription).into()),
         )
         .number_of_lines(2)
         .text_role(ui::TextRole::Body),
@@ -423,7 +407,7 @@ pub(super) fn inscription(row: &MessageListView, actions: Actions) -> impl IntoE
                 .size(ui::inscription_height())
                 .flex_shrink_0()
                 .object_fit(ResizeMode::Cover)
-                .label(move || i18n.tr("Inscription", "铭文")),
+                .label(move || i18n.t(Key::NshInscription)),
         );
     }
     card

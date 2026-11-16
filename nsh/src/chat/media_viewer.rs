@@ -1,4 +1,5 @@
 //! Shared photo/video viewer chrome. Playback and image geometry stay with their owners.
+use crate::i18n::Key;
 use mixin_desktop_api::MessageListView;
 use nsh_core::prelude::*;
 
@@ -86,7 +87,7 @@ pub(super) fn header(
     let close = move || {
         button(
             ui::Icon::CloseCircle,
-            move || i18n.tr("Close", "关闭"),
+            move || i18n.t(Key::Close),
             close,
             || false,
         )

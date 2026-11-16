@@ -1,4 +1,5 @@
 use super::message_actions::Actions;
+use crate::i18n::Key;
 use crate::{
     i18n,
     recipients::{self, Recipient},
@@ -88,21 +89,16 @@ fn form<E: IntoElement>(
     let i18n = i18n::current();
     ui::picker::dialog()
         .child(ui::picker::header(
-            move || i18n.tr("Forward messages", "转发消息"),
+            move || i18n.t(Key::NshForwardMessages),
             String::new,
             ui::picker::close(cancel).disabled(busy),
             view().hidden(),
         ))
         .child(picker())
         .child(when(failed, move || {
-            ui::error_text(move || {
-                i18n.tr(
-                    "Couldn’t forward. Choose a chat to try again.",
-                    "转发失败，请重新选择聊天重试。",
-                )
-            })
-            .px(ui::space_xl())
-            .pb(ui::space_lg())
+            ui::error_text(move || i18n.t(Key::NshCouldnTForwardChooseAChatToTryAgain))
+                .px(ui::space_xl())
+                .pb(ui::space_lg())
         }))
 }
 

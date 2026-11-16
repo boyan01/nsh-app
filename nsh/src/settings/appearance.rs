@@ -87,12 +87,12 @@ fn text_preview(i18n: I18n, chat: Appearance) -> impl IntoElement {
         .p(ui::space_lg())
         .bg(ui::surface_chat)
         .child(view().items_start().child(preview_bubble(
-            move || i18n.tr("Hi!", "你好！"),
+            move || i18n.t(Key::NshHi),
             ui::bubble_in,
             chat,
         )))
         .child(view().items_end().child(preview_bubble(
-            move || i18n.tr("How are you?", "最近怎么样？"),
+            move || i18n.t(Key::NshHowAreYou),
             ui::bubble_out,
             chat,
         )))
@@ -114,7 +114,7 @@ fn text_size_slider(i18n: I18n, chat: Appearance) -> impl IntoElement {
                 .step(1.0)
                 .disabled(move || !chat.ready())
                 .value(move || Some(SliderValue::Single(chat.font_delta())))
-                .accessibility_label(move || Some(i18n.tr("Chat text size", "聊天文字大小").into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshChatTextSize).into()))
                 .on_change(move |value: &SliderValue| {
                     if let SliderValue::Single(value) = value {
                         chat.preview_font(*value);
@@ -146,16 +146,16 @@ fn content(
 ) -> impl IntoElement {
     let i18n = i18n::current();
     let theme_label = move |value: &str| match value {
-        "light" => i18n.tr("Light", "浅色"),
-        "dark" => i18n.tr("Dark", "深色"),
-        _ => i18n.tr("Follow system", "跟随系统"),
+        "light" => i18n.t(Key::Light),
+        "dark" => i18n.t(Key::Dark),
+        _ => i18n.t(Key::NshFollowSystem),
     };
     scroll().flex_1().min_h_0().child(
         parts::page_body()
             .child(
                 ui::card()
                     .child(
-                        ui::static_row(move || i18n.tr("Theme", "主题")).child(
+                        ui::static_row(move || i18n.t(Key::Theme)).child(
                             view().w_40().child(
                                 ui::select()
                                     .items(move || {
@@ -165,9 +165,7 @@ fn content(
                                     })
                                     .value(move || Some(SharedString::from(value.get())))
                                     .disabled(move || !ready.get() || feedback.busy.get())
-                                    .accessibility_label(move || {
-                                        Some(i18n.tr("Theme", "主题").into())
-                                    })
+                                    .accessibility_label(move || Some(i18n.t(Key::Theme).into()))
                                     .trigger(ui::select_trigger(move || {
                                         value.with(|v| theme_label(v))
                                     }))
@@ -180,21 +178,21 @@ fn content(
                         ),
                     )
                     .child(
-                        ui::static_row(move || i18n.text(Key::Language))
+                        ui::static_row(move || i18n.t(Key::NshLanguage))
                             .child(view().w_40().child(i18n.setting_picker())),
                     ),
             )
             .child(
-                ui::section(move || i18n.tr("Chat preferences", "聊天偏好")).child(
+                ui::section(move || i18n.t(Key::NshChatPreferences)).child(
                     ui::card()
                         .child(ui::toggle_row(
-                            move || i18n.tr("Show avatar", "显示头像"),
+                            move || i18n.t(Key::ShowAvatar),
                             move || chat.show_avatar(),
                             move || !chat.ready() || chat.busy(),
                             move |value| chat.set_avatar(value),
                         ))
                         .child(ui::toggle_row(
-                            move || i18n.tr("Show Mixin ID", "显示 Mixin ID"),
+                            move || i18n.t(Key::NshShowMixinID),
                             move || chat.show_identity(),
                             move || !chat.ready() || chat.busy(),
                             move |value| chat.set_identity(value),
@@ -202,7 +200,7 @@ fn content(
                 ),
             )
             .child(
-                ui::section(move || i18n.tr("Chat text size", "聊天文字大小")).child(
+                ui::section(move || i18n.t(Key::NshChatTextSize)).child(
                     ui::card()
                         .child(text_preview(i18n, chat))
                         .child(text_size_slider(i18n, chat)),
@@ -212,22 +210,17 @@ fn content(
                 move || chat.failed(),
                 move || {
                     parts::failure(
-                        move || {
-                            i18n.tr(
-                                "Couldn’t save or load chat preferences. Try again.",
-                                "无法保存或读取聊天偏好，请重试。",
-                            )
-                        },
+                        move || i18n.t(Key::NshCouldnTSaveOrLoadChatPreferencesTryAgain),
                         move || chat.retry(),
                     )
                 },
             ))
-            .child(feedback.view(move || i18n.tr("Saving…", "正在保存…")))
+            .child(feedback.view(move || i18n.t(Key::NshSaving)))
             .child(when(
                 move || feedback.failed.get() && !ready.get(),
                 move || {
                     ui::link(
-                        move || i18n.text(Key::Retry),
+                        move || i18n.t(Key::NshTryAgain),
                         move || retry.update(|r| *r += 1),
                     )
                 },

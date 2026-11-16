@@ -1,4 +1,5 @@
 //! Disposable image-editing presentation. The media client owns pixel transforms and files.
+use crate::i18n::Key;
 mod geometry;
 mod preview;
 mod surface;
@@ -117,13 +118,10 @@ pub(super) fn screen(
             discarding.set(true);
             spawn(async move {
                 let result = nsh_base::alert_dialog()
-                    .title(i18n.tr("Discard image edits?", "放弃图片修改？"))
-                    .description(i18n.tr(
-                        "The image in the send preview will stay unchanged.",
-                        "发送预览中的图片会保留原样。",
-                    ))
-                    .cancel("cancel", i18n.tr("Cancel", "取消"))
-                    .destructive("discard", i18n.tr("Discard", "放弃修改"))
+                    .title(i18n.t(Key::NshDiscardImageEdits))
+                    .description(i18n.t(Key::NshTheImageInTheSendPreviewWillStayUnchanged))
+                    .cancel("cancel", i18n.t(Key::Cancel))
+                    .destructive("discard", i18n.t(Key::Discard))
                     .show()
                     .await;
                 discarding.set(false);

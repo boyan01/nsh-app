@@ -242,7 +242,7 @@ impl Cells {
             .child(when(
                 move || read(row, |row| row.is_scam),
                 move || {
-                    text(move || i18n.tr("SCAM", "诈骗风险"))
+                    text(move || i18n.t(Key::NshSCAM))
                         .text_role(ui::TextRole::Caption)
                         .text_color(ui::danger)
                 },
@@ -291,7 +291,7 @@ impl Cells {
                     .child(when(
                         move || drafted.get(),
                         move || {
-                            text(move || format!("{}:", i18n.text(Key::Draft)))
+                            text(move || format!("{}:", i18n.t(Key::Draft)))
                                 .text_role(ui::TextRole::Body)
                                 .text_color(ui::danger)
                         },
@@ -323,7 +323,7 @@ impl Cells {
                 move || read(row, |row| row.mention_count > 0),
                 move || {
                     ui::count_pill(|| "@".into(), || true)
-                        .label(move || i18n.tr("Unread mention", "未读提及"))
+                        .label(move || i18n.t(Key::NshUnreadMention))
                 },
             ))
             .child(when(

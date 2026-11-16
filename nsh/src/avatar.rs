@@ -1,4 +1,5 @@
 //! Shared avatar selection. Draft crop state belongs only to the owning page.
+use crate::i18n::Key;
 mod crop;
 
 use crate::{
@@ -88,14 +89,9 @@ impl Picker {
         view()
             .gap_2()
             .child(
-                text(move || {
-                    crate::i18n::tr(
-                        "PNG, JPEG, GIF, WebP or BMP · up to 10 MB",
-                        "PNG、JPEG、GIF、WebP 或 BMP，最大 10 MB",
-                    )
-                })
-                .text_role(ui::TextRole::Caption)
-                .text_color(ui::fg_secondary),
+                text(move || crate::i18n::t(Key::NshPNGJPEGGIFWebPOrBMPUpTo10MB))
+                    .text_role(ui::TextRole::Caption)
+                    .text_color(ui::fg_secondary),
             )
             .child(self.dialog(group, save))
     }

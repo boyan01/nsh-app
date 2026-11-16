@@ -98,12 +98,18 @@ pub(crate) fn busy_indicator(
 ) -> impl IntoElement {
     let label = stored(label);
     when(busy, move || {
-        svg(ImageSrc::svg_markup("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'><circle cx='12' cy='12' r='9' opacity='.2'/><path d='M12 3a9 9 0 0 1 9 9'/></svg>"))
+        svg(ImageSrc::svg_markup(crate::assets::svg::ICONS_SPINNER))
             .size(icon_sm())
             .flex_shrink_0()
             .role(AccessibilityRole::Progressbar)
             .label(move || label.with(|label| label()))
-            .style_with(|s| if reduce_motion() { s.animate_none() } else { s.animate_spin() })
+            .style_with(|s| {
+                if reduce_motion() {
+                    s.animate_none()
+                } else {
+                    s.animate_spin()
+                }
+            })
     })
 }
 

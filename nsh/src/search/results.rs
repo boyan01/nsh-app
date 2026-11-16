@@ -1,4 +1,5 @@
 use super::*;
+use crate::i18n::Key;
 use crate::{appearance, presentation};
 use std::collections::HashMap;
 
@@ -119,7 +120,7 @@ fn header(
             move || {
                 ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
                     .on_press(move || open(Row::Header(section, more)))
-                    .child(text(move || tr("More", "更多")).text_role(ui::TextRole::Caption))
+                    .child(text(move || t(Key::More)).text_role(ui::TextRole::Caption))
             },
         ))
 }

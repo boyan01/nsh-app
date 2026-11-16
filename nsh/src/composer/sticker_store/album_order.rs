@@ -1,8 +1,8 @@
+use crate::i18n::Key;
 use mixin_desktop_api::StickerAlbumItem;
 use nsh_core::{PointerEvents, TouchEvent, TouchPhase, prelude::*};
 use std::{rc::Rc, sync::Arc, time::Duration};
 
-use super::tr;
 use crate::{
     i18n, motion,
     ui::{self, Typography as _},
@@ -257,15 +257,11 @@ pub(super) fn list(
                                 .py_1()
                                 .accessibility_label(move || {
                                     Some(
-                                        tr(
-                                            i18n,
-                                            if direction < 0 {
-                                                "Move up"
-                                            } else {
-                                                "Move down"
-                                            },
-                                            if direction < 0 { "上移" } else { "下移" },
-                                        )
+                                        i18n.t(if direction < 0 {
+                                            Key::NshMoveUp
+                                        } else {
+                                            Key::NshMoveDown
+                                        })
                                         .into(),
                                     )
                                 })
@@ -296,7 +292,7 @@ pub(super) fn list(
                                         remove.with(|remove| remove(id));
                                     }
                                 })
-                                .child(text(move || tr(i18n, "Remove", "移除"))),
+                                .child(text(move || i18n.t(Key::NshRemove))),
                         )
                 },
             )

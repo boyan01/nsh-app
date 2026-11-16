@@ -109,16 +109,14 @@ impl State {
         let account = self.account.with(|account| account.clone());
         self.owner.run(|| {
             spawn(async move {
-                let title =
-                    i18n.format("Delete “{name}”?", "删除“{name}”？", &[("name", &row.name)]);
+                let title = i18n.format(Key::NshDeleteName, &[("name", &row.name)]);
                 let answer = alert_dialog()
                     .title(title)
-                    .description(i18n.tr(
-                        "This removes the chat and its message history from this device.",
-                        "此操作将从此设备删除会话及其聊天记录。",
-                    ))
-                    .cancel("cancel", i18n.text(Key::Cancel))
-                    .destructive("delete", i18n.tr("Delete", "删除"))
+                    .description(
+                        i18n.t(Key::NshThisRemovesTheChatAndItsMessageHistoryFromThisDevice),
+                    )
+                    .cancel("cancel", i18n.t(Key::Cancel))
+                    .destructive("delete", i18n.t(Key::Delete))
                     .show()
                     .await;
                 if !answer.is_ok_and(|answer| answer.action.as_deref() == Some("delete"))
@@ -173,14 +171,14 @@ pub(crate) fn wrap(
             return Vec::new();
         };
         let pin_title = if row.is_pinned {
-            i18n.tr("Unpin", "取消置顶")
+            i18n.t(Key::Unpin)
         } else {
-            i18n.tr("Pin", "置顶")
+            i18n.t(Key::PinTitle)
         };
         let mute_title = if row.is_muted {
-            i18n.tr("Unmute", "取消静音")
+            i18n.t(Key::Unmute)
         } else {
-            i18n.tr("Mute", "静音")
+            i18n.t(Key::Mute)
         };
         let pin_icon = if row.is_pinned {
             ui::MenuIcon::UnPin
@@ -197,7 +195,7 @@ pub(crate) fn wrap(
         let add_to_circle = crate::sidebar::add_to_circle_item(state.circles, &row);
         let remove_from_circle = crate::sidebar::remove_from_circle_item(state.circles, &row);
         let mut delete = vec![
-            MenuItem::new(i18n.tr("Delete Chat", "删除聊天"))
+            MenuItem::new(i18n.t(Key::DeleteChat))
                 .icon(ui::MenuIcon::Delete.src())
                 .on_select(move || state.remove(row.clone())),
         ];
@@ -278,20 +276,18 @@ fn mute_view(
 ) -> View {
     let i18n = i18n::current();
     ui::dialog_card(ui::DialogWidth::Compact)
-        .child(ui::dialog_title(move || {
-            i18n.tr("Mute notifications", "通知静音")
-        }))
+        .child(ui::dialog_title(move || i18n.t(Key::NshMuteNotifications)))
         .child(
             ui::card().children(
                 [
-                    (3600, "1 hour", "1 小时"),
-                    (28800, "8 hours", "8 小时"),
-                    (604800, "1 week", "1 周"),
-                    (31536000, "1 year", "1 年"),
+                    (3600, Key::Nsh1Hour),
+                    (28800, Key::Nsh8Hours),
+                    (604800, Key::Nsh1Week),
+                    (31536000, Key::Nsh1Year),
                 ]
                 .into_iter()
-                .map(move |(seconds, en, zh)| {
-                    ui::settings_row(None, move || i18n.tr(en, zh))
+                .map(move |(seconds, key)| {
+                    ui::settings_row(None, move || i18n.t(key))
                         .selected(move || duration.get() == Some(seconds))
                         .disabled(busy)
                         .on_press(move || duration.set(Some(seconds)))
@@ -300,11 +296,11 @@ fn mute_view(
         )
         .child(
             parts::dialog_actions()
-                .child(ui::action(move || i18n.text(Key::Cancel), close).disabled(busy))
+                .child(ui::action(move || i18n.t(Key::Cancel), close).disabled(busy))
                 .child(
                     ui::primary()
                         .disabled(move || duration.get().is_none() || busy.get())
-                        .child(text(move || i18n.tr("Mute", "静音")))
+                        .child(text(move || i18n.t(Key::Mute)))
                         .on_press(confirm),
                 ),
         )
@@ -331,6 +327,6 @@ pub(crate) fn command_error(retry: impl Fn() + 'static) -> View {
         .border_1()
         .border_color(ui::border)
         .shadow_lg()
-        .child(ui::error_text(move || i18n.text(Key::CommandFailed)).flex_1())
-        .child(ui::action(move || i18n.tr("Dismiss", "关闭"), retry))
+        .child(ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)).flex_1())
+        .child(ui::action(move || i18n.t(Key::NshDismiss), retry))
 }

@@ -1,4 +1,5 @@
 //! One timeline row: day and unread separators, then a notice or a bubble.
+use crate::i18n::Key;
 use mixin_desktop_api::{MessageListView, TranscriptSummaryItem};
 use nsh_core::prelude::*;
 
@@ -407,7 +408,7 @@ impl Rows {
                                         Some(
                                             actions
                                                 .i18n
-                                                .tr("Locate in chat", "在聊天中定位")
+                                                .t(crate::i18n::Key::NshLocateInChat)
                                                 .into(),
                                         )
                                     })
@@ -687,7 +688,7 @@ fn selection_box(
     )
     .size_8()
     .justify_center()
-    .accessibility_label(move || Some(i18n.tr("Select message", "选择消息").into()))
+    .accessibility_label(move || Some(i18n.t(Key::NshSelectMessage).into()))
 }
 
 fn sender_avatar(
@@ -697,7 +698,7 @@ fn sender_avatar(
     let i18n = actions.i18n;
     ui::round_button()
         .size_8()
-        .accessibility_label(move || Some(i18n.tr("Open profile", "打开个人资料").into()))
+        .accessibility_label(move || Some(i18n.t(Key::NshOpenProfile).into()))
         .on_press(move || {
             if let Some(row) = message() {
                 actions.show_user(row.sender_id);

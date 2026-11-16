@@ -1,11 +1,13 @@
 use super::message_actions::Actions;
+use crate::i18n::Key;
 use crate::ui;
 use mixin_desktop_api::MessageListView;
 use nsh_core::prelude::*;
 
 pub(super) fn screen(message: MessageListView, actions: Actions) -> impl IntoElement {
     let Some(id) = message.snapshot_id else {
-        return text(move || actions.i18n.text(crate::i18n::Key::CommandFailed)).into_element();
+        return text(move || actions.i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
+            .into_element();
     };
     let reference = if matches!(
         message.category.as_str(),
@@ -24,9 +26,7 @@ pub(super) fn screen(message: MessageListView, actions: Actions) -> impl IntoEle
             move || {
                 ui::round_button()
                     .size_10()
-                    .accessibility_label(move || {
-                        Some(actions.i18n.text(crate::i18n::Key::Back).into())
-                    })
+                    .accessibility_label(move || Some(actions.i18n.t(Key::NshBack).into()))
                     .on_press(move || actions.back_preview())
                     .child(ui::icon(ui::Icon::ChevronLeft))
             },

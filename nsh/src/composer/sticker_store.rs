@@ -4,7 +4,7 @@ use mixin_desktop_api::{AccountClient, StickerAlbumItem, StickerDetailItem};
 use nsh_core::prelude::*;
 use std::{rc::Rc, sync::Arc};
 
-use super::{stickers::State, tr};
+use super::stickers::State;
 use crate::{
     i18n::{self, Key},
     runtime,
@@ -141,16 +141,16 @@ impl StoreView {
                             .size_8()
                             .px_0()
                             .py_0()
-                            .accessibility_label(move || Some(tr(i18n, "Back", "返回").into()))
+                            .accessibility_label(move || Some(i18n.t(Key::NshBack).into()))
                             .on_press(move || managing.set(false))
                             .child(ui::icon(ui::Icon::ArrowLeft))
                     }))
                     .child(
                         ui::dialog_title(move || {
                             if managing.get() {
-                                tr(i18n, "Subscribed stickers", "已订阅的表情")
+                                i18n.t(Key::NshSubscribedStickers)
                             } else {
-                                tr(i18n, "Sticker store", "贴纸商店")
+                                i18n.t(Key::NshStickerStore)
                             }
                         })
                         .flex_1()
@@ -162,7 +162,7 @@ impl StoreView {
                         move || {
                             ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
                                 .on_press(move || managing.set(true))
-                                .child(text(move || tr(i18n, "Manage subscriptions", "管理已订阅")))
+                                .child(text(move || i18n.t(Key::NshManageSubscriptions)))
                         },
                     ))
                     .child(ui::dialog_close(close).mt_0().mr_0().disabled(busy)),
@@ -253,9 +253,9 @@ impl StoreView {
                                         if store.with(|rows| {
                                             rows.get(at.index()).is_some_and(|a| a.added)
                                         }) {
-                                            tr(i18n, "Remove", "移除")
+                                            i18n.t(Key::NshRemove)
                                         } else {
-                                            tr(i18n, "Add", "添加")
+                                            i18n.t(Key::Add)
                                         }
                                     })),
                             )
@@ -280,11 +280,7 @@ impl StoreView {
             ))
             .child(when(
                 move || managing.get() && albums.with(Vec::is_empty),
-                move || {
-                    ui::placeholder(move || {
-                        tr(i18n, "No subscribed sticker albums", "还没有订阅表情专辑")
-                    })
-                },
+                move || ui::placeholder(move || i18n.t(Key::NshNoSubscribedStickerAlbums)),
             ))
     }
 }
@@ -307,7 +303,7 @@ fn feedback(
         .child(when(loading, move || {
             view().px_4().py_2().child(ui::busy_indicator(
                 move || loading.get(),
-                move || tr(i18n, "Loading stickers…", "正在加载贴纸…").into(),
+                move || i18n.t(Key::NshLoadingStickers).into(),
             ))
         }))
         .child(when(failed, move || {
@@ -316,18 +312,19 @@ fn feedback(
                 .items_center()
                 .px_4()
                 .gap_2()
-                .child(ui::error_text(move || i18n.text(Key::CommandFailed)).flex_1())
+                .child(
+                    ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
+                        .flex_1(),
+                )
                 .child(
                     ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
                         .on_press(move || retry.with(|retry| retry()))
-                        .child(text(move || i18n.text(Key::Retry))),
+                        .child(text(move || i18n.t(Key::NshTryAgain))),
                 )
         }))
         .child(when(
             move || !managing.get() && !loading.get() && !failed.get() && store.with(Vec::is_empty),
-            move || {
-                ui::placeholder(move || tr(i18n, "No sticker albums available", "暂无贴纸专辑"))
-            },
+            move || ui::placeholder(move || i18n.t(Key::NshNoStickerAlbumsAvailable)),
         ))
         .style_when(
             move || {
@@ -486,7 +483,7 @@ fn detail_view(
                             .child(when(
                                 move || active().is_none() && !failed.get(),
                                 move || {
-                                    text(move || tr(i18n, "Loading stickers…", "正在加载贴纸…"))
+                                    text(move || i18n.t(Key::NshLoadingStickers))
                                         .text_role(ui::TextRole::Body)
                                         .text_color(ui::fg_secondary)
                                         .py(ui::space_xl())
@@ -601,9 +598,9 @@ fn detail_view(
                                                             })
                                                             .is_some_and(|album| album.added)
                                                     }) {
-                                                        tr(i18n, "Remove", "移除")
+                                                        i18n.t(Key::NshRemove)
                                                     } else {
-                                                        tr(i18n, "Add", "添加")
+                                                        i18n.t(Key::Add)
                                                     }
                                                 }),
                                             ),
@@ -703,12 +700,9 @@ fn detail_view(
                         },
                     ))
                     .child(when(failed, move || {
-                        ui::parts::failure(
-                            move || tr(i18n, "Couldn’t update stickers.", "暂时无法更新贴纸"),
-                            retry,
-                        )
-                        .px(ui::space_lg())
-                        .pb(ui::space_lg())
+                        ui::parts::failure(move || i18n.t(Key::NshCouldnTUpdateStickers), retry)
+                            .px(ui::space_lg())
+                            .pb(ui::space_lg())
                     })),
             ),
         )

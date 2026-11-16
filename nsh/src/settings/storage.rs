@@ -291,47 +291,50 @@ fn detail(
             scroll().flex_1().min_h_0().child(
                 parts::page_body()
                     .child(parts::note(move || {
-                        i18n.tr(
-                            "Clear cached media from this device. Messages stay in the conversation.",
-                            "清除此设备上的媒体缓存，会话中的消息会保留。",
-                        )
+                        i18n.t(Key::NshClearMediaCacheDescription)
                     }))
                     .child(when(
                         move || loading.get() && rows.with(Vec::is_empty),
-                        move || {
-                            parts::status(move || {
-                                i18n.tr("Calculating storage…", "正在计算存储用量…")
-                            })
-                        },
+                        move || parts::status(move || i18n.t(Key::NshCalculatingStorage)),
                     ))
                     .child(when(load_failed, move || {
                         load_error(move || revision.update(|v| *v += 1))
                     }))
-                    .child(ui::card().children(["photos", "videos", "audio", "files"].into_iter().map(
-                        move |category| {
-                            category_row(category, rows, selected, move || {
-                                loading.get() || feedback.busy.get()
-                            })
-                        },
-                    )))
                     .child(
-                        ui::card().child(
-                            ui::settings_row(None, move || {
-                                i18n.tr("Clear selected cache…", "清除选中的缓存…")
-                            })
-                            .text_color(ui::danger)
-                            .disabled(clear_disabled)
-                            .on_press(move || {
-                                if !untracked(clear_disabled) {
-                                    confirming.set(true);
-                                }
-                            }),
+                        ui::card().children(
+                            ["photos", "videos", "audio", "files"].into_iter().map(
+                                move |category| {
+                                    category_row(category, rows, selected, move || {
+                                        loading.get() || feedback.busy.get()
+                                    })
+                                },
+                            ),
                         ),
                     )
-                    .child(feedback.view(move || i18n.tr("Clearing cache…", "正在清除缓存…")))
+                    .child(
+                        ui::card().child(
+                            ui::settings_row(None, move || i18n.t(Key::NshClearSelectedCache))
+                                .text_color(ui::danger)
+                                .disabled(clear_disabled)
+                                .on_press(move || {
+                                    if !untracked(clear_disabled) {
+                                        confirming.set(true);
+                                    }
+                                }),
+                        ),
+                    )
+                    .child(feedback.view(move || i18n.t(Key::NshClearingCache)))
                     .child(when(
                         move || presence.mounted(),
-                        move || clear_dialog(presence, confirming, feedback, clear_disabled, clear.clone()),
+                        move || {
+                            clear_dialog(
+                                presence,
+                                confirming,
+                                feedback,
+                                clear_disabled,
+                                clear.clone(),
+                            )
+                        },
                     )),
             ),
         )
@@ -366,10 +369,10 @@ fn category_row(
     )
     .child(
         text(move || match category {
-            "photos" => i18n.tr("Photos", "图片"),
-            "videos" => i18n.tr("Videos", "视频"),
-            "audio" => i18n.tr("Audio", "音频"),
-            _ => i18n.tr("Files", "文件"),
+            "photos" => i18n.t(Key::Photos),
+            "videos" => i18n.t(Key::Videos),
+            "audio" => i18n.t(Key::Audio),
+            _ => i18n.t(Key::Files),
         })
         .flex_1()
         .text_role(ui::TextRole::Label),
@@ -433,30 +436,22 @@ fn clear_card(
     let i18n = i18n::current();
     ui::dialog_card(ui::DialogWidth::Regular)
         .child(ui::dialog_title(move || {
-            i18n.tr("Clear the selected media cache?", "清除选中的媒体缓存？")
+            i18n.t(Key::NshClearTheSelectedMediaCache)
         }))
         .child(
-            text(move || {
-                i18n.tr(
-                    "Files saved only on this device may not be downloadable again.",
-                    "仅保存在此设备上的文件可能无法再次下载。",
-                )
-            })
-            .text_role(ui::TextRole::Body),
+            text(move || i18n.t(Key::NshFilesSavedOnlyOnThisDeviceMayNotBeDownloadableAgain))
+                .text_role(ui::TextRole::Body),
         )
         .child(
             parts::dialog_actions()
                 .child(
-                    ui::action(
-                        move || i18n.text(Key::Cancel),
-                        move || confirming.set(false),
-                    )
-                    .disabled(feedback.busy),
+                    ui::action(move || i18n.t(Key::Cancel), move || confirming.set(false))
+                        .disabled(feedback.busy),
                 )
                 .child(
                     ui::button(ui::ButtonTone::Danger, ui::ButtonSize::Regular)
                         .disabled(disabled)
-                        .child(text(move || i18n.tr("Clear cache", "清除缓存")))
+                        .child(text(move || i18n.t(Key::NshClearCache)))
                         .on_press(clear),
                 ),
         )
@@ -464,7 +459,10 @@ fn clear_card(
 
 pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
     let i18n = crate::i18n::current();
-    parts::failure(move || i18n.text(Key::CommandFailed), retry)
+    parts::failure(
+        move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain),
+        retry,
+    )
 }
 
 fn overview_view(
@@ -480,13 +478,10 @@ fn overview_view(
         .flex_1()
         .min_h_0()
         .child(
-            ui::section(move || i18n.tr("Automatic media download", "自动下载媒体"))
+            ui::section(move || i18n.t(Key::NshAutomaticMediaDownload))
                 .child(ui::card().child(downloads))
                 .child(parts::note(move || {
-                    i18n.tr(
-                        "Automatically download media when messages arrive.",
-                        "收到消息时自动下载媒体文件。",
-                    )
+                    i18n.t(Key::NshAutomaticallyDownloadMediaWhenMessagesArrive)
                 })),
         )
         .child(
@@ -499,10 +494,7 @@ fn overview_view(
                         .flex_row()
                         .items_center()
                         .gap(ui::space_md())
-                        .child(
-                            ui::section_label(move || i18n.tr("Storage usage", "存储用量"))
-                                .flex_1(),
-                        )
+                        .child(ui::section_label(move || i18n.t(Key::NshStorageUsage)).flex_1())
                         .child(
                             text(move || {
                                 bytes(rows.with(|rows| rows.iter().map(|r| r.size_bytes).sum()))
@@ -514,21 +506,19 @@ fn overview_view(
                             ui::command()
                                 .disabled(loading)
                                 .on_press(move || revision.update(|v| *v += 1))
-                                .child(text(move || i18n.tr("Refresh", "刷新"))),
+                                .child(text(move || i18n.t(Key::Refresh))),
                         ),
                 )
                 .child(when(
                     move || loading.get() && rows.with(Vec::is_empty),
-                    move || {
-                        parts::status(move || i18n.tr("Calculating storage…", "正在计算存储用量…"))
-                    },
+                    move || parts::status(move || i18n.t(Key::NshCalculatingStorage)),
                 ))
                 .child(when(failed, move || {
                     load_error(move || revision.update(|r| *r += 1))
                 }))
                 .child(when(
                     move || !loading.get() && !failed.get() && rows.with(Vec::is_empty),
-                    move || parts::note(move || i18n.tr("No stored media", "暂无媒体缓存")),
+                    move || parts::note(move || i18n.t(Key::NshNoStoredMedia)),
                 ))
                 .child(
                     // Hugs its rows, and shrinks to scroll them when they outgrow the page.
@@ -570,9 +560,9 @@ fn download_row(
     view()
         .child(ui::toggle_row(
             move || match kind {
-                Download::Photos => i18n.tr("Photos", "图片"),
-                Download::Videos => i18n.tr("Videos", "视频"),
-                Download::Files => i18n.tr("Files", "文件"),
+                Download::Photos => i18n.t(Key::Photos),
+                Download::Videos => i18n.t(Key::Videos),
+                Download::Files => i18n.t(Key::Files),
             },
             move || checked.get(),
             move || !ready.get() || busy.get(),
@@ -605,7 +595,7 @@ pub(crate) fn preview(rows: Vec<ConversationStorageUsage>, failed: Signal<bool>)
         .flex_1()
         .min_h_0()
         .child(parts::page_header(
-            move || i18n::current().tr("Storage", "存储"),
+            move || i18n::current().t(Key::NshStorage),
             Some(parts::back_button(|| {})),
             None,
         ))

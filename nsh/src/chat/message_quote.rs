@@ -191,7 +191,7 @@ pub(super) fn quoted(
         .min_w_0()
         .min_h_0()
         .justify_start()
-        .accessibility_label(move || Some(actions.i18n.tr("Locate in chat", "在聊天中查看").into()))
+        .accessibility_label(move || Some(actions.i18n.t(Key::NshLocateInChat).into()))
         .on_press(move || {
             actions.close_preview();
             if let Some(target) = target {
@@ -287,10 +287,7 @@ pub(super) fn reply_bar(
                                                 .justify_start()
                                                 .accessibility_label(move || {
                                                     Some(
-                                                        actions
-                                                            .i18n
-                                                            .tr("Locate in chat", "在聊天中查看")
-                                                            .into(),
+                                                        actions.i18n.t(Key::NshLocateInChat).into(),
                                                     )
                                                 })
                                                 .on_press(move || {
@@ -313,7 +310,7 @@ pub(super) fn reply_bar(
                                 ui::round_button()
                                     .size_8()
                                     .accessibility_label(move || {
-                                        Some(actions.i18n.tr("Cancel reply", "取消回复").into())
+                                        Some(actions.i18n.t(Key::NshCancelReply).into())
                                     })
                                     .on_press(move || {
                                         actions.quote.set(None);
@@ -324,12 +321,7 @@ pub(super) fn reply_bar(
                                             .size(ui::icon_md())
                                             .text_color(ui::fg_secondary),
                                     ),
-                                move || {
-                                    actions
-                                        .i18n
-                                        .tr("Cancel reply · Esc", "取消回复 · Esc")
-                                        .to_owned()
-                                },
+                                move || actions.i18n.t(Key::NshCancelReplyEsc).to_owned(),
                             )),
                     )
             },
@@ -399,13 +391,9 @@ fn card(quote: Quote, actions: Actions) -> View {
                                         if quote.category.is_empty()
                                             || quote.category == "MESSAGE_RECALL"
                                         {
-                                            i18n.tr("Message not found", "消息不存在").to_owned()
+                                            i18n.t(Key::MessageNotFound).to_owned()
                                         } else {
-                                            i18n.tr(
-                                                "This message type is not supported.",
-                                                "暂不支持此消息类型。",
-                                            )
-                                            .to_owned()
+                                            i18n.t(Key::NshThisMessageTypeIsNotSupported).to_owned()
                                         }
                                     } else if quote.category.ends_with("_TEXT") {
                                         names
@@ -421,9 +409,9 @@ fn card(quote: Quote, actions: Actions) -> View {
                                             })
                                             .unwrap_or_else(|| quote.content.clone())
                                     } else if quote.category.ends_with("_LIVE") {
-                                        i18n.tr("Live", "直播").to_owned()
+                                        i18n.t(Key::Live).to_owned()
                                     } else if quote.category.ends_with("_AUDIO") {
-                                        i18n.tr("Audio", "语音").to_owned()
+                                        i18n.t(Key::Audio).to_owned()
                                     } else if quote.category.ends_with("_POST")
                                         || quote.category.ends_with("_DATA")
                                         || quote.category.ends_with("_CONTACT")
@@ -431,7 +419,7 @@ fn card(quote: Quote, actions: Actions) -> View {
                                     {
                                         if quote.content.is_empty() {
                                             if quote.category.starts_with("APP_") {
-                                                i18n.text(Key::Bots).to_owned()
+                                                i18n.t(Key::BotsTitle).to_owned()
                                             } else {
                                                 presentation::preview(i18n, &quote.category, "")
                                             }
@@ -550,26 +538,26 @@ fn category_icon(category: &str) -> AnyElement {
             .text_color(ui::message_secondary)
             .into_element();
     } else if category.ends_with("_IMAGE") {
-        include_str!("../../assets/quote/image.svg")
+        crate::assets::svg::QUOTE_IMAGE
     } else if category.ends_with("_VIDEO") {
-        include_str!("../../assets/quote/video.svg")
+        crate::assets::svg::QUOTE_VIDEO
     } else if category.ends_with("_AUDIO") {
-        include_str!("../../assets/quote/audio.svg")
+        crate::assets::svg::QUOTE_AUDIO
     } else if category.ends_with("_LOCATION") {
-        include_str!("../../assets/quote/location.svg")
+        crate::assets::svg::QUOTE_LOCATION
     } else if category.ends_with("_LIVE") {
-        include_str!("../../assets/quote/live.svg")
+        crate::assets::svg::QUOTE_LIVE
     } else if category.ends_with("_CONTACT") {
-        include_str!("../../assets/quote/contact.svg")
+        crate::assets::svg::QUOTE_CONTACT
     } else if category.starts_with("APP_") {
-        include_str!("../../assets/quote/app_button.svg")
+        crate::assets::svg::QUOTE_APP_BUTTON
     } else if ["_DATA", "_POST", "_TRANSCRIPT"]
         .iter()
         .any(|suffix| category.ends_with(suffix))
     {
-        include_str!("../../assets/quote/file.svg")
+        crate::assets::svg::QUOTE_FILE
     } else {
-        include_str!("../../assets/quote/recall.svg")
+        crate::assets::svg::QUOTE_RECALL
     };
     svg(ImageSrc::svg_markup(source))
         .size_3p5()

@@ -142,12 +142,13 @@ pub(crate) fn photo_error(retry: impl Fn() + 'static) -> View {
         .items_center()
         .pointer_events(PointerEvents::Auto)
         .child(
-            text(move || i18n.tr("Couldn’t display this photo.", "无法显示此图片。"))
+            text(move || i18n.t(Key::NshCouldnTDisplayThisPhoto))
                 .text_role(ui::TextRole::Body)
                 .text_color(ui::media_overlay_foreground),
         )
         .child(
-            ui::link(move || i18n.text(Key::Retry), retry).text_color(ui::media_overlay_foreground),
+            ui::link(move || i18n.t(Key::NshTryAgain), retry)
+                .text_color(ui::media_overlay_foreground),
         )
 }
 
@@ -299,9 +300,7 @@ fn viewer(
                 Ok(uri) => {
                     set_clipboard_image(uri);
                     actions.failed.set(false);
-                    actions
-                        .toasts
-                        .success(i18n.tr("Image copied", "图片已复制"));
+                    actions.toasts.success(i18n.t(Key::NshImageCopied));
                 }
                 Err(_) => actions.failed.set(true),
             }
@@ -338,7 +337,7 @@ fn viewer(
                     .is_ok();
                     actions.failed.set(!saved);
                     if saved {
-                        actions.toasts.success(i18n.tr("Saved", "已保存"));
+                        actions.toasts.success(i18n.t(Key::NshSaved));
                     }
                 }
                 Ok(None) => {}
@@ -383,7 +382,7 @@ fn viewer(
                             .h(move || px(camera.get().image.1 * camera.get().scale))
                             .rotate(move || deg(f32::from(camera.get().rotation) * 90.0))
                             .object_fit(ResizeMode::Contain)
-                            .label(move || i18n.text(Key::Photo))
+                            .label(move || i18n.t(Key::NshPhoto))
                             .on_error(move |_: &str| image_failed.set(true)),
                     )
             },
@@ -408,19 +407,19 @@ fn viewer(
             .gap(ui::space_sm())
             .child(viewer_button(
                 ui::Icon::ZoomIn,
-                move || i18n.tr("Zoom in", "放大"),
+                move || i18n.t(Key::NshZoomIn),
                 move || zoom_center(1.25),
                 move || !usable() || camera.get().scale >= camera.get().limits().1,
             ))
             .child(viewer_button(
                 ui::Icon::ZoomOut,
-                move || i18n.tr("Zoom out", "缩小"),
+                move || i18n.t(Key::NshZoomOut),
                 move || zoom_center(0.8),
                 move || !usable() || camera.get().scale <= camera.get().limits().0,
             ))
             .child(viewer_button(
                 ui::Icon::Rotate,
-                move || i18n.tr("Rotate", "旋转"),
+                move || i18n.t(Key::NshRotate),
                 move || camera.update(Camera::turn),
                 move || !usable(),
             ))
@@ -429,7 +428,7 @@ fn viewer(
                 move || {
                     viewer_button(
                         ui::Icon::Forward,
-                        move || i18n.tr("Forward…", "转发…"),
+                        move || i18n.t(Key::NshForward),
                         forward,
                         move || busy.get() || loading.get() || !forward_allowed.get(),
                     )
@@ -437,13 +436,13 @@ fn viewer(
             ))
             .child(viewer_button(
                 ui::Icon::Copy,
-                move || i18n.tr("Copy image", "复制图片"),
+                move || i18n.t(Key::NshCopyImage),
                 copy,
                 move || !usable(),
             ))
             .child(viewer_button(
                 ui::Icon::Download,
-                move || i18n.tr("Save as…", "另存为…"),
+                move || i18n.t(Key::NshSaveAs),
                 move || {
                     if selected().is_some_and(|row| available(&row)) {
                         save();
@@ -478,7 +477,7 @@ fn viewer(
                         .justify_center()
                         .gap_2()
                         .child(when(loading, move || {
-                            text(move || i18n.text(Key::LoadingMessages))
+                            text(move || i18n.t(Key::NshLoadingMessages))
                                 .text_role(ui::TextRole::Body)
                                 .text_color(ui::media_overlay_foreground)
                         }))
@@ -501,7 +500,7 @@ fn viewer(
                         .child(
                             viewer_button(
                                 ui::Icon::ChevronLeft,
-                                move || i18n.tr("Previous photo", "上一张"),
+                                move || i18n.t(Key::NshPreviousPhoto),
                                 move || go(-1),
                                 move || loading.get() || neighbor(-1).is_none(),
                             )
@@ -510,7 +509,7 @@ fn viewer(
                         .child(
                             viewer_button(
                                 ui::Icon::ChevronRight,
-                                move || i18n.tr("Next photo", "下一张"),
+                                move || i18n.t(Key::NshNextPhoto),
                                 move || go(1),
                                 move || loading.get() || neighbor(1).is_none(),
                             )

@@ -32,11 +32,11 @@ impl Voice {
         super::super::surface::hinted(
             tool_button()
                 .disabled(move || disabled.get() || self.busy.get() || self.open.get())
-                .accessibility_label(move || Some(i18n.text(Key::Record).into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshRecordAVoiceMessage).into()))
                 .rounded_full()
                 .child(ui::icon(ui::Icon::Microphone))
                 .on_press(move || self.start()),
-            move || tr(i18n, "Record voice message", "录制语音消息").to_owned(),
+            move || i18n.t(Key::NshRecordVoiceMessage).to_owned(),
         )
     }
 
@@ -226,26 +226,26 @@ impl RecordingPanel {
         let cancel = hinted(
             tool_button()
                 .disabled(busy)
-                .accessibility_label(move || Some(i18n.text(Key::Cancel).into()))
+                .accessibility_label(move || Some(i18n.t(Key::Cancel).into()))
                 .on_press(move || cancel())
                 .child(ui::icon(ui::Icon::Close)),
-            move || tr(i18n, "Discard recording", "放弃录音").to_owned(),
+            move || i18n.t(Key::NshDiscardRecording).to_owned(),
         );
         let stop = hinted(
             send_button()
                 .disabled(move || busy.get() || !recording())
-                .accessibility_label(move || Some(i18n.text(Key::Stop).into()))
+                .accessibility_label(move || Some(i18n.t(Key::NshStop).into()))
                 .on_press(move || toggle())
                 .child(ui::icon(ui::Icon::Stop).text_color(ui::fg_on_accent)),
-            move || tr(i18n, "Stop and preview", "停止并试听").to_owned(),
+            move || i18n.t(Key::NshStopAndPreview).to_owned(),
         );
         let send = hinted(
             send_button()
                 .disabled(move || busy.get() || snapshot.with(|s| s.recording.is_none()))
-                .accessibility_label(move || Some(i18n.text(Key::Send).into()))
+                .accessibility_label(move || Some(i18n.t(Key::Send).into()))
                 .on_press(move || send())
                 .child(ui::icon(ui::Icon::Send).text_color(ui::fg_on_accent)),
-            move || tr(i18n, "Send voice message", "发送语音").to_owned(),
+            move || i18n.t(Key::NshSendVoiceMessage).to_owned(),
         );
         let preview =
             computed(move || snapshot.with(|s| s.status == VoiceRecorderStatus::Recorded));
@@ -254,11 +254,11 @@ impl RecordingPanel {
                 .disabled(move || busy.get() || !preview.get())
                 .accessibility_label(move || {
                     Some(
-                        tr(
-                            i18n,
-                            if playing.get() { "Pause" } else { "Play" },
-                            if playing.get() { "暂停" } else { "播放" },
-                        )
+                        i18n.t(if playing.get() {
+                            Key::NshPause
+                        } else {
+                            Key::NshPlay
+                        })
                         .into(),
                     )
                 })
@@ -267,7 +267,7 @@ impl RecordingPanel {
                     when(playing, || ui::icon(ui::Icon::Pause))
                         .otherwise(|| ui::icon(ui::Icon::Play)),
                 ),
-            move || tr(i18n, "Listen to recording", "试听录音").to_owned(),
+            move || i18n.t(Key::NshListenToRecording).to_owned(),
         );
         view().px_4().pt_2().pb_3().child(
             frame()
@@ -300,7 +300,7 @@ impl RecordingPanel {
                                 .child(
                                     text(move || {
                                         if busy.get() {
-                                            tr(i18n, "Working…", "处理中…").to_owned()
+                                            i18n.t(Key::NshWorking).to_owned()
                                         } else {
                                             snapshot.with(|s| {
                                                 let total = time(s.duration_millis);
@@ -320,10 +320,9 @@ impl RecordingPanel {
                         .child(super::super::surface::primary_action(preview, send, stop)),
                 )
                 .child(when(failed, move || {
-                    view()
-                        .px_3()
-                        .pb_2()
-                        .child(ui::error_text(move || i18n.text(Key::CommandFailed)))
+                    view().px_3().pb_2().child(ui::error_text(move || {
+                        i18n.t(Key::NshCouldnTCompleteThisActionTryAgain)
+                    }))
                 })),
         )
     }
@@ -404,12 +403,7 @@ fn waveform(
                 .step(100.0)
                 .value(move || Some(nsh_base::SliderValue::Single(position.get() as f64)))
                 .disabled(move || busy.get() || !active.get())
-                .accessibility_label(move || {
-                    Some(
-                        i18n.tr("Recording playback position", "录音试听进度")
-                            .into(),
-                    )
-                })
+                .accessibility_label(move || Some(i18n.t(Key::NshRecordingPlaybackPosition).into()))
                 .on_change(move |value: &nsh_base::SliderValue| {
                     if let nsh_base::SliderValue::Single(value) = *value
                         && active.get()

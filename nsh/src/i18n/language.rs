@@ -1,5 +1,5 @@
 /// The catalog names follow Flutter's ARB files; public tags use BCP 47.
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub(super) enum Language {
     #[default]
     System,
@@ -90,5 +90,31 @@ impl Language {
             Self::ChineseTaiwan => "繁體中文（台灣）",
             Self::ChineseHongKong => "繁體中文（香港）",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Language;
+
+    #[test]
+    fn persisted_and_system_tags_resolve_to_the_existing_locale_choices() {
+        for (tag, expected) in [
+            ("in", "id"),
+            ("id-ID", "id"),
+            ("zh", "zh-CN"),
+            ("zh_Hans_CN", "zh-CN"),
+            ("zh-Hant", "zh-TW"),
+            ("zh-TW", "zh-TW"),
+            ("zh-Hant-HK", "zh-HK"),
+            ("zh-MO", "zh-HK"),
+            ("en-US", "en"),
+        ] {
+            assert_eq!(Language::parse(tag).value(), expected, "{tag}");
+            assert_eq!(Language::system(tag).value(), expected, "{tag}");
+        }
+        assert_eq!(Language::parse("system"), Language::System);
+        assert_eq!(Language::parse("unsupported"), Language::System);
+        assert_eq!(Language::system("unsupported"), Language::English);
     }
 }

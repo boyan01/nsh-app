@@ -191,24 +191,18 @@ fn sign_out_view(
     let i18n = i18n::current();
     ui::dialog_card(ui::DialogWidth::Regular)
         .child(ui::dialog_title(move || {
-            i18n.tr(
-                "Sign out and remove this account’s local data?",
-                "退出登录并移除此账号的本地数据？",
-            )
+            i18n.t(Key::NshSignOutAndRemoveThisAccountSLocalData)
         }))
         .child(
             parts::dialog_actions()
                 .child(
-                    ui::action(
-                        move || i18n.text(Key::Cancel),
-                        move || confirming.set(false),
-                    )
-                    .disabled(signing_out),
+                    ui::action(move || i18n.t(Key::Cancel), move || confirming.set(false))
+                        .disabled(signing_out),
                 )
                 .child(
                     ui::button(ui::ButtonTone::Danger, ui::ButtonSize::Regular)
                         .disabled(signing_out)
-                        .child(text(move || i18n.tr("Sign out", "退出登录")))
+                        .child(text(move || i18n.t(Key::NshSignOut)))
                         .on_press(confirm),
                 ),
         )
@@ -255,12 +249,7 @@ fn content<E: IntoElement>(
             )
             .child(when(refresh_failed, move || {
                 parts::failure(
-                    move || {
-                        i18n.tr(
-                            "Couldn’t refresh your profile. Your saved profile is shown.",
-                            "无法刷新个人资料，当前显示已保存的资料。",
-                        )
-                    },
+                    move || i18n.t(Key::NshCouldnTRefreshYourProfileYourSavedProfileIsShown),
                     move || refresh.update(|r| *r += 1),
                 )
             }))
@@ -272,9 +261,9 @@ fn content<E: IntoElement>(
                             .p_4()
                             .gap_4()
                             .child(
-                                parts::labeled(move || i18n.text(Key::Name)).child(
+                                parts::labeled(move || i18n.t(Key::Name)).child(
                                     ui::field()
-                                        .label(move || i18n.text(Key::Name))
+                                        .label(move || i18n.t(Key::Name))
                                         .value(move || name.get())
                                         .max_length(40)
                                         .readonly(move || feedback.busy.get() || signing_out.get())
@@ -285,9 +274,9 @@ fn content<E: IntoElement>(
                                 ),
                             )
                             .child(
-                                parts::labeled(move || i18n.tr("Biography", "个人简介")).child(
+                                parts::labeled(move || i18n.t(Key::Biography)).child(
                                     ui::textarea()
-                                        .label(move || i18n.tr("Biography", "个人简介"))
+                                        .label(move || i18n.t(Key::Biography))
                                         .min_h_20()
                                         .value(move || biography.get())
                                         .max_length(140)
@@ -308,15 +297,15 @@ fn content<E: IntoElement>(
                                     || draft.with(Option::is_none)
                                     || name.with(|n| n.trim().is_empty())
                             })
-                            .child(text(move || i18n.tr("Save", "保存")))
+                            .child(text(move || i18n.t(Key::Save)))
                             .on_press(save),
                     )
-                    .child(feedback.view(move || i18n.tr("Saving…", "正在保存…"))),
+                    .child(feedback.view(move || i18n.t(Key::NshSaving))),
             )
             .child(
                 ui::card()
                     .child(fact(
-                        move || i18n.tr("Phone number", "手机号码"),
+                        move || i18n.t(Key::NshPhoneNumber),
                         move || profile.with(|p| p.phone.clone()),
                     ))
                     .child(fact(
@@ -324,7 +313,7 @@ fn content<E: IntoElement>(
                         move || profile.with(|p| p.identity_number.clone()),
                     ))
                     .child(fact(
-                        move || i18n.tr("Joined", "加入时间"),
+                        move || i18n.t(Key::NshJoined),
                         move || {
                             profile.with(|p| {
                                 chrono::DateTime::parse_from_rfc3339(&p.created_at)
@@ -340,7 +329,7 @@ fn content<E: IntoElement>(
             )
             .child(
                 ui::card().child(
-                    ui::settings_row(None, move || i18n.tr("Sign out…", "退出登录…"))
+                    ui::settings_row(None, move || i18n.t(Key::NshSignOutMessage))
                         .text_color(ui::danger)
                         .disabled(move || feedback.busy.get() || signing_out.get())
                         .on_press(move || confirming.set(true)),

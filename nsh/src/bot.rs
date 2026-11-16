@@ -1,4 +1,5 @@
 //! Bot-window presentation. Signing and bot identity remain account business rules.
+use crate::i18n::Key;
 mod window;
 
 use std::sync::{
@@ -503,19 +504,16 @@ pub(crate) fn ending_surface(windows: BotWindows) -> impl IntoElement {
         .child(
             text(move || {
                 if windows.purge_failed.get() {
-                    i18n.tr(
-                        "Couldn’t clear browser data. Try again.",
-                        "无法清除浏览器数据，请重试。",
-                    )
+                    i18n.t(Key::NshCouldnTClearBrowserDataTryAgain)
                 } else {
-                    i18n.tr("Signing out…", "正在退出…")
+                    i18n.t(Key::NshSigningOut)
                 }
             })
             .text_role(ui::TextRole::Headline),
         )
         .child(when(windows.purge_failed, move || {
             ui::link(
-                move || i18n.tr("Retry", "重试"),
+                move || i18n.t(Key::Retry),
                 move || {
                     if windows.ending.get_untracked() && windows.purge_failed.get_untracked() {
                         windows.purge_failed.set(false);
@@ -535,19 +533,16 @@ pub(crate) fn surface(windows: BotWindows) -> impl IntoElement {
         nsh_core::element::desktop::main_window().focus();
         let answer = alert_dialog()
             .title(if NATIVE_WINDOWS {
-                i18n.tr("Couldn’t open the page", "无法打开页面")
+                i18n.t(Key::NshCouldnTOpenThePage)
             } else {
-                i18n.tr("Bot windows unavailable", "无法打开机器人窗口")
+                i18n.t(Key::NshBotWindowsUnavailable)
             })
             .description(if NATIVE_WINDOWS {
-                i18n.tr(
-                    "Check your connection and try again.",
-                    "请检查网络连接后重试。",
-                )
+                i18n.t(Key::NshCheckYourConnectionAndTryAgain)
             } else {
-                i18n.tr("Open this bot on your phone.", "请在手机端打开此机器人。")
+                i18n.t(Key::NshOpenThisBotOnYourPhone)
             })
-            .action("ok", i18n.tr("OK", "好"))
+            .action("ok", i18n.t(Key::NshOK))
             .show();
         spawn(async move {
             let _ = answer.await;
@@ -560,10 +555,10 @@ pub(crate) fn surface(windows: BotWindows) -> impl IntoElement {
         };
         nsh_core::element::desktop::main_window().focus();
         let answer = alert_dialog()
-            .title(i18n.tr("Open another app?", "打开其他应用？"))
+            .title(i18n.t(Key::NshOpenAnotherApp))
             .description(url.clone())
-            .cancel("cancel", i18n.tr("Cancel", "取消"))
-            .action("open", i18n.tr("Open", "打开"))
+            .cancel("cancel", i18n.t(Key::Cancel))
+            .action("open", i18n.t(Key::Open))
             .show();
         spawn(async move {
             let result = answer.await;

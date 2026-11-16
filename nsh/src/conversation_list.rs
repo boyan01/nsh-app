@@ -101,7 +101,9 @@ fn resolve_mentions(
             cells.drafts.with(|drafts| {
                 rows.iter()
                     .filter(|row| {
-                        row.last_message.contains('@') || draft_of(row, drafts).contains('@')
+                        row.last_message.contains('@')
+                            || row.last_message.contains(r"\u0040")
+                            || draft_of(row, drafts).contains('@')
                     })
                     .map(|row| (row.conversation_id.clone(), cells.source(row, drafts)))
                     .filter(|(_, text)| text.contains('@'))
@@ -264,10 +266,16 @@ impl Cells {
         let delivery = computed(move || {
             read(row, |row| {
                 self.account_id
-                    .with(|id| shows_delivery(row, id))
+                    .with(|id| {
+                        presentation::shows_delivery(
+                            row.last_message_sender_id.as_deref(),
+                            row.last_message_category.as_deref(),
+                            id,
+                            drafted.get(),
+                        )
+                    })
                     .then(|| row.last_message_status.clone().unwrap_or_default())
             })
-            .filter(|_| !drafted.get())
         });
         view()
             .flex_row()
@@ -293,6 +301,15 @@ impl Cells {
                         move || read(row, |row| row.expire_in > 0),
                         || ui::icon(ui::Icon::Disappearing).text_color(ui::fg_secondary),
                     ))
+                    .child(appearance::preview_icon_reactive(computed(move || {
+                        read(row, |row| {
+                            presentation::preview_icon(
+                                row.last_message_status.as_deref(),
+                                row.last_message_category.as_deref().unwrap_or_default(),
+                                drafted.get(),
+                            )
+                        })
+                    })))
                     .child(
                         text(move || read(row, |row| self.preview(row)))
                             .flex_1()
@@ -368,24 +385,12 @@ fn read<T: Default>(row: Row, value: impl FnOnce(&ConversationListData) -> T) ->
 }
 
 fn draft_of<'a>(row: &'a ConversationListData, drafts: &'a HashMap<String, String>) -> &'a str {
-    if row.status == 3 {
-        return "";
-    }
-    drafts
-        .get(&row.conversation_id)
-        .map_or(row.draft.as_str(), String::as_str)
-}
-
-fn shows_delivery(row: &ConversationListData, account_id: &str) -> bool {
-    row.last_message_sender_id.as_deref() == Some(account_id)
-        && !row
-            .last_message_category
-            .as_deref()
-            .is_some_and(|category| {
-                category.starts_with("SYSTEM_")
-                    || category == "MESSAGE_RECALL"
-                    || category == "MESSAGE_PIN"
-            })
+    presentation::active_draft(
+        row.status,
+        drafts
+            .get(&row.conversation_id)
+            .map_or(row.draft.as_str(), String::as_str),
+    )
 }
 
 #[cfg(debug_assertions)]

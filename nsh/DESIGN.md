@@ -27,6 +27,7 @@ Conversation-column motion inventory:
 | Change | Tool and tokens | Reduced motion |
 | --- | --- | --- |
 | Header buttons, unread selection, clear command and row hover/selection | Existing `ui::round_button` / `ui::list_row` state transitions, `FEEDBACK_MS`, `press_scale` | Immediate state styles |
+| Subtitle category and preview text on recycled conversation/search cells; drafts on conversation-list cells | Immediate source/text rebinding in one retained SVG slot; no scroll-entry animation | Same |
 | Search text, IME composition, clear affordance, results and loading/error/empty feedback | Immediate text and content updates; no entry animation on recycled cells | Same |
 | Connection notice arrives/leaves | Existing `Presence::fade`, `PANEL_WIDTH` layout animation; measured inset follows the notice | Immediate visibility and inset |
 | Account-health notice changes | Immediate exceptional status feedback; measured inset follows its wrapped height | Same |

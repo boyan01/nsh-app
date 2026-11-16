@@ -1,16 +1,40 @@
 mod datetime;
 pub(crate) mod message_window;
+mod preview;
 pub(crate) mod system_message;
+pub(crate) use preview::{PreviewIcon, active_draft, preview_icon, shows_delivery};
 
 use crate::i18n::{I18n, Key};
 use chrono::{DateTime, Local};
-use mixin_desktop_api::ConversationListData;
-use nsh_base::text_view::Parser;
+use mixin_desktop_api::{ConversationListData, MessageListView};
 
 pub(crate) fn conversation_preview(
     i18n: I18n,
     row: &ConversationListData,
     current_user_id: &str,
+) -> String {
+    let sender_id = row.last_message_sender_id.as_deref().unwrap_or_default();
+    conversation_preview_with_sender(
+        i18n,
+        row,
+        current_user_id,
+        row.category == "GROUP" || (!sender_id.is_empty() && sender_id != row.owner_id),
+    )
+}
+
+pub(crate) fn search_conversation_preview(
+    i18n: I18n,
+    row: &ConversationListData,
+    current_user_id: &str,
+) -> String {
+    conversation_preview_with_sender(i18n, row, current_user_id, row.category == "GROUP")
+}
+
+fn conversation_preview_with_sender(
+    i18n: I18n,
+    row: &ConversationListData,
+    current_user_id: &str,
+    include_sender: bool,
 ) -> String {
     let Some(category) = row.last_message_category.as_deref() else {
         return String::new();
@@ -42,57 +66,73 @@ pub(crate) fn conversation_preview(
         );
     }
     if category == "MESSAGE_PIN" {
-        let pin = serde_json::from_str::<serde_json::Value>(&row.last_message).ok();
-        let message = pin
-            .as_ref()
-            .map(|pin| {
-                preview(
-                    i18n,
-                    pin["category"].as_str().unwrap_or_default(),
-                    pin["content"].as_str().unwrap_or_default(),
-                )
-            })
-            .filter(|message| !message.is_empty())
-            .unwrap_or_else(|| i18n.tr("a message", "一条消息").into());
-        return i18n.format(
-            "{sender} pinned {message}",
-            "{sender}置顶了{message}",
-            &[("sender", &sender), ("message", &message)],
+        return pinned_preview(
+            i18n,
+            row.last_message_sender_name.as_deref().unwrap_or_default(),
+            &row.last_message,
         );
     }
-    let body = if row.last_message_status.as_deref() == Some("FAILED") {
-        i18n.tr("Waiting for this message.", "正在等待此消息。")
-            .into()
-    } else if row.last_message_status.as_deref() == Some("UNKNOWN") {
-        i18n.tr("This message type is not supported.", "暂不支持此类消息。")
-            .into()
-    } else if category == "MESSAGE_RECALL" {
-        if !sender_id.is_empty() && sender_id == current_user_id {
-            i18n.tr("You deleted this message", "你删除了这条消息")
-                .into()
-        } else {
-            i18n.tr("This message was deleted", "这条消息已被删除")
-                .into()
-        }
-    } else if category.ends_with("_POST") {
-        let source = row
-            .last_message
-            .lines()
-            .take(10)
-            .flat_map(|line| line.chars().chain(std::iter::once('\n')))
-            .take(1024)
-            .collect::<String>();
-        Parser::new()
-            .markdown(&source)
-            .plain_text()
-            .split_whitespace()
-            .collect::<Vec<_>>()
-            .join(" ")
+    let body = message_preview(
+        i18n,
+        category,
+        &row.last_message,
+        row.last_message_status.as_deref(),
+        !sender_id.is_empty() && sender_id == current_user_id,
+    );
+    if !body.is_empty() && include_sender {
+        format!("{sender}: {body}")
     } else {
-        preview(i18n, category, row.last_message.trim())
-    };
+        body
+    }
+}
+
+fn pinned_preview(i18n: I18n, sender: &str, content: &str) -> String {
+    let message = preview::pin_message(|en, zh| i18n.tr(en, zh), content)
+        .unwrap_or_else(|| i18n.tr("a message", "一条消息").into());
+    i18n.format(
+        "{sender} pinned {message}",
+        "{sender}置顶了{message}",
+        &[("sender", sender), ("message", &message)],
+    )
+}
+
+pub(crate) fn search_message_preview(
+    i18n: I18n,
+    row: &MessageListView,
+    current_user_id: &str,
+) -> String {
+    let sender = system_message::actor(i18n, &row.sender_id, &row.sender_name, current_user_id);
+    if row.category == "SYSTEM_CONVERSATION" {
+        let participant = system_message::actor(
+            i18n,
+            row.participant_id.as_deref().unwrap_or_default(),
+            row.participant_full_name.as_deref().unwrap_or_default(),
+            current_user_id,
+        );
+        return system_message::text(
+            i18n,
+            &sender,
+            &participant,
+            row.action.as_deref(),
+            &row.content,
+        );
+    }
+    if row.category == "MESSAGE_PIN" {
+        return pinned_preview(i18n, &row.sender_name, &row.content);
+    }
+    let body = message_preview(
+        i18n,
+        &row.category,
+        &row.content,
+        Some(&row.status),
+        row.sender_id == current_user_id,
+    );
     if !body.is_empty()
-        && (row.category == "GROUP" || (!sender_id.is_empty() && sender_id != row.owner_id))
+        && (row.conversation_category.as_deref() == Some("GROUP")
+            || row
+                .conversation_owner_id
+                .as_deref()
+                .is_some_and(|id| id != row.sender_id))
     {
         format!("{sender}: {body}")
     } else {
@@ -128,6 +168,22 @@ pub(crate) fn preview(i18n: I18n, category: &str, content: &str) -> String {
         Key::Message
     };
     i18n.text(key).to_owned()
+}
+
+pub(crate) fn message_preview(
+    i18n: I18n,
+    category: &str,
+    content: &str,
+    status: Option<&str>,
+    current_user: bool,
+) -> String {
+    preview::message(
+        |en, zh| i18n.tr(en, zh),
+        category,
+        content,
+        status,
+        current_user,
+    )
 }
 
 pub(crate) fn time(i18n: I18n, millis: i64) -> String {

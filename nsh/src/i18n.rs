@@ -34,6 +34,13 @@ impl I18n {
             failed: signal(false),
         }
     }
+    #[cfg(test)]
+    pub(crate) fn for_test(language: &str) -> Self {
+        let i18n = Self::new();
+        i18n.language.set(Language::parse(language));
+        i18n
+    }
+
     pub(crate) async fn load(&self, settings: SettingsClient) {
         let read = settings.clone();
         match runtime::run(async move { read.setting(LANGUAGE_SETTING.into()).await }).await {

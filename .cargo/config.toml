@@ -50,3 +50,10 @@ opt-level = 3
 # misaligned Mach-O LINKEDIT string pool that macOS refuses to load.
 [profile.dev.package.quickjs-jit-macro]
 strip = "none"
+
+# Release-level optimization without debug assertions or LTO, keeping symbols
+# and line tables for `sample` / Instruments profiling.
+[profile.profiling]
+inherits = "release"
+debug = "line-tables-only"
+strip = "none"

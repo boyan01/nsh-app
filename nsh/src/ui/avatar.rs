@@ -160,8 +160,15 @@ pub(crate) fn conversation_avatar(
             (row.owner_id, row.name, row.avatar_url, avatars)
         })
     });
-    // A list builds one per row: the avatar is its own frame, and a puzzle's
-    // frame is its row of tiles.
+    // A recycled cell changes identity, not structure. Keep the avatar's native
+    // views and bind their data; only a different puzzle shape needs rebuilding.
+    let shape = computed(move || {
+        identity.with(|identity| {
+            identity
+                .as_ref()
+                .map(|(_, _, _, avatars)| avatars.as_ref().map_or(0, Vec::len))
+        })
+    });
     let frame = move || {
         view()
             .size(size.points())
@@ -170,22 +177,28 @@ pub(crate) fn conversation_avatar(
             .overflow_hidden()
     };
     dynamic(move || {
-        let identity = identity.get();
-        untracked(|| match identity {
+        let shape = shape.get();
+        untracked(|| match shape {
             None => frame().into_element(),
-            Some((id, name, url, None)) => {
-                let id = stored(id);
-                let name = stored(name);
-                let url = stored(url);
-                avatar_view(
-                    move || id.with(|s| s.clone()),
-                    move || name.with(|s| s.clone().into()),
-                    move || url.with(|s| s.clone()),
-                    size,
-                )
-                .into_element()
-            }
-            Some((_, _, _, Some(avatars))) => puzzle_in(frame(), avatars).into_element(),
+            Some(0) => avatar_view(
+                move || identity.with(|v| v.as_ref().map(|v| v.0.clone()).unwrap_or_default()),
+                move || {
+                    identity.with(|v| v.as_ref().map(|v| v.1.clone().into()).unwrap_or_default())
+                },
+                move || identity.with(|v| v.as_ref().map(|v| v.2.clone()).unwrap_or_default()),
+                size,
+            )
+            .into_element(),
+            Some(count) => puzzle_tiles(frame(), count, move |at| {
+                identity.with(|identity| {
+                    identity
+                        .as_ref()
+                        .and_then(|v| v.3.as_ref())
+                        .and_then(|avatars| avatars.get(at))
+                        .cloned()
+                })
+            })
+            .into_element(),
         })
     })
 }
@@ -197,14 +210,30 @@ pub(crate) fn avatar_puzzle(avatars: Vec<GroupAvatar>) -> View {
 
 /// The tiles in `frame`, laid out as Flutter's puzzle.
 fn puzzle_in(frame: View, avatars: Vec<GroupAvatar>) -> View {
+    let count = avatars.len();
+    let avatars = stored(avatars);
+    puzzle_tiles(frame, count, move |at| {
+        avatars.with(|avatars| avatars.get(at).cloned())
+    })
+}
+
+fn puzzle_tiles(
+    frame: View,
+    count: usize,
+    person: impl Fn(usize) -> Option<GroupAvatar> + Copy + 'static,
+) -> View {
     let tile = |at: usize| {
-        let id = stored(avatars[at].user_id.clone());
-        let name = stored(avatars[at].name.clone());
-        let url = stored(avatars[at].avatar_url.clone());
+        let person = computed(move || person(at));
         avatar_view(
-            move || id.with(|s| s.clone()),
-            move || name.with(|s| s.clone().into()),
-            move || url.with(|s| s.clone()),
+            move || person.with(|v| v.as_ref().map(|v| v.user_id.clone()).unwrap_or_default()),
+            move || {
+                person.with(|v| {
+                    v.as_ref()
+                        .map(|v| v.name.clone().into())
+                        .unwrap_or_default()
+                })
+            },
+            move || person.with(|v| v.as_ref().map(|v| v.avatar_url.clone()).unwrap_or_default()),
             AvatarSize::Small,
         )
         .size_full()
@@ -221,7 +250,7 @@ fn puzzle_in(frame: View, avatars: Vec<GroupAvatar>) -> View {
             .child(tile(first))
             .child(tile(first + 1))
     };
-    match avatars.len() {
+    match count {
         1 => frame.child(tile(0)),
         2 => frame.flex_row().child(tile(0)).child(tile(1)),
         3 => frame.flex_row().child(tile(0)).child(column(1)),

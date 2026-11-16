@@ -24,7 +24,7 @@ struct Cells {
     i18n: I18n,
     account_id: Stored<String>,
     drafts: Signal<HashMap<String, String>>,
-    selected: Signal<Option<ConversationListData>>,
+    selected_id: Memo<Option<String>>,
     previews: Signal<HashMap<String, (String, String)>>,
     navigation: ChatNavigation,
     /// Row menus; a detached preview has no account to run them.
@@ -42,7 +42,9 @@ pub(crate) fn screen(
         i18n: i18n::current(),
         account_id: stored(account.account_id()),
         drafts,
-        selected,
+        selected_id: computed(move || {
+            selected.with(|row| row.as_ref().map(|row| row.conversation_id.clone()))
+        }),
         previews: signal(HashMap::new()),
         navigation: use_context().expect("Home provides chat navigation"),
         commands: Some(use_context().expect("Home provides conversation commands")),
@@ -71,7 +73,9 @@ pub(crate) fn detached(
         i18n: i18n::current(),
         account_id: stored(account_id.to_owned()),
         drafts: signal(HashMap::new()),
-        selected,
+        selected_id: computed(move || {
+            selected.with(|row| row.as_ref().map(|row| row.conversation_id.clone()))
+        }),
         previews: signal(HashMap::new()),
         navigation: use_context().expect("the preview provides chat navigation"),
         commands: None,
@@ -150,15 +154,19 @@ impl Cells {
     }
 
     fn cell(self, row: Row) -> impl IntoElement {
-        let selected = move || {
-            let id = read(row, |row| row.conversation_id.clone());
-            self.selected
-                .with(|row| row.as_ref().is_some_and(|row| row.conversation_id == id))
-        };
+        let selected = computed(move || {
+            row.with(|row| {
+                self.selected_id.with(|selected| {
+                    row.as_ref().is_some_and(|row| {
+                        selected.as_deref() == Some(row.conversation_id.as_str())
+                    })
+                })
+            })
+        });
         let content = ui::list_row()
             .selected(selected)
             .on_press(move || {
-                if selected() {
+                if selected.get_untracked() {
                     // The open chat again: back to its newest message.
                     self.navigation.show_latest();
                 } else if let Some(row) = row.get_untracked() {
@@ -187,7 +195,7 @@ impl Cells {
 
     fn title_line(self, row: Row) -> impl IntoElement {
         let i18n = self.i18n;
-        let badge = computed(move || {
+        let identity = computed(move || {
             read(row, |row| {
                 Some((
                     row.category == "GROUP",
@@ -195,6 +203,20 @@ impl Cells {
                     row.is_bot,
                     row.membership.clone(),
                 ))
+            })
+        });
+        let badge = computed(move || {
+            identity.with(|identity| {
+                identity
+                    .as_ref()
+                    .and_then(|(group, verified, bot, membership)| {
+                        appearance::IdentityBadgeKind::from_identity(
+                            *group,
+                            *verified,
+                            *bot,
+                            membership.as_deref(),
+                        )
+                    })
             })
         });
         view()
@@ -208,15 +230,7 @@ impl Cells {
                     .number_of_lines(1)
                     .text_role(ui::TextRole::Label),
             )
-            .child(dynamic(move || {
-                let badge = badge.get();
-                untracked(|| match badge {
-                    Some((group, verified, bot, membership)) => {
-                        appearance::identity_badge(group, verified, bot, membership.as_deref())
-                    }
-                    None => view().hidden().into_element(),
-                })
-            }))
+            .child(appearance::identity_badge_reactive(badge))
             .child(when(
                 move || read(row, |row| row.is_scam),
                 move || {
@@ -268,13 +282,7 @@ impl Cells {
                                 .text_color(ui::danger)
                         },
                     ))
-                    .child(dynamic(move || {
-                        let status = delivery.get();
-                        untracked(|| match status {
-                            Some(status) => appearance::delivery_icon(&status),
-                            None => view().hidden().into_element(),
-                        })
-                    }))
+                    .child(appearance::delivery_icon_reactive(delivery))
                     .child(when(
                         move || read(row, |row| row.expire_in > 0),
                         || ui::icon(ui::Icon::Disappearing).text_color(ui::fg_secondary),
@@ -307,15 +315,20 @@ impl Cells {
             .child(when(
                 move || read(row, |row| row.unseen_count <= 0),
                 move || {
+                    let flags = computed(move || read(row, |row| (row.is_muted, row.is_pinned)));
                     view()
                         .flex_row()
                         .gap_1()
                         .child(when(
-                            move || read(row, |row| row.is_muted),
-                            || appearance::status_icon(false),
+                            move || flags.with(|(muted, pinned)| *muted || *pinned),
+                            move || {
+                                appearance::status_icon_reactive(move || {
+                                    flags.with(|(muted, _)| !*muted)
+                                })
+                            },
                         ))
                         .child(when(
-                            move || read(row, |row| row.is_pinned),
+                            move || flags.with(|(muted, pinned)| *muted && *pinned),
                             || appearance::status_icon(true),
                         ))
                 },

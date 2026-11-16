@@ -1,6 +1,9 @@
 //! Session-owned presentation of the authoritative desktop chat preferences.
 mod badges;
-pub(crate) use badges::{delivery_icon, delivery_icon_on_media, identity_badge, status_icon};
+pub(crate) use badges::{
+    IdentityBadgeKind, delivery_icon, delivery_icon_on_media, delivery_icon_reactive,
+    identity_badge, identity_badge_reactive, status_icon, status_icon_reactive,
+};
 
 use futures::StreamExt as _;
 use mixin_desktop_api::SettingsClient;

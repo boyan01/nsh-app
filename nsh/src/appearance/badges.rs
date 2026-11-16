@@ -15,24 +15,54 @@ use crate::{
     ui,
 };
 
-pub(crate) fn identity_badge(
-    group: bool,
-    verified: bool,
-    bot: bool,
-    membership: Option<&str>,
-) -> AnyElement {
-    if group {
-        return svg(ImageSrc::svg_markup(include_str!(
-            "../../assets/badges/group_badge.svg"
-        )))
-        .size_3p5()
-        .text_color(ui::fg_secondary)
-        .label(tr("Group", "群组"))
-        .into_element();
+/// The displayed identity, independent of the recycled conversation DTO.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum IdentityBadgeKind {
+    Group,
+    Basic,
+    Standard,
+    Premium,
+    Verified,
+    Bot,
+}
+
+impl IdentityBadgeKind {
+    pub(crate) fn from_identity(
+        group: bool,
+        verified: bool,
+        bot: bool,
+        membership: Option<&str>,
+    ) -> Option<Self> {
+        if group {
+            return Some(Self::Group);
+        }
+        if let Some(plan) = active_membership_plan(membership) {
+            return match plan {
+                "BASIC" => Some(Self::Basic),
+                "STANDARD" => Some(Self::Standard),
+                "PREMIUM" => Some(Self::Premium),
+                _ => None,
+            };
+        }
+        if verified {
+            Some(Self::Verified)
+        } else if bot {
+            Some(Self::Bot)
+        } else {
+            None
+        }
     }
-    if let Some(plan) = active_membership_plan(membership) {
-        let (source, label) = match plan {
-            "BASIC" => {
+
+    fn raster(self) -> bool {
+        matches!(self, Self::Basic | Self::Standard | Self::Premium)
+    }
+
+    fn source(self) -> ImageSrc {
+        let markup = match self {
+            Self::Group => include_str!("../../assets/badges/group_badge.svg"),
+            Self::Verified => include_str!("../../assets/badges/verified.svg"),
+            Self::Bot => include_str!("../../assets/badges/bot_fill.svg"),
+            Self::Basic => {
                 static SOURCE: LazyLock<SharedString> = LazyLock::new(|| {
                     format!(
                         "data:image/png;base64,{}",
@@ -40,9 +70,9 @@ pub(crate) fn identity_badge(
                     )
                     .into()
                 });
-                (SOURCE.clone(), tr("Basic member", "基础会员"))
+                return SOURCE.clone().into();
             }
-            "STANDARD" => {
+            Self::Standard => {
                 static SOURCE: LazyLock<SharedString> = LazyLock::new(|| {
                     format!(
                         "data:image/png;base64,{}",
@@ -50,9 +80,9 @@ pub(crate) fn identity_badge(
                     )
                     .into()
                 });
-                (SOURCE.clone(), tr("Standard member", "标准会员"))
+                return SOURCE.clone().into();
             }
-            "PREMIUM" => {
+            Self::Premium => {
                 static SOURCE: LazyLock<SharedString> = LazyLock::new(|| {
                     format!(
                         "data:image/gif;base64,{}",
@@ -60,51 +90,122 @@ pub(crate) fn identity_badge(
                     )
                     .into()
                 });
-                (SOURCE.clone(), tr("Premium member", "高级会员"))
+                return SOURCE.clone().into();
             }
-            _ => return view().hidden().into_element(),
         };
-        return image(source)
+        ImageSrc::svg_markup(markup)
+    }
+
+    fn label(self, i18n: i18n::I18n) -> &'static str {
+        match self {
+            Self::Group => i18n.tr("Group", "群组"),
+            Self::Basic => i18n.tr("Basic member", "基础会员"),
+            Self::Standard => i18n.tr("Standard member", "标准会员"),
+            Self::Premium => i18n.tr("Premium member", "高级会员"),
+            Self::Verified => i18n.tr("Verified", "已认证"),
+            Self::Bot => i18n.tr("Bot", "机器人"),
+        }
+    }
+
+    fn size(self) -> Points {
+        // The existing size-3 and size-3.5 identity variants.
+        px(if matches!(self, Self::Verified | Self::Bot) {
+            12.0
+        } else {
+            14.0
+        })
+    }
+}
+
+pub(crate) fn identity_badge(
+    group: bool,
+    verified: bool,
+    bot: bool,
+    membership: Option<&str>,
+) -> AnyElement {
+    let Some(badge) = IdentityBadgeKind::from_identity(group, verified, bot, membership) else {
+        return view().hidden().into_element();
+    };
+    let label = badge.label(i18n::current());
+    if badge.raster() {
+        image(badge.source())
             .size_3p5()
             .object_fit(ResizeMode::Contain)
             .label(label)
-            .into_element();
+            .into_element()
+    } else {
+        svg(badge.source())
+            .size(badge.size())
+            .label(label)
+            .when(badge == IdentityBadgeKind::Group, |s| {
+                s.text_color(ui::fg_secondary)
+            })
+            .into_element()
     }
-    if verified {
-        return svg(ImageSrc::svg_markup(include_str!(
-            "../../assets/badges/verified.svg"
-        )))
-        .size_3()
-        .label(tr("Verified", "已认证"))
-        .into_element();
-    }
-    if bot {
-        return svg(ImageSrc::svg_markup(include_str!(
-            "../../assets/badges/bot_fill.svg"
-        )))
-        .size_3()
-        .label(tr("Bot", "机器人"))
-        .into_element();
-    }
-    view().hidden().into_element()
+}
+
+/// Keeps one native glyph or image while a cell's identity changes.
+pub(crate) fn identity_badge_reactive(badge: Memo<Option<IdentityBadgeKind>>) -> AnyElement {
+    let i18n = i18n::current();
+    let shape = computed(move || badge.get().map(IdentityBadgeKind::raster));
+    let source = move || {
+        badge
+            .get()
+            .map(IdentityBadgeKind::source)
+            .unwrap_or_else(|| ImageSrc::from(""))
+    };
+    let label = move || badge.get().map_or("", |badge| badge.label(i18n));
+    dynamic(move || {
+        let shape = shape.get();
+        untracked(|| match shape {
+            None => None,
+            Some(true) => Some(
+                image(source)
+                    .size_3p5()
+                    .object_fit(ResizeMode::Contain)
+                    .label(label)
+                    .into_element(),
+            ),
+            Some(false) => Some(
+                svg(source)
+                    .size(move || badge.get().map_or(Points::ZERO, IdentityBadgeKind::size))
+                    .text_color(move || {
+                        if badge.get() == Some(IdentityBadgeKind::Group) {
+                            ui::fg_secondary()
+                        } else {
+                            ui::fg_primary()
+                        }
+                    })
+                    .label(label)
+                    .into_element(),
+            ),
+        })
+    })
 }
 
 pub(crate) fn status_icon(pinned: bool) -> impl IntoElement {
-    let (asset, label) = if pinned {
-        (
-            include_str!("../../assets/badges/pin.svg"),
-            tr("Pinned", "已置顶"),
-        )
-    } else {
-        (
-            include_str!("../../assets/badges/mute.svg"),
-            tr("Muted", "已静音"),
-        )
-    };
-    svg(ImageSrc::svg_markup(asset))
-        .size_3p5()
-        .label(label)
-        .text_color(ui::fg_secondary)
+    status_icon_reactive(move || pinned)
+}
+
+/// A single status slot can change between mute and pin without replacing it.
+pub(crate) fn status_icon_reactive(pinned: impl Fn() -> bool + Copy + 'static) -> impl IntoElement {
+    let i18n = i18n::current();
+    svg(move || {
+        ImageSrc::svg_markup(if pinned() {
+            include_str!("../../assets/badges/pin.svg")
+        } else {
+            include_str!("../../assets/badges/mute.svg")
+        })
+    })
+    .size_3p5()
+    .label(move || {
+        if pinned() {
+            i18n.tr("Pinned", "已置顶")
+        } else {
+            i18n.tr("Muted", "已静音")
+        }
+    })
+    .text_color(ui::fg_secondary)
 }
 
 /// Delivery icons preserve the reference geometry; the status remains accessible.
@@ -125,47 +226,107 @@ fn quiet_foreground(on_media: bool) -> AdaptiveColor {
     }
 }
 
-fn delivery(status: &str, on_media: bool) -> AnyElement {
-    let i18n = i18n::current();
-    let (asset, label) = match status {
-        "READ" => (
-            include_str!("../../assets/badges/read.svg"),
-            i18n.text(Key::Read),
-        ),
-        "DELIVERED" => (
-            include_str!("../../assets/badges/delivered.svg"),
-            tr("Delivered", "已送达"),
-        ),
-        "SENT" => (
-            include_str!("../../assets/badges/sent.svg"),
-            i18n.text(Key::Sent),
-        ),
-        "FAILED" => {
-            return svg(ImageSrc::svg_markup(include_str!(
-                "../../assets/message/warning.svg"
-            )))
-            .size(ui::icon_xs())
-            .flex_shrink_0()
-            .label(move || i18n.text(Key::Failed))
-            .text_color(ui::danger)
-            .into_element();
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DeliveryGlyph {
+    Read,
+    Delivered,
+    Sent,
+    Failed,
+}
+
+impl DeliveryGlyph {
+    fn from_status(status: &str) -> Option<Self> {
+        match status {
+            "READ" => Some(Self::Read),
+            "DELIVERED" => Some(Self::Delivered),
+            "SENT" => Some(Self::Sent),
+            "FAILED" => Some(Self::Failed),
+            _ => None,
         }
-        _ => return sending_clock(on_media).into_element(),
-    };
-    let read = status == "READ";
-    svg(ImageSrc::svg_markup(asset))
-        .w(ui::icon_xs())
-        .h(ui::message_status_icon())
-        .flex_shrink_0()
-        .label(label)
-        .text_color(move || {
-            if read {
-                ui::accent()
-            } else {
-                quiet_foreground(on_media)
-            }
+    }
+
+    fn source(self) -> ImageSrc {
+        ImageSrc::svg_markup(match self {
+            Self::Read => include_str!("../../assets/badges/read.svg"),
+            Self::Delivered => include_str!("../../assets/badges/delivered.svg"),
+            Self::Sent => include_str!("../../assets/badges/sent.svg"),
+            Self::Failed => include_str!("../../assets/message/warning.svg"),
         })
+    }
+
+    fn label(self, i18n: i18n::I18n) -> &'static str {
+        match self {
+            Self::Read => i18n.text(Key::Read),
+            Self::Delivered => i18n.tr("Delivered", "已送达"),
+            Self::Sent => i18n.text(Key::Sent),
+            Self::Failed => i18n.text(Key::Failed),
+        }
+    }
+
+    fn height(self) -> Points {
+        if self == Self::Failed {
+            ui::icon_xs()
+        } else {
+            ui::message_status_icon()
+        }
+    }
+
+    fn color(self, on_media: bool) -> AdaptiveColor {
+        match self {
+            Self::Read => ui::accent(),
+            Self::Failed => ui::danger(),
+            _ => quiet_foreground(on_media),
+        }
+    }
+}
+
+fn delivery(status: &str, on_media: bool) -> AnyElement {
+    let Some(glyph) = DeliveryGlyph::from_status(status) else {
+        return sending_clock(on_media).into_element();
+    };
+    let i18n = i18n::current();
+    svg(glyph.source())
+        .w(ui::icon_xs())
+        .h(glyph.height())
+        .flex_shrink_0()
+        .label(move || glyph.label(i18n))
+        .text_color(move || glyph.color(on_media))
         .into_element()
+}
+
+/// Reuses the glyph for status changes; a sending branch owns and stops its clock.
+pub(crate) fn delivery_icon_reactive(status: Memo<Option<String>>) -> AnyElement {
+    let i18n = i18n::current();
+    let glyph = computed(move || {
+        status.with(|status| status.as_deref().and_then(DeliveryGlyph::from_status))
+    });
+    let shape =
+        computed(move || status.with(|status| status.as_ref().map(|_| glyph.get().is_some())));
+    dynamic(move || {
+        let shape = shape.get();
+        untracked(|| match shape {
+            None => None,
+            Some(false) => Some(sending_clock(false).into_element()),
+            Some(true) => Some(
+                svg(move || {
+                    glyph
+                        .get()
+                        .map(DeliveryGlyph::source)
+                        .unwrap_or_else(|| ImageSrc::from(""))
+                })
+                .w(ui::icon_xs())
+                .h(move || glyph.get().map_or(Points::ZERO, DeliveryGlyph::height))
+                .flex_shrink_0()
+                .label(move || glyph.get().map_or("", |glyph| glyph.label(i18n)))
+                .text_color(move || {
+                    glyph
+                        .get()
+                        .map_or_else(ui::fg_secondary, |glyph| glyph.color(false))
+                })
+                .into_element(),
+            ),
+        })
+    })
 }
 
 /// The clock of a message on its way. Its hands turn as in the reference client: the

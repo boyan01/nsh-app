@@ -542,7 +542,7 @@ pub(crate) fn surface(windows: BotWindows) -> impl IntoElement {
             } else {
                 i18n.t(Key::NshOpenThisBotOnYourPhone)
             })
-            .action("ok", i18n.t(Key::NshOK))
+            .cancel("ok", i18n.t(Key::NshOK))
             .show();
         spawn(async move {
             let _ = answer.await;

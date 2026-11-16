@@ -76,11 +76,10 @@ impl Voice {
                         move || {
                             // Only capture intercepts outside interaction. The native
                             // surface keeps pointer/keyboard focus out of the composer.
-                            nsh_base::dialog()
+                            ui::modal(move || voice.request_discard())
                                 .animation(ModalAnimation::None)
                                 .close_on_escape(false)
                                 .close_on_backdrop_press(false)
-                                .on_cancel(move || voice.request_discard())
                                 .flex_1()
                                 .child(
                                     view()

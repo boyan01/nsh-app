@@ -21,7 +21,7 @@ pub(crate) fn surface(account: Arc<AccountClient>, open: Signal<bool>) -> impl I
                 let _ = nsh_base::alert_dialog()
                     .title(t(Key::NshCouldnTOpenConversation))
                     .description(t(Key::NshCheckYourConnectionAndTryAgain))
-                    .action("close", t(Key::Close))
+                    .cancel("close", t(Key::Close))
                     .show()
                     .await;
             });
@@ -75,11 +75,10 @@ fn content(
     palette.load();
     palette.bind_keys(control);
     let close = move || palette.close();
-    nsh_base::dialog()
+    ui::modal(close)
         .animation(nsh_core::ModalAnimation::None)
         .close_on_escape(false)
         .close_on_backdrop_press(false)
-        .on_cancel(close)
         .flex_1()
         .child(
             view()

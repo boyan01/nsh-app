@@ -120,6 +120,7 @@ impl Dialogs {
             }
             gtk::glib::Propagation::Stop
         });
+        close_on_escape(&dialog);
         dialog.present();
     }
     pub fn files(&self, owner: &Rc<State>, request: &FileChooserRequest) {
@@ -223,6 +224,26 @@ impl Dialogs {
             }
             gtk::glib::Propagation::Stop
         });
+        close_on_escape(&dialog);
         dialog.present();
     }
+}
+
+/// Use close-request so Escape cancels the pending WebKit request exactly once.
+fn close_on_escape(window: &gtk::Window) {
+    let keys = gtk::EventControllerKey::new();
+    let weak = window.downgrade();
+    keys.connect_key_pressed(move |_, key, _, modifiers| {
+        if key == gtk::gdk::Key::Escape
+            && !modifiers.intersects(gtk::accelerator_get_default_mod_mask())
+        {
+            if let Some(window) = weak.upgrade() {
+                window.close();
+            }
+            gtk::glib::Propagation::Stop
+        } else {
+            gtk::glib::Propagation::Proceed
+        }
+    });
+    window.add_controller(keys);
 }

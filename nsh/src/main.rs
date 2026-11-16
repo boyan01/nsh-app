@@ -26,6 +26,7 @@ fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
             app_id: "one.mixin.messenger.desktop".into(),
             size: (1280, 750),
             cache: image_cache_options(),
+            keep_alive_on_close: true,
             ..Default::default()
         },
     ))
@@ -82,8 +83,6 @@ fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
             app_id: "one.mixin.messenger.desktop".into(),
             size: (1280, 750),
             cache: image_cache_options(),
-            #[cfg(target_os = "macos")]
-            keep_alive_on_close: true,
             ..Default::default()
         },
     );

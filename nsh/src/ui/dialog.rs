@@ -19,6 +19,9 @@ use super::{
 };
 use crate::{i18n::t, motion};
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Clone, Copy)]
 pub(crate) enum DialogWidth {
     /// A decision, a short form or a person.
@@ -37,6 +40,21 @@ impl DialogWidth {
             Self::Wide => dialog_width_wide(),
         }
     }
+}
+
+/// Own Escape while this modal is mounted, ahead of background window shortcuts
+/// and focused text fields. Keep native dismissal requests on the same path.
+pub(crate) fn modal(cancel: impl Fn() + 'static) -> Modal {
+    let cancel = stored(cancel);
+    on_key_with(
+        "escape",
+        KeyOptions {
+            when: nsh_core::keymap::When::Always,
+            ..Default::default()
+        },
+        move |_| cancel.with(|cancel| cancel()),
+    );
+    nsh_base::dialog().on_cancel(move || cancel.with(|cancel| cancel()))
 }
 
 /// A dialog that a press on the scrim dismisses. The owner retains the surface
@@ -85,11 +103,10 @@ fn frame(
 ) -> Modal {
     // Release background editing after native presentation records its restore target.
     dismiss_keyboard();
-    nsh_base::dialog()
+    modal(dismiss)
         .animation(nsh_core::ModalAnimation::None)
         .close_on_escape(false)
         .close_on_backdrop_press(false)
-        .on_cancel(dismiss)
         .flex_1()
         .child(
             view()

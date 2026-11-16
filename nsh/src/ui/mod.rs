@@ -36,8 +36,8 @@ pub(crate) use chrome::{
 };
 pub(crate) use dialog::{
     DialogWidth, dialog, dialog_card, dialog_close, dialog_surface, dialog_title,
-    dialog_with_inset, held_dialog, profile_action, profile_actions, profile_bio, profile_card,
-    profile_notice, scrim,
+    dialog_with_inset, held_dialog, modal, profile_action, profile_actions, profile_bio,
+    profile_card, profile_notice, scrim,
 };
 pub(crate) use feedback::{
     busy_indicator, count_pill, divider, empty, error_text, placeholder, section, section_label,

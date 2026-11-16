@@ -2,7 +2,7 @@ use super::{Editor, Tool, geometry::Crop, raster_color};
 use crate::i18n::Key;
 use crate::ui::{self, Typography as _};
 use mixin_desktop_api::ImageEdit;
-use nsh_base::{SelectItem, SliderValue, dialog};
+use nsh_base::{SelectItem, SliderValue};
 use nsh_core::prelude::*;
 
 use crate::i18n::t;
@@ -34,9 +34,8 @@ pub(super) fn screen(
             },
         ))
         .child(
-            dialog()
+            ui::modal(cancel)
                 .animation(nsh_core::ModalAnimation::None)
-                .on_cancel(cancel)
                 .close_on_escape(false)
                 .close_on_backdrop_press(false)
                 .flex_1()

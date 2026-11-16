@@ -32,7 +32,7 @@ enum Command {
     Changed,
     CopyFallback,
     #[cfg(target_os = "macos")]
-    CloseWindow,
+    HideWindow,
     Submit,
     SubmitPost,
     Picker(String),
@@ -133,11 +133,11 @@ impl Input {
             while let Some(command) = receive.recv().await {
                 match command {
                     #[cfg(target_os = "macos")]
-                    Command::CloseWindow => {
+                    Command::HideWindow => {
                         // Changed is queued first, publishing the committed draft
-                        // before the window can dispose this input's owner.
+                        // before hiding without disposing this input's owner.
                         if !self.composing() {
-                            window.close();
+                            window.hide();
                         }
                     }
                     Command::CopyFallback => {
@@ -587,7 +587,7 @@ impl PluginSpec for Behavior {
         // even when a plugin returns false. Route this window command here.
         #[cfg(target_os = "macos")]
         if key.meta && !(key.shift || key.alt || key.ctrl) && key.key.eq_ignore_ascii_case("w") {
-            let _ = self.commands.send(Command::CloseWindow);
+            let _ = self.commands.send(Command::HideWindow);
             return true;
         }
         // The editor key table already consumed this stroke. Returning false
@@ -740,5 +740,73 @@ mod copy_tests {
             assert!(matches!(receive.try_recv(), Ok(Command::Changed)));
             assert!(receive.try_recv().is_err());
         }
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod window_tests {
+    use super::*;
+    use nsh_core::{
+        Command as HostCommand, MountItem,
+        desktop::{DesktopCommand, WindowRequest},
+        platform::{Environment, Os},
+    };
+    use nsh_engine::{EngineConfig, Root};
+    use nsh_testing::Headless;
+    use std::sync::Mutex;
+
+    #[component]
+    fn ComposerWindow() -> impl IntoElement {
+        let input = Input::detached(signal("draft".to_owned()));
+        // Feed the native editor plugin, then exercise its real owner task.
+        on_key("cmd+w", move |_| {
+            input.session.with(|session| {
+                let behavior = Behavior {
+                    commands: input.commands.get(),
+                    picker_open: input.picker_open.get(),
+                };
+                let mut key = KeyEvent::new("w");
+                key.meta = true;
+                key.mod_key = true;
+                assert!(behavior.handle_key_down(&session.state(), &key, &mut |_| {
+                    panic!("Closing a window must not edit its draft")
+                }));
+            });
+        });
+        text("Composer ready")
+    }
+
+    #[test]
+    fn cmd_w_in_the_composer_hides_the_window_without_requesting_close() {
+        let mut app = Headless::start(EngineConfig {
+            environment: Environment {
+                os: Os::MacOs,
+                ..Default::default()
+            },
+            ..EngineConfig::new(Root::of::<ComposerWindow>())
+        })
+        .unwrap();
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let observed = requests.clone();
+        app.observe(move |_, batch| {
+            for item in &batch.items {
+                if let MountItem::Command {
+                    command: HostCommand::Desktop(command),
+                    ..
+                } = item
+                    && let DesktopCommand::Request(request) = command.as_ref()
+                {
+                    match request {
+                        WindowRequest::Hide => observed.lock().unwrap().push("hide"),
+                        WindowRequest::Close => observed.lock().unwrap().push("close"),
+                        _ => {}
+                    }
+                }
+            }
+        });
+        app.wait_for("Composer ready").unwrap();
+        app.press_key("cmd+w").unwrap();
+        assert_eq!(*requests.lock().unwrap(), ["hide"]);
+        assert!(!app.window_state("main").unwrap().unwrap().visible);
     }
 }

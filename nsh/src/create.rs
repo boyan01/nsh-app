@@ -98,7 +98,7 @@ pub(crate) fn surface(
                     let _ = nsh_base::alert_dialog()
                         .title(t(Key::NshCouldnTOpenConversation))
                         .description(t(Key::NshCheckYourConnectionAndTryAgain))
-                        .action("close", t(Key::Close))
+                        .cancel("close", t(Key::Close))
                         .show()
                         .await;
                 })

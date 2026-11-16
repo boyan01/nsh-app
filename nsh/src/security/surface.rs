@@ -1,4 +1,3 @@
-use nsh_base::dialog;
 use nsh_core::prelude::*;
 
 use super::{Handle, passcode};
@@ -142,7 +141,8 @@ fn lock_body(handle: Handle) -> impl IntoElement {
 }
 
 fn lock_screen(handle: Handle) -> impl IntoElement {
-    dialog()
+    // Consume Escape without exposing the account or dismissing a covered dialog.
+    ui::modal(|| {})
         .animation(nsh_core::ModalAnimation::None)
         .close_on_escape(false)
         .close_on_backdrop_press(false)

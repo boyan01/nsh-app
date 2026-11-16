@@ -197,11 +197,10 @@ impl Rail {
         when(
             move || presence.mounted(),
             move || {
-                nsh_base::dialog()
+                ui::modal(move || nav.close_drawer())
                     .animation(nsh_core::ModalAnimation::None)
                     .close_on_escape(false)
                     .close_on_backdrop_press(false)
-                    .on_cancel(move || nav.close_drawer())
                     .flex_1()
                     .child(
                         view()

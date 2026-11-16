@@ -134,6 +134,14 @@ fn form(off: impl Fn() -> bool + Copy + 'static) -> View {
                 .on_change(move |value: &str| name.set(value.into())),
         )
         .child(ui::search_pill())
+        .child(
+            ui::glass_search_pill().child(
+                ui::search_input()
+                    .disabled(off)
+                    .label("Search conversations")
+                    .placeholder("Search"),
+            ),
+        )
         .child(ui::checkbox(
             Some(|| "ZIP archive"),
             move || checked.get(),

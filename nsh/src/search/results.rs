@@ -14,7 +14,7 @@ pub(super) fn list(
     state: query::State,
     pending: Signal<bool>,
     open: impl Fn(Row) + Copy + 'static,
-) -> impl IntoElement {
+) -> nsh_core::element::VirtualList {
     let rows = state.rows;
     virtual_list(
         move || rows.with(Vec::len),

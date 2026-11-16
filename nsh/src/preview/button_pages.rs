@@ -466,7 +466,6 @@ pub(super) const CHAT_ACTIONS: &[&str] = &[
     "Send unavailable",
     "Reset",
 ];
-pub(super) const LIST_ACTIONS: &[&str] = &["Error", "Command error", "Reset"];
 
 pub(super) fn mode(actions: Actions, names: &'static [&'static str]) -> Signal<&'static str> {
     let state = signal("Normal");
@@ -730,41 +729,6 @@ pub(super) fn messages(actions: Actions) -> View {
             ),
     )
 }
-pub(super) fn conversations(actions: Actions) -> View {
-    prepare();
-    let state = mode(actions, LIST_ACTIONS);
-    view()
-        .flex_1()
-        .flex_row()
-        .bg(ui::surface_pane)
-        .child(
-            view()
-                .w(px(320.0))
-                .min_h_0()
-                .child(parts::page_header("Mixin", None, None))
-                .child(when(
-                    move || state.get() == "Error",
-                    || crate::home::load_error(|| {}, || false),
-                ))
-                .child(when(
-                    move || state.get() == "Command error",
-                    || crate::conversation_list::command_error(|| {}),
-                ))
-                .child(crate::conversation_list::detached(
-                    fixtures::USER_ID,
-                    signal(
-                        fixtures::conversations::stress_rows()
-                            .into_iter()
-                            .take(20)
-                            .collect(),
-                    ),
-                    signal(None),
-                    element_ref(),
-                )),
-        )
-        .child(view().flex_1().child(ui::placeholder(|| "Mixin Messenger")))
-}
-
 pub(super) const LINK_ACTIONS: &[&str] = &[
     "Sticker",
     "Contact",

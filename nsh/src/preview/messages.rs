@@ -120,6 +120,7 @@ pub(super) fn switch(actions: Actions) -> View {
                     rows,
                     selected,
                     element_ref(),
+                    || Points::ZERO,
                 )),
         )
         .child(view().flex_1().min_w_0().min_h_0().child(chat::panes(

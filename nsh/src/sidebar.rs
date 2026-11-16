@@ -75,11 +75,14 @@ pub(crate) fn trigger(nav: Navigation) -> impl IntoElement {
     when(
         move || nav.drawer(),
         move || {
-            ui::round_button()
-                .size_8()
-                .on_press(move || nav.open_drawer())
-                .accessibility_label(move || Some(i18n.tr("Open navigation", "打开导航").into()))
-                .child(ui::icon(ui::Icon::Menu))
+            ui::glass_button(
+                ui::round_button()
+                    .on_press(move || nav.open_drawer())
+                    .accessibility_label(move || {
+                        Some(i18n.tr("Open navigation", "打开导航").into())
+                    })
+                    .child(ui::icon(ui::Icon::Menu)),
+            )
         },
     )
 }

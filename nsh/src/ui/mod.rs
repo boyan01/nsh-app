@@ -42,8 +42,9 @@ pub(crate) use feedback::{
     busy_indicator, count_pill, divider, empty, error_text, placeholder, section, section_label,
 };
 pub(crate) use form::{
-    NO_LABEL, checkbox, field, search_input, search_pill, select, select_trigger, slider,
-    slider_compact, slider_media, slider_over_scale, slider_over_wave, tab, textarea,
+    NO_LABEL, checkbox, field, glass_search_pill, search_input, search_pill, select,
+    select_trigger, slider, slider_compact, slider_media, slider_over_scale, slider_over_wave, tab,
+    textarea,
 };
 pub(crate) use icon::{Icon, icon, inscription_background, logo, wallpaper};
 pub(crate) use markdown::{markdown, markdown_reader};

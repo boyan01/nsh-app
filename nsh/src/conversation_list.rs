@@ -37,6 +37,7 @@ pub(crate) fn screen(
     drafts: Signal<HashMap<String, String>>,
     selected: Signal<Option<ConversationListData>>,
     window: Window,
+    top_inset: impl Fn() -> Points + Copy + 'static,
 ) -> View {
     let cells = Cells {
         i18n: i18n::current(),
@@ -53,6 +54,7 @@ pub(crate) fn screen(
     view().flex_1().min_h_0().child(
         cells
             .list(rows, window.list)
+            .header(view().h(top_inset))
             .on_viewable_items_change(move |items: &nsh_core::element::ViewableItems| {
                 window.viewable(items)
             })
@@ -68,6 +70,7 @@ pub(crate) fn detached(
     rows: Signal<Vec<ConversationListData>>,
     selected: Signal<Option<ConversationListData>>,
     list: ElementRef,
+    top_inset: impl Fn() -> Points + Copy + 'static,
 ) -> View {
     let cells = Cells {
         i18n: i18n::current(),
@@ -80,7 +83,10 @@ pub(crate) fn detached(
         navigation: use_context().expect("the preview provides chat navigation"),
         commands: None,
     };
-    view().flex_1().min_h_0().child(cells.list(rows, list))
+    view()
+        .flex_1()
+        .min_h_0()
+        .child(cells.list(rows, list).header(view().h(top_inset)))
 }
 
 /// Resolves only previews that can hold a mention; a cell shows a result while

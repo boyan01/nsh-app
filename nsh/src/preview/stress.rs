@@ -5,7 +5,7 @@
 use nsh_core::prelude::*;
 
 use super::{Actions, fixtures};
-use crate::{chat, ui};
+use crate::chat;
 
 /// The rows a timeline holds around its target (`CAPACITY` in the timeline).
 const WINDOW: usize = 199;
@@ -83,10 +83,9 @@ pub(super) fn messages(actions: Actions) -> View {
 pub(super) const CONVERSATION_ACTIONS: &[&str] = &["Scroll", "JumpFar"];
 
 pub(super) fn conversations(actions: Actions) -> View {
-    super::messages::provide_services();
     let rows = signal(fixtures::conversations::stress_rows());
     let list = element_ref();
-    let top = move || list.scroll_to_index(0, percentage(0.0), Points::ZERO, false);
+    let top = move || list.scroll_to_offset(Points::ZERO, false);
     actions.on("Scroll", top, move || {
         list.scroll_to_index(
             (fixtures::conversations::STRESS_ROWS - 1) as u32,
@@ -98,17 +97,5 @@ pub(super) fn conversations(actions: Actions) -> View {
     actions.on("JumpFar", top, move || {
         list.scroll_to_index(9_000, percentage(0.0), Points::ZERO, false);
     });
-    view().flex_1().flex_row().bg(ui::surface_pane).child(
-        view()
-            .w(px(320.0))
-            .flex_shrink_0()
-            .border_r_1()
-            .border_color(ui::hairline)
-            .child(crate::conversation_list::detached(
-                fixtures::USER_ID,
-                rows,
-                signal(None),
-                list,
-            )),
-    )
+    super::conversation_list::column(rows, signal(None), list, None)
 }

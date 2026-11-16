@@ -55,12 +55,11 @@ pub(crate) fn trigger(action: Signal<Option<Action>>) -> impl IntoElement {
     let i18n = i18n::current();
     ui::menu()
         .offset(ui::space_xs())
-        .trigger(
+        .trigger(ui::glass_button(
             ui::round_button()
-                .size_8()
                 .accessibility_label(move || Some(i18n.text(Key::NewConversation).into()))
                 .child(ui::icon(ui::Icon::Add).size(ui::icon_lg())),
-        )
+        ))
         .children(
             [Action::Search, Action::Chat, Action::Group, Action::Circle]
                 .into_iter()

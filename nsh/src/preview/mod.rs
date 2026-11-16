@@ -5,6 +5,7 @@
 mod button_pages;
 mod components;
 mod composer;
+mod conversation_list;
 mod fixtures;
 mod inspector;
 mod loading;
@@ -453,8 +454,8 @@ const SCENES: &[Scene] = &[
     },
     Scene {
         name: "conversations",
-        actions: button_pages::LIST_ACTIONS,
-        mount: button_pages::conversations,
+        actions: conversation_list::ACTIONS,
+        mount: conversation_list::scene,
     },
     Scene {
         name: "transcript-summary",

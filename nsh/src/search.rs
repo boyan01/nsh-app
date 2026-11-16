@@ -87,6 +87,7 @@ pub(crate) fn screen(
     composing: Signal<bool>,
     selected: Signal<Option<ConversationListData>>,
     unread: Signal<bool>,
+    top_inset: impl Fn() -> Points + Copy + 'static,
 ) -> impl IntoElement {
     let nav = use_context::<Navigation>().expect("Home provides category navigation");
     let navigation = use_context::<ChatNavigation>().expect("Home provides chat navigation");
@@ -162,6 +163,7 @@ pub(crate) fn screen(
     };
     content(
         state,
+        top_inset,
         pending,
         open,
         open_failed,
@@ -211,6 +213,7 @@ pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
 
 fn content(
     state: query::State,
+    top_inset: impl Fn() -> Points + Copy + 'static,
     pending: Signal<bool>,
     open: impl Fn(Row) + Copy + 'static,
     open_failed: Signal<bool>,
@@ -225,9 +228,8 @@ fn content(
         failed,
         ..
     } = state;
-    view()
-        .flex_1()
-        .min_h_0()
+    let feedback = view()
+        .child(view().h(top_inset))
         .child(
             view().px_3().pb_2().flex_row().gap_1().children(
                 [
@@ -266,22 +268,25 @@ fn content(
                     .py_2()
             },
         ))
-        .child(when(failed, move || load_error(move || state.retry())))
-        .child(when(
-            move || !loading.get() && !failed.get() && rows.with(Vec::is_empty),
-            move || {
-                ui::placeholder(move || match section.get() {
-                    Section::All => tr("No results", "未找到相关结果"),
-                    Section::Users => i18n.text(Key::NoContacts),
-                    Section::Conversations => i18n.text(Key::NoMatches),
-                    Section::Messages => tr("No messages found", "未找到消息"),
-                })
-            },
-        ))
-        .child(when(
-            move || !rows.with(Vec::is_empty),
-            move || results::list(state, pending, open),
-        ))
+        .child(when(failed, move || load_error(move || state.retry())));
+    view()
+        .flex_1()
+        .min_h_0()
+        .child(
+            results::list(state, pending, open)
+                .header(feedback)
+                .empty(when(
+                    move || !loading.get() && !failed.get(),
+                    move || {
+                        ui::placeholder(move || match section.get() {
+                            Section::All => tr("No results", "未找到相关结果"),
+                            Section::Users => i18n.text(Key::NoContacts),
+                            Section::Conversations => i18n.text(Key::NoMatches),
+                            Section::Messages => tr("No messages found", "未找到消息"),
+                        })
+                    },
+                )),
+        )
         .child(profile_view)
 }
 
@@ -292,23 +297,34 @@ pub(crate) fn preview(
     failed: Signal<bool>,
 ) -> View {
     let state = query::detached(users, messages, failed);
+    let query = signal("design".to_owned());
+    let height = signal(0.0_f32);
+    let nav = Navigation::new();
     view()
         .flex_1()
         .min_h_0()
-        .child(
-            view()
-                .flex_row()
-                .flex_shrink_0()
-                .h(ui::row_height())
-                .px(ui::space_md())
-                .child(ui::search_input().value(|| "design").placeholder("Search")),
-        )
+        .relative()
+        .overflow_hidden()
+        .bg(ui::surface_list)
         .child(content(
             state,
+            move || px(height.get()),
             signal(false),
             |_| {},
             signal(false),
             view().hidden(),
+            view().hidden(),
+        ))
+        .child(crate::home::list_chrome(
+            height,
+            crate::home::list_header(
+                nav,
+                query,
+                signal(false),
+                signal(false),
+                element_ref(),
+                signal(None),
+            ),
             view().hidden(),
         ))
 }

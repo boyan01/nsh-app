@@ -63,6 +63,18 @@ pub(crate) fn search_pill() -> View {
         .child(icon(Icon::Search).size(icon_sm()).text_color(fg_secondary))
 }
 
+/// Search in floating chrome: the same input and focus treatment on glass.
+pub(crate) fn glass_search_pill() -> View {
+    feedback_transition(super::chrome::glass_pill())
+        .flex_1()
+        .flex_shrink(1.0)
+        .min_w_0()
+        .gap(space_sm())
+        .px(space_md())
+        .focus_within(ring)
+        .child(icon(Icon::Search).size(icon_sm()).text_color(fg_secondary))
+}
+
 /// The frameless input of a `search_pill`, which draws the fill.
 pub(crate) fn search_input() -> Input {
     text_input()

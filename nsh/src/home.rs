@@ -332,188 +332,93 @@ impl Home {
             ..
         } = self;
         let rows = window.rows;
+        let chrome_height = signal(0.0_f32);
+        let inset = move || px(chrome_height.get());
         view()
             .flex_1()
             .min_h_0()
-            .child(self.list_header())
-            .child(self.health_banner())
-            .child(self.connection_banner())
-            .child(when(
-                move || self.searching(),
-                move || {
-                    crate::search::screen(
-                        self.client(),
-                        self.query,
-                        self.composing,
-                        selected,
-                        self.unread,
-                    )
-                },
-            ))
-            .child(when(
-                move || window.loading.get() && rows.with(Vec::is_empty),
-                move || ui::placeholder(move || i18n.text(Key::LoadingChats)),
-            ))
-            .child(when(window.failed, move || {
-                load_error(move || window.retry(), move || rows.with(Vec::is_empty))
-            }))
-            .child(when(
-                move || {
-                    !window.loading.get()
-                        && !window.failed.get()
-                        && rows.with(Vec::is_empty)
-                        && !self.searching()
-                },
-                move || self.list_empty(),
-            ))
             .child(
-                conversation_list::screen(self.client(), rows, self.drafts, selected, window)
-                    .style_when(
-                        move || rows.with(Vec::is_empty) || self.searching(),
-                        |s| s.hidden(),
-                    ),
+                view()
+                    .flex_1()
+                    .min_h_0()
+                    .relative()
+                    .overflow_hidden()
+                    .child(when(
+                        move || self.searching(),
+                        move || {
+                            crate::search::screen(
+                                self.client(),
+                                self.query,
+                                self.composing,
+                                selected,
+                                self.unread,
+                                inset,
+                            )
+                        },
+                    ))
+                    .child(when(
+                        move || rows.with(Vec::is_empty) && !self.searching(),
+                        move || {
+                            view()
+                                .flex_1()
+                                .min_h_0()
+                                .pt(inset)
+                                .child(when(window.loading, move || {
+                                    ui::placeholder(move || i18n.text(Key::LoadingChats))
+                                }))
+                                .child(when(window.failed, move || {
+                                    load_error(move || window.retry(), || true)
+                                }))
+                                .child(when(
+                                    move || !window.loading.get() && !window.failed.get(),
+                                    move || self.list_empty(),
+                                ))
+                        },
+                    ))
+                    .child(
+                        conversation_list::screen(
+                            self.client(),
+                            rows,
+                            self.drafts,
+                            selected,
+                            window,
+                            inset,
+                        )
+                        .style_when(
+                            move || rows.with(Vec::is_empty) || self.searching(),
+                            |s| s.hidden(),
+                        ),
+                    )
+                    .child(list_chrome(
+                        chrome_height,
+                        list_header(
+                            self.nav,
+                            self.query,
+                            self.composing,
+                            self.unread,
+                            self.search,
+                            self.create_action,
+                        ),
+                        view()
+                            .pointer_events(PointerEvents::BoxNone)
+                            .child(health_banner(self.health))
+                            .child(connection_banner(self.online, move || {
+                                self.client().retry_connection()
+                            }))
+                            .child(when(
+                                move || {
+                                    window.failed.get()
+                                        && !rows.with(Vec::is_empty)
+                                        && !self.searching()
+                                },
+                                move || {
+                                    list_notice()
+                                        .child(load_error(move || window.retry(), || false).p_0())
+                                },
+                            )),
+                    )),
             )
             .child(crate::playback::bar(playback, selected))
-    }
-
-    fn list_header(self) -> impl IntoElement {
-        let Self {
-            i18n, nav, unread, ..
-        } = self;
-        ui::title_bar()
-            .pl(move || ui::title_bar_leading(nav.width()))
-            .pr_4()
-            .gap_2()
-            .child(sidebar::trigger(nav))
-            .child(self.search_field())
-            .child(
-                ui::round_button()
-                    .size_8()
-                    .selected(unread)
-                    .accessibility_label(move || Some(i18n.text(Key::Unread).into()))
-                    .on_press(move || unread.update(|value| *value = !*value))
-                    .child(ui::icon(ui::Icon::Filter).text_color(move || {
-                        if unread.get() {
-                            ui::accent()
-                        } else {
-                            ui::fg_primary()
-                        }
-                    })),
-            )
-            .child(create::trigger(self.create_action))
-    }
-
-    fn search_field(self) -> impl IntoElement {
-        let Self {
-            i18n,
-            query,
-            composing,
-            unread,
-            search,
-            ..
-        } = self;
-        ui::search_pill()
-            .child(
-                ui::search_input()
-                    .element_ref(&search)
-                    .placeholder(move || {
-                        if unread.get() {
-                            i18n.tr("Search Unread", "搜索未读会话").to_owned()
-                        } else {
-                            format!("{} ({})", i18n.text(Key::Search), key_label("mod+k"))
-                        }
-                    })
-                    .label(move || i18n.text(Key::Search))
-                    .value(move || query.get())
-                    .on_change(move |value: &str| query.set(value.to_owned()))
-                    .on_key_press(move |key: &str| {
-                        if key == "Escape" && !composing.get_untracked() {
-                            query.set(String::new());
-                        }
-                    })
-                    .on_composition_change(move |event: &Composition| {
-                        composing.set(event.composing)
-                    }),
-            )
-            .child(when(
-                move || !query.with(String::is_empty),
-                move || {
-                    ui::round_button()
-                        .size_6()
-                        .disabled(composing)
-                        .accessibility_label(move || Some(i18n.tr("Clear", "清除").into()))
-                        .on_press(move || {
-                            query.set(String::new());
-                            search.focus();
-                        })
-                        .child(ui::icon(ui::Icon::Close).size_4())
-                },
-            ))
-    }
-
-    fn health_banner(self) -> impl IntoElement {
-        let Self { i18n, health, .. } = self;
-        when(
-            move || health.get() != "ready",
-            move || {
-                view().px_4().py_2().bg(ui::surface_card).child(
-                    ui::error_text(move || match health.get().as_str() {
-                        "time_inaccurate" => i18n.tr(
-                            "Check your system clock and try again.",
-                            "系统时间不准确，请校准后重试。",
-                        ),
-                        "update_required" => {
-                            i18n.tr("Update Mixin Messenger to continue.", "当前版本需要更新。")
-                        }
-                        _ => i18n.tr(
-                            "The account is temporarily unavailable.",
-                            "账号暂时不可用。",
-                        ),
-                    })
-                    .text_role(ui::TextRole::Caption),
-                )
-            },
-        )
-    }
-
-    fn connection_banner(self) -> impl IntoElement {
-        let Self { i18n, online, .. } = self;
-        // The banner fades in, and the list below eases down to make room for it.
-        let presence = crate::motion::Presence::fade(move || !online.get());
-        let slot = element_ref();
-        effect(move || {
-            online.get();
-            if !reduce_motion() {
-                slot.animate_layout(crate::motion::PANEL_WIDTH);
-            }
-        });
-        view().element_ref(&slot).child(when(
-            move || presence.mounted(),
-            move || {
-                presence.surface(
-                    view()
-                        .px_4()
-                        .py_2()
-                        .gap_2()
-                        .flex_row()
-                        .items_center()
-                        .bg(ui::surface_card)
-                        .child(
-                            text(move || i18n.text(Key::Connecting))
-                                .text_role(ui::TextRole::Caption)
-                                .flex_1(),
-                        )
-                        .child(
-                            ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
-                                .on_press(move || self.client().retry_connection())
-                                .child(
-                                    text(move || i18n.text(Key::Reconnect))
-                                        .text_role(ui::TextRole::Caption),
-                                ),
-                        ),
-                )
-            },
-        ))
     }
 
     fn list_empty(self) -> impl IntoElement {
@@ -610,6 +515,179 @@ impl Home {
     }
 }
 
+/// Floating controls and notices; empty gaps pass input through to the rows.
+pub(crate) fn list_chrome(
+    height: Signal<f32>,
+    header: impl IntoElement,
+    notices: impl IntoElement,
+) -> View {
+    view()
+        .absolute()
+        .top_0()
+        .left_0()
+        .right_0()
+        .pointer_events(PointerEvents::BoxNone)
+        .on_layout(move |bounds: &Bounds<Points>| {
+            let value = bounds.size.height.0;
+            if height.get_untracked() != value {
+                height.set(value);
+            }
+        })
+        .child(ui::edge_fade(true, ui::surface_list))
+        .child(header)
+        .child(notices)
+}
+
+pub(crate) fn list_notice() -> View {
+    ui::glass(view())
+        .mx_3()
+        .mb_2()
+        .px_3()
+        .py_2()
+        .rounded(ui::radius_lg())
+}
+
+pub(crate) fn list_header(
+    nav: Navigation,
+    query: Signal<String>,
+    composing: Signal<bool>,
+    unread: Signal<bool>,
+    search: ElementRef,
+    create_action: Signal<Option<create::Action>>,
+) -> impl IntoElement {
+    let i18n = i18n::current();
+    ui::title_bar()
+        .pl(move || ui::title_bar_leading(nav.width()))
+        .pr_3()
+        .py_2()
+        .gap_2()
+        .child(sidebar::trigger(nav))
+        .child(search_field(query, composing, unread, search))
+        .child(ui::glass_button(
+            ui::round_button()
+                .selected(unread)
+                .accessibility_label(move || Some(i18n.text(Key::Unread).into()))
+                .on_press(move || unread.update(|value| *value = !*value))
+                .child(ui::icon(ui::Icon::Filter).text_color(move || {
+                    if unread.get() {
+                        ui::accent()
+                    } else {
+                        ui::fg_primary()
+                    }
+                })),
+        ))
+        .child(create::trigger(create_action))
+}
+
+fn search_field(
+    query: Signal<String>,
+    composing: Signal<bool>,
+    unread: Signal<bool>,
+    search: ElementRef,
+) -> impl IntoElement {
+    let i18n = i18n::current();
+    ui::glass_search_pill()
+        .child(
+            ui::search_input()
+                .element_ref(&search)
+                .placeholder(move || {
+                    if unread.get() {
+                        i18n.tr("Search Unread", "搜索未读会话").to_owned()
+                    } else {
+                        format!("{} ({})", i18n.text(Key::Search), key_label("mod+k"))
+                    }
+                })
+                .label(move || i18n.text(Key::Search))
+                .value(move || query.get())
+                .on_change(move |value: &str| query.set(value.to_owned()))
+                .on_key_press(move |key: &str| {
+                    if key == "Escape" && !composing.get_untracked() {
+                        query.set(String::new());
+                    }
+                })
+                .on_composition_change(move |event: &Composition| composing.set(event.composing)),
+        )
+        .child(when(
+            move || !query.with(String::is_empty),
+            move || {
+                ui::round_button()
+                    .size_6()
+                    .disabled(composing)
+                    .accessibility_label(move || Some(i18n.tr("Clear", "清除").into()))
+                    .on_press(move || {
+                        query.set(String::new());
+                        search.focus();
+                    })
+                    .child(ui::icon(ui::Icon::Close).size_4())
+            },
+        ))
+}
+
+pub(crate) fn health_banner(health: Signal<String>) -> impl IntoElement {
+    let i18n = i18n::current();
+    when(
+        move || health.get() != "ready",
+        move || {
+            list_notice().child(
+                ui::error_text(move || match health.get().as_str() {
+                    "time_inaccurate" => i18n.tr(
+                        "Check your system clock and try again.",
+                        "系统时间不准确，请校准后重试。",
+                    ),
+                    "update_required" => {
+                        i18n.tr("Update Mixin Messenger to continue.", "当前版本需要更新。")
+                    }
+                    _ => i18n.tr(
+                        "The account is temporarily unavailable.",
+                        "账号暂时不可用。",
+                    ),
+                })
+                .text_role(ui::TextRole::Caption),
+            )
+        },
+    )
+}
+
+pub(crate) fn connection_banner(
+    online: Signal<bool>,
+    retry: impl Fn() + Copy + 'static,
+) -> impl IntoElement {
+    let i18n = i18n::current();
+    // The banner fades in, and the list below eases down to make room for it.
+    let presence = crate::motion::Presence::fade(move || !online.get());
+    let slot = element_ref();
+    effect(move || {
+        online.get();
+        if !reduce_motion() {
+            slot.animate_layout(crate::motion::PANEL_WIDTH);
+        }
+    });
+    view().element_ref(&slot).child(when(
+        move || presence.mounted(),
+        move || {
+            presence.surface(
+                list_notice()
+                    .gap_2()
+                    .flex_row()
+                    .items_center()
+                    .child(
+                        text(move || i18n.text(Key::Connecting))
+                            .text_role(ui::TextRole::Caption)
+                            .flex_1(),
+                    )
+                    .child(
+                        ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
+                            .on_press(retry)
+                            .child(
+                                text(move || i18n.text(Key::Reconnect))
+                                    .text_role(ui::TextRole::Caption),
+                            ),
+                    ),
+            )
+        },
+    ))
+}
+
 fn empty_title(i18n: I18n, category: &str, circle: bool, unread: bool) -> &'static str {
     if unread {
         return i18n.tr("No unread conversations", "暂无未读会话");
@@ -673,7 +751,11 @@ pub(crate) fn load_error(retry: impl Fn() + 'static, empty: impl Fn() -> bool + 
         .child(ui::link(move || i18n.text(Key::Retry), retry))
 }
 
-fn empty_filtered(i18n: I18n, nav: Navigation, unread: Signal<bool>) -> impl IntoElement {
+pub(crate) fn empty_filtered(
+    i18n: I18n,
+    nav: Navigation,
+    unread: Signal<bool>,
+) -> impl IntoElement {
     let scope = move || {
         let circle = nav.circle.with(Option::is_some) || nav.category.get() == "circle";
         (nav.category.get(), circle)

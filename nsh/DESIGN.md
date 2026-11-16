@@ -12,6 +12,32 @@ platform has it (macOS 26 and later) and a `glass-blur` backdrop under a
 `glass-tint-opacity` tint elsewhere. Content, such as bubbles, cards and settings
 lists, stays solid.
 
+The conversation column uses the same floating chrome: `glass_bar_height` and
+`glass_radius` for search and action capsules, 8pt gaps and vertical insets, and
+`title_bar_leading(nav.width())` to clear macOS window controls. A measured header
+slot inside the virtual list reserves room at scroll top; rows scroll behind the
+capsules and the thin `edge_fade`. Search sections and feedback belong to that
+same scrolling content. Account and connection notices float below the controls;
+their measured height also contributes to the inset. Conversation rows retain
+their existing solid hover/selection washes, without per-row glass or blur. The
+playback bar remains in flow below the scroll region, with its existing separator.
+
+Conversation-column motion inventory:
+
+| Change | Tool and tokens | Reduced motion |
+| --- | --- | --- |
+| Header buttons, unread selection, clear command and row hover/selection | Existing `ui::round_button` / `ui::list_row` state transitions, `FEEDBACK_MS`, `press_scale` | Immediate state styles |
+| Search text, IME composition, clear affordance, results and loading/error/empty feedback | Immediate text and content updates; no entry animation on recycled cells | Same |
+| Connection notice arrives/leaves | Existing `Presence::fade`, `PANEL_WIDTH` layout animation; measured inset follows the notice | Immediate visibility and inset |
+| Account-health notice changes | Immediate exceptional status feedback; measured inset follows its wrapped height | Same |
+| Create menu and navigation drawer open/close | Existing popup/drawer motion; no new motion owner | Existing reduced-motion policy |
+| Rail collapse and narrow layout | Existing rail motion; header leading follows `nav.width()` | Existing reduced-motion policy |
+| Playback progress and commands | Existing playback controls; no new animation or blur | Same |
+| Drag/swipe release | None added; native list scrolling retains platform physics | Platform behavior |
+
+Runtime motion and light/dark visual review remain required when a preview host
+is available; source/build checks alone do not verify these effects.
+
 The chat header reserves its fixed controls and gaps first, then bounds the identity
 to 36% of the remaining space (at most `card-width`). The rest holds a single-line,
 truncated pin. `glass-inline-pin-width` is the minimum readable pin slot (160pt),

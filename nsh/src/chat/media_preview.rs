@@ -6,7 +6,7 @@ use mixin_desktop_api::{AccountClient, MessageActions, MessageListView};
 use nsh_core::{file_dialog::SaveDialog, prelude::*};
 
 use super::{
-    message_actions::{self, Actions, attachment_name},
+    message_actions::{Actions, attachment_name},
     message_content, message_detail, message_forward, message_media, message_selection,
 };
 use crate::{i18n, runtime};
@@ -25,10 +25,6 @@ impl MediaPreview {
             failed: actions.failed,
             actions,
         }
-    }
-
-    pub(crate) fn own_id(self) -> String {
-        self.actions.account.id()
     }
 
     pub fn mount_mentions(self, rows: Signal<Vec<MessageListView>>) {
@@ -139,54 +135,39 @@ impl MediaPreview {
         );
     }
 
-    pub fn pinned_row(
+    /// Pinned messages use the timeline's complete row, with their own commands
+    /// and a jump relay so quotes and locate buttons leave the inspector together.
+    pub fn pinned_rows(
         self,
-        message: impl Fn() -> Option<MessageListView> + Copy + 'static,
-        body: impl IntoElement + 'static,
+        messages: Signal<Vec<MessageListView>>,
+        sender_names: Memo<bool>,
+        viewable: Signal<Option<(usize, usize)>>,
+        unobstructed: Memo<bool>,
         locate: impl Fn(String) + Copy + 'static,
-    ) -> impl IntoElement {
-        let actions = self.actions;
-        message_actions::pinned_menu(
-            message,
+    ) -> impl Fn(Position) -> AnyElement + Copy {
+        let mut actions = self.actions;
+        actions.pinned_page = true;
+        let target = signal_with(None, SignalEquals::Never);
+        effect(move || {
+            if let Some(id) = target.get() {
+                untracked(|| locate(id));
+            }
+        });
+        let rows = super::message_row::Rows {
             actions,
-            view()
-                .flex_row()
-                .items_start()
-                .gap_2()
-                .child(when(
-                    move || !actions.selected.with(Vec::is_empty),
-                    move || {
-                        crate::ui::command()
-                            .size_8()
-                            .px_1()
-                            .on_press(move || {
-                                if let Some(row) = message() {
-                                    actions.selected.update(|ids| {
-                                        if ids.contains(&row.message_id) {
-                                            ids.retain(|id| id != &row.message_id);
-                                        } else if ids.len() < 99 {
-                                            ids.push(row.message_id);
-                                        }
-                                    });
-                                }
-                            })
-                            .accessibility_label(move || {
-                                Some(actions.i18n.tr("Select", "选择").into())
-                            })
-                            .child(text(move || {
-                                if message().is_some_and(|row| {
-                                    actions.selected.with(|ids| ids.contains(&row.message_id))
-                                }) {
-                                    "☑"
-                                } else {
-                                    "☐"
-                                }
-                            }))
-                    },
-                ))
-                .child(body),
-            locate,
-        )
+            messages,
+            target,
+            highlight: signal(None),
+            highlight_opacity: animated_value(0.0),
+            unread: None,
+            history: element_ref(),
+            own_id: stored(actions.account.id()),
+            sender_names,
+            viewable,
+            unobstructed,
+            transcript: None,
+        };
+        move |at| rows.row(at).into_element()
     }
 
     pub fn pinned_selection(self, conversation: Stored<String>) -> impl IntoElement {

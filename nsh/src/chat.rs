@@ -166,6 +166,7 @@ pub(crate) fn screen(
         }
     });
     unread.mark_read_while_open(messages, move || !loading.get() && !failed.get());
+    let sender_names = computed(move || group || header.with(|row| row.is_bot_group));
     let rows = message_row::Rows {
         actions,
         messages,
@@ -175,7 +176,7 @@ pub(crate) fn screen(
         unread: Some(unread),
         history,
         own_id: stored(account.account_id()),
-        sender_names: computed(move || group || header.with(|row| row.is_bot_group)),
+        sender_names,
         viewable,
         unobstructed,
         transcript: None,
@@ -428,6 +429,7 @@ pub(crate) fn screen(
                 mode,
                 move || chat_navigation.back_panel(),
                 target,
+                sender_names,
             )
             .into_element()
         }))

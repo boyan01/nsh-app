@@ -80,7 +80,46 @@ pub(super) fn scene(actions: Actions) -> View {
     );
     let mut row = fixtures::conversations::stress_rows().remove(0);
     row.name = "Desktop design and release planning".into();
-    let mut list = chat::DetachedMessages::new(signal(fixtures::messages::reply_rows()));
+    let mut rows = fixtures::messages::text_rows();
+    let text_count = rows.len();
+    let newest = rows[0].created_at_micros;
+    // Preserve text quote targets and give the other groups distinct IDs.
+    for group in [
+        fixtures::messages::photo_rows(),
+        fixtures::messages::media_rows(),
+        fixtures::messages::file_rows(),
+        fixtures::messages::card_rows(),
+        fixtures::messages::app_rows(),
+    ] {
+        rows.extend(group);
+    }
+    for (index, row) in rows.iter_mut().enumerate() {
+        if index >= text_count {
+            row.message_id = format!("00000000-0000-4000-8000-{:012}", index + 1000);
+        }
+        row.created_at_micros = newest - index as i64 * 60_000_000;
+        row.pinned = true;
+    }
+    let pinned = stored(rows.clone());
+    let mut list = chat::DetachedMessages::new(signal(rows));
+    let locate = move |id: String| {
+        if let Some(index) = list
+            .messages
+            .with(|rows| rows.iter().position(|row| row.message_id == id))
+        {
+            list.highlight.set(Some(id.clone()));
+            chat::place_jump(
+                list.history,
+                list.reveal,
+                index,
+                chat::FOCUS,
+                None,
+                move || list.highlight.with(|target| target.as_ref() == Some(&id)),
+            );
+            spawn(chat::blink(list.highlight_opacity));
+        }
+        panel.set(None);
+    };
     messages::timeline_view(chat::preview_chrome(
         row,
         pin,
@@ -122,10 +161,12 @@ pub(super) fn scene(actions: Actions) -> View {
             )
             .into_element(),
             Panel::Pinned => inspector::preview_pinned(
-                fixtures::messages::text_rows(),
+                pinned.get(),
                 fixtures::USER_ID.into(),
                 signal(false),
                 close,
+                locate,
+                computed(|| true),
             )
             .into_element(),
         }

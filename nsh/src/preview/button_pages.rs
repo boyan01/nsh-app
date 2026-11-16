@@ -665,6 +665,8 @@ pub(super) fn pinned_messages(actions: Actions) -> View {
         fixtures::USER_ID.into(),
         failed,
         || {},
+        |_| {},
+        computed(|| true),
     ))
 }
 pub(super) fn message_search(actions: Actions) -> View {

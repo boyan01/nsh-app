@@ -270,7 +270,7 @@ impl Rows {
                     }))
             }))
             .child(
-                content_lane(mine, avatar)
+                content_lane(mine, avatar, actions.pinned_page)
                     .child(when(
                         move || others() && first_of_sender(),
                         move || message_appearance::sender(message, actions),
@@ -282,103 +282,142 @@ impl Rows {
                     // towards the row at that width. A row's `max_w` must resolve
                     // for it to shrink, so one holds each level that hugs content.
                     .child(
-                        view().flex_row().min_w_0().max_w(relative(1.0)).child(
-                            view()
-                                .flex_shrink(1.0)
-                                .min_w_0()
-                                .items_end()
-                                .child(
-                                    view()
-                                        .flex_row()
-                                        .relative()
-                                        .min_w_0()
-                                        .max_w(relative(1.0))
-                                        .child(when(nip, move || {
-                                            message_appearance::nip(
-                                                mine,
-                                                neutral,
-                                                highlighted,
-                                                highlight_opacity,
-                                            )
-                                        }))
-                                        .child({
-                                            // The whole bubble hosts the menu: its padding
-                                            // and the time and lock over it, not only the body.
-                                            let bubble = message_appearance::bubble(
-                                                view(),
-                                                move || mine() && !neutral.get(),
-                                                surface,
-                                            )
-                                            .child(
-                                                view()
-                                                    .min_w_0()
-                                                    .rounded(ui::radius_md())
-                                                    .style_when(
-                                                        move || !frame.get().own_bubble,
-                                                        |style| style.overflow_hidden(),
-                                                    )
-                                                    .child(body),
-                                            )
-                                            .child(when(highlighted, move || {
-                                                view()
-                                                    .absolute()
-                                                    .inset_0()
-                                                    .rounded(ui::radius_md())
-                                                    .bg(move || {
-                                                        if !surface() {
-                                                            ui::bubble_highlight_media()
-                                                        } else if mine() {
-                                                            ui::bubble_highlight_out()
-                                                        } else {
-                                                            ui::bubble_highlight_in()
-                                                        }
-                                                    })
-                                                    .bind_opacity(&highlight_opacity)
-                                                    .pointer_events(PointerEvents::None)
+                        view()
+                            .flex_row()
+                            .min_w_0()
+                            .max_w(relative(1.0))
+                            .style_when(move || actions.pinned_page, |style| style.gap_2())
+                            .style_when(
+                                move || actions.pinned_page && mine(),
+                                |style| style.flex_row_reverse(),
+                            )
+                            .child(
+                                view()
+                                    .flex_shrink(1.0)
+                                    .min_w_0()
+                                    .items_end()
+                                    .child(
+                                        view()
+                                            .flex_row()
+                                            .relative()
+                                            .min_w_0()
+                                            .max_w(relative(1.0))
+                                            .child(when(nip, move || {
+                                                message_appearance::nip(
+                                                    mine,
+                                                    neutral,
+                                                    highlighted,
+                                                    highlight_opacity,
+                                                )
                                             }))
-                                            .child(when(
-                                                move || frame.get().stamp == Stamp::Inline,
-                                                move || {
+                                            .child({
+                                                // The whole bubble hosts the menu: its padding
+                                                // and the time and lock over it, not only the body.
+                                                let bubble = message_appearance::bubble(
+                                                    view(),
+                                                    move || mine() && !neutral.get(),
+                                                    surface,
+                                                )
+                                                .child(
+                                                    view()
+                                                        .min_w_0()
+                                                        .rounded(ui::radius_md())
+                                                        .style_when(
+                                                            move || !frame.get().own_bubble,
+                                                            |style| style.overflow_hidden(),
+                                                        )
+                                                        .child(body),
+                                                )
+                                                .child(when(highlighted, move || {
                                                     view()
                                                         .absolute()
-                                                        .right(ui::space_sm())
-                                                        .bottom(ui::space_sm())
-                                                        .style_when(captioned, |style| {
-                                                            style
-                                                                .right(ui::space_md())
-                                                                .bottom(ui::chip_inset())
+                                                        .inset_0()
+                                                        .rounded(ui::radius_md())
+                                                        .bg(move || {
+                                                            if !surface() {
+                                                                ui::bubble_highlight_media()
+                                                            } else if mine() {
+                                                                ui::bubble_highlight_out()
+                                                            } else {
+                                                                ui::bubble_highlight_in()
+                                                            }
                                                         })
+                                                        .bind_opacity(&highlight_opacity)
                                                         .pointer_events(PointerEvents::None)
-                                                        .child(stamp(Stamp::Inline))
-                                                },
-                                            ));
-                                            if let Some(root) = self.transcript {
-                                                super::message_transcript::row_menu(
-                                                    message, root, actions, bubble,
-                                                )
-                                                .into_element()
-                                            } else {
-                                                message_actions::menu(message, actions, bubble)
+                                                }))
+                                                .child(when(
+                                                    move || frame.get().stamp == Stamp::Inline,
+                                                    move || {
+                                                        view()
+                                                            .absolute()
+                                                            .right(ui::space_sm())
+                                                            .bottom(ui::space_sm())
+                                                            .style_when(captioned, |style| {
+                                                                style
+                                                                    .right(ui::space_md())
+                                                                    .bottom(ui::chip_inset())
+                                                            })
+                                                            .pointer_events(PointerEvents::None)
+                                                            .child(stamp(Stamp::Inline))
+                                                    },
+                                                ));
+                                                if let Some(root) = self.transcript {
+                                                    super::message_transcript::row_menu(
+                                                        message, root, actions, bubble,
+                                                    )
                                                     .into_element()
-                                            }
-                                        }),
-                                )
-                                .child(when(
-                                    move || frame.get().stamp == Stamp::Below,
-                                    move || {
-                                        // Flutter's 10 from the bubble's box, whose end
-                                        // holds the nip gutter of an own message.
-                                        view()
-                                            .mt(ui::space_xs())
-                                            .ml(ui::chip_inset())
-                                            .mr(ui::chip_inset())
-                                            .style_when(mine, |style| {
-                                                style.mr(ui::chip_inset() - ui::bubble_nip_width())
-                                            })
-                                            .child(stamp(Stamp::Below))
-                                    },
-                                )),
-                        ),
+                                                } else if actions.pinned_page {
+                                                    message_actions::pinned_menu(
+                                                        message,
+                                                        actions,
+                                                        bubble,
+                                                        move |id| target.set(Some(id)),
+                                                    )
+                                                    .into_element()
+                                                } else {
+                                                    message_actions::menu(message, actions, bubble)
+                                                        .into_element()
+                                                }
+                                            }),
+                                    )
+                                    .child(when(
+                                        move || frame.get().stamp == Stamp::Below,
+                                        move || {
+                                            // Flutter's 10 from the bubble's box, whose end
+                                            // holds the nip gutter of an own message.
+                                            view()
+                                                .mt(ui::space_xs())
+                                                .ml(ui::chip_inset())
+                                                .mr(ui::chip_inset())
+                                                .style_when(mine, |style| {
+                                                    style
+                                                        .mr(ui::chip_inset()
+                                                            - ui::bubble_nip_width())
+                                                })
+                                                .child(stamp(Stamp::Below))
+                                        },
+                                    )),
+                            )
+                            .children(actions.pinned_page.then(|| {
+                                ui::icon_button()
+                                    .size_8()
+                                    .flex_shrink_0()
+                                    .self_center()
+                                    .accessibility_label(move || {
+                                        Some(
+                                            actions
+                                                .i18n
+                                                .tr("Locate in chat", "在聊天中定位")
+                                                .into(),
+                                        )
+                                    })
+                                    .on_press(move || {
+                                        if let Some(row) = message() {
+                                            target.set(Some(row.message_id));
+                                        }
+                                    })
+                                    .child(ui::icon(ui::Icon::ArrowLeft))
+                            })),
                     ),
             )
     }
@@ -387,19 +426,20 @@ impl Rows {
 fn content_lane(
     mine: impl Fn() -> bool + Copy + 'static,
     avatar: impl Fn() -> bool + Copy + 'static,
+    locate: bool,
 ) -> View {
     let edge = ui::space_lg() + ui::bubble_nip_width();
+    // In the inspector, the locate control occupies the timeline's far gutter.
+    let far_edge = if locate { edge } else { ui::message_far_edge() };
     view()
         .flex_1()
         .min_w_0()
         .py(ui::space_2xs())
         .pl(edge)
-        .pr(ui::message_far_edge())
+        .pr(far_edge)
         .items_start()
         .style_when(avatar, |style| style.pl(ui::bubble_nip_width()))
-        .style_when(mine, move |style| {
-            style.pl(ui::message_far_edge()).pr(edge).items_end()
-        })
+        .style_when(mine, move |style| style.pl(far_edge).pr(edge).items_end())
 }
 
 /// A summary has no original identity or media. Use the chat's incoming lane,
@@ -445,7 +485,7 @@ pub(super) fn summary(
                     }))
             }))
             .child(
-                content_lane(|| false, avatar)
+                content_lane(|| false, avatar, false)
                     .child(when(first, move || {
                         view()
                             .ml(ui::message_name_inset() - ui::bubble_nip_width())
@@ -638,7 +678,7 @@ fn selection_box(
                 selected.update(|ids| {
                     if ids.contains(&id) {
                         ids.retain(|value| value != &id);
-                    } else {
+                    } else if !actions.pinned_page || ids.len() < 99 {
                         ids.push(id);
                     }
                 });

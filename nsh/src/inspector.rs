@@ -16,6 +16,7 @@ pub(crate) fn screen(
     destination: Panel,
     close: impl Fn() + Copy + 'static,
     target: Signal<Option<String>>,
+    sender_names: Memo<bool>,
 ) -> impl IntoElement {
     let panel = view().flex_1().min_w_0().min_h_0();
     if destination == Panel::Info {
@@ -29,7 +30,7 @@ pub(crate) fn screen(
             .into_element();
     }
     panel
-        .child(pinned::screen(account, id, close, target))
+        .child(pinned::screen(account, id, close, target, sender_names))
         .into_element()
 }
 

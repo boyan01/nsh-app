@@ -10,9 +10,8 @@ use nsh_core::{element::ViewableItems, prelude::*};
 use crate::{
     chat::MediaPreview,
     i18n::{self, Key},
-    presentation, runtime,
+    presentation, runtime, ui,
     ui::parts,
-    ui::{self, Typography as _},
 };
 
 const PAGE_SIZE: usize = 60;
@@ -225,9 +224,16 @@ pub(super) fn screen(
     conversation: String,
     close: impl Fn() + Copy + 'static,
     target: Signal<Option<String>>,
+    sender_names: Memo<bool>,
 ) -> impl IntoElement {
     crate::ui::owned(conversation.clone(), move || {
-        reader(account.clone(), conversation.clone(), close, target)
+        reader(
+            account.clone(),
+            conversation.clone(),
+            close,
+            target,
+            sender_names,
+        )
     })
 }
 
@@ -236,6 +242,7 @@ fn reader(
     conversation: String,
     close: impl Fn() + Copy + 'static,
     target: Signal<Option<String>>,
+    sender_names: Memo<bool>,
 ) -> impl IntoElement {
     let media_viewport = crate::chat::message_media::viewport();
     let state = Pinned {
@@ -271,110 +278,7 @@ fn reader(
             }
         }
     });
-    reader_view(state, close, locate, media_viewport)
-}
-
-fn row_body(
-    state: Pinned,
-    index: impl Fn() -> usize + Copy + 'static,
-    row: impl Fn() -> Option<MessageListView> + Copy + 'static,
-    locate: impl Fn(String) + Copy + 'static,
-) -> View {
-    let i18n = i18n::current();
-    let mine = move || row().is_some_and(|row| state.preview.own_id() == row.sender_id);
-    let inline_media =
-        move || row().is_some_and(|row| crate::chat::message_media::inline_metadata(&row));
-    view()
-        .flex_1()
-        .min_w_0()
-        .px_3()
-        .py_2()
-        .gap_2()
-        .child(when(
-            move || {
-                state.rows.with(|rows| {
-                    let day =
-                        |row: &MessageListView| presentation::day(i18n, row.created_at_micros);
-                    let current = rows.get(index()).map(day);
-                    current.is_some() && current != rows.get(index() + 1).map(day)
-                })
-            },
-            move || {
-                text(move || {
-                    row()
-                        .map(|row| presentation::day(i18n, row.created_at_micros))
-                        .unwrap_or_default()
-                })
-                .text_role(ui::TextRole::Caption)
-                .text_color(ui::fg_secondary)
-            },
-        ))
-        .child(
-            text(move || row().map(|row| row.sender_name).unwrap_or_default())
-                .text_role(ui::TextRole::Body)
-                .text_emphasis()
-                .style_when(mine, |style| style.hidden()),
-        )
-        .child(
-            view()
-                .flex_row()
-                .style_when(mine, |style| style.flex_row_reverse())
-                .items_center()
-                .gap_2()
-                .child(dynamic(move || {
-                    let row = row();
-                    untracked(move || match row {
-                        Some(row) => bubble(state, row, mine).into_element(),
-                        None => view().hidden().into_element(),
-                    })
-                }))
-                .child(
-                    ui::icon_button()
-                        .size_8()
-                        .px_1()
-                        .on_press(move || {
-                            if let Some(row) = row() {
-                                locate(row.message_id);
-                            }
-                        })
-                        .accessibility_label(move || {
-                            Some(i18n.tr("Locate in chat", "在聊天中定位").into())
-                        })
-                        .child(ui::icon(ui::Icon::ArrowLeft)),
-                ),
-        )
-        .child(
-            text(move || {
-                row()
-                    .map(|row| presentation::time(i18n, row.created_at_micros / 1000))
-                    .unwrap_or_default()
-            })
-            .text_role(ui::TextRole::Caption)
-            .style_when(inline_media, |style| style.hidden())
-            .text_color(ui::fg_secondary),
-        )
-}
-
-fn bubble(
-    state: Pinned,
-    row: MessageListView,
-    mine: impl Fn() -> bool + 'static,
-) -> impl IntoElement {
-    let media = crate::chat::message_media::inline_metadata(&row);
-    view()
-        .min_w_0()
-        .flex_1()
-        .p_2()
-        .style_when(move || media, |style| style.p_0().flex_none())
-        .rounded(ui::radius_md())
-        .bg(move || {
-            if mine() {
-                ui::bubble_out()
-            } else {
-                ui::bubble_in()
-            }
-        })
-        .child(state.preview.content(row))
+    reader_view(state, close, locate, media_viewport, sender_names)
 }
 
 pub(crate) fn load_error(retry: impl Fn() + 'static) -> View {
@@ -387,8 +291,16 @@ fn reader_view(
     close: impl Fn() + Copy + 'static,
     locate: impl Fn(String) + Copy + 'static,
     media_viewport: impl Fn(&Bounds<Points>) + 'static,
+    sender_names: Memo<bool>,
 ) -> View {
     let i18n = i18n::current();
+    let row = state.preview.pinned_rows(
+        state.rows,
+        sender_names,
+        state.visible_range,
+        computed(move || state.preview.animation_visible() && !state.mutating.get()),
+        locate,
+    );
     view()
         .flex_1()
         .min_h_0()
@@ -417,47 +329,29 @@ fn reader_view(
             },
         ))
         .child(
-            virtual_list(
-                move || state.rows.with(Vec::len),
-                move |at| {
-                    crate::sticker::visibility(move || {
-                        state
-                            .visible_range
-                            .get()
-                            .is_some_and(|(first, last)| (first..=last).contains(&at.index()))
-                            && state.preview.animation_visible()
-                            && !state.mutating.get()
-                    });
-                    let row = move || state.rows.with(|rows| rows.get(at.index()).cloned());
-                    state.preview.pinned_row(
-                        row,
-                        row_body(state, move || at.index(), row, locate),
-                        locate,
-                    )
-                },
-            )
-            .on_layout(media_viewport)
-            .keys(move || {
-                state.rows.with(|rows| {
-                    rows.iter()
-                        .map(|row| row.message_id.clone())
-                        .collect::<Vec<_>>()
+            virtual_list(move || state.rows.with(Vec::len), row)
+                .on_layout(media_viewport)
+                .keys(move || {
+                    state.rows.with(|rows| {
+                        rows.iter()
+                            .map(|row| row.message_id.clone())
+                            .collect::<Vec<_>>()
+                    })
                 })
-            })
-            .on_viewable_items_change(move |items: &ViewableItems| {
-                state.visible_range.set(items.viewable);
-                state.visible.replace(items.viewable.and_then(|(first, _)| {
-                    state
-                        .rows
-                        .with(|rows| rows.get(first).map(|row| row.message_id.clone()))
-                }));
-            })
-            .on_load_more(move || state.page(true, close))
-            .on_load_more_at_start(move || state.page(false, close))
-            .inverted()
-            .estimated_item_size(ui::list_row_height())
-            .flex_1()
-            .min_h_0(),
+                .on_viewable_items_change(move |items: &ViewableItems| {
+                    state.visible_range.set(items.viewable);
+                    state.visible.replace(items.viewable.and_then(|(first, _)| {
+                        state
+                            .rows
+                            .with(|rows| rows.get(first).map(|row| row.message_id.clone()))
+                    }));
+                })
+                .on_load_more(move || state.page(true, close))
+                .on_load_more_at_start(move || state.page(false, close))
+                .inverted()
+                .estimated_item_size(ui::list_row_height())
+                .flex_1()
+                .min_h_0(),
         )
         .child(state.preview.pinned_selection(state.conversation))
         .child(
@@ -483,6 +377,8 @@ pub(crate) fn preview(
     own_id: String,
     failed: Signal<bool>,
     close: impl Fn() + Copy + 'static,
+    locate: impl Fn(String) + Copy + 'static,
+    sender_names: Memo<bool>,
 ) -> View {
     let total = rows.len();
     let state = Pinned {
@@ -504,5 +400,11 @@ pub(crate) fn preview(
         preview: MediaPreview::detached(own_id),
         owner: Owner::current(),
     };
-    reader_view(state, close, |_| {}, crate::chat::message_media::viewport())
+    reader_view(
+        state,
+        close,
+        locate,
+        crate::chat::message_media::viewport(),
+        sender_names,
+    )
 }

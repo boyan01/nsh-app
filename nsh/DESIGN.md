@@ -52,6 +52,27 @@ radii in screen modules.** A missing role or variant goes into `theme.json` or
 `ui/` first. Documented exceptions are physical or measured geometry, such as a
 bitmap size. `nsh/tool/check-ui-literals.sh` reports what remains per file.
 
+## Startup
+
+Startup uses the same centered landing card as sign-in (`login_width`,
+`login_height`, `radius_login`, `surface_landing`, `surface_popover`), with
+Flutter's 40pt progress ring, `Initializing` title, and `ChatHintE2e` subtitle.
+The content is bounded to 375pt, with 24pt below the ring and 8pt below the
+18pt headline. The 16pt hint uses `landing-hint-foreground` and the version sits
+16pt from the window's bottom-right corner. Account restoration
+and the initial screen privacy read share this one loading surface. Home mounts
+with the resolved privacy state; only a locked account shows the passcode screen.
+Successful QR authentication returns to root startup, where restoring the active
+account and reading privacy can be retried without starting another QR login.
+
+Startup motion inventory:
+
+| Change | Tool and tokens | Reduced motion |
+| --- | --- | --- |
+| Account and screen privacy initialization | `ui::landing_loading` with the shared spinner motion; one retained landing card | Static progress glyph with title and encryption hint |
+| Ready, locked, signed out or failed | Immediate surface replacement; no intermediate privacy-loading surface | Same |
+| Startup failure retry | Existing `ui::link` feedback; return to the same loading card | Existing reduced-motion policy |
+
 ## Tokens
 
 Accessors live in `ui/tokens.rs`. Lengths are plain values, read from the embedded

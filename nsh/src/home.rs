@@ -46,6 +46,7 @@ struct Home {
 
 pub(crate) fn screen(
     account: Arc<AccountClient>,
+    initial_security: mixin_desktop_api::ScreenLockState,
     on_signed_out: impl Fn() + Copy + 'static,
 ) -> impl IntoElement {
     provide_context(crate::attachment_progress::AttachmentProgress::mount(
@@ -53,7 +54,7 @@ pub(crate) fn screen(
     ));
     let locate = signal_with(None::<String>, SignalEquals::Never);
     let selected = signal_with(None::<ConversationListData>, SignalEquals::Never);
-    let security = crate::security::mount(account.clone());
+    let security = crate::security::mount(account.clone(), initial_security);
     provide_context(security);
     let reedit = crate::chat::reedit::Reedit::mount();
     provide_context(reedit);

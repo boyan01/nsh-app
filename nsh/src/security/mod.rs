@@ -28,18 +28,8 @@ pub(crate) struct Handle {
     cooldown_seconds: Signal<u64>,
 }
 
-pub(crate) fn mount(account: Arc<AccountClient>) -> Handle {
-    let handle = Handle {
-        owner: Owner::current(),
-        client: stored(Some(account.screen_lock())),
-        state: signal(None),
-        revision: signal(0),
-        load_failed: signal(false),
-        lock_pending: signal(false),
-        busy: signal(false),
-        failed: signal(false),
-        cooldown_seconds: signal(0),
-    };
+pub(crate) fn mount(account: Arc<AccountClient>, initial: ScreenLockState) -> Handle {
+    let handle = Handle::new(Some(account.screen_lock()), initial);
     effect(move || {
         let _revision = handle.revision.get();
         let client = handle.client();
@@ -100,6 +90,22 @@ pub(crate) fn mount(account: Arc<AccountClient>) -> Handle {
 }
 
 impl Handle {
+    fn new(client: Option<ScreenLockClient>, initial: ScreenLockState) -> Self {
+        let cooldown_seconds = initial.retry_after_millis.div_ceil(1000);
+        Self {
+            owner: Owner::current(),
+            client: stored(client),
+            // Launch already resolved privacy. Subscribing must not introduce
+            // another blocked/loading frame for an unlocked account.
+            state: signal(Some(initial)),
+            revision: signal(0),
+            load_failed: signal(false),
+            lock_pending: signal(false),
+            busy: signal(false),
+            failed: signal(false),
+            cooldown_seconds: signal(cooldown_seconds),
+        }
+    }
     pub(crate) fn blocked(self) -> bool {
         self.lock_pending.get()
             || self
@@ -243,5 +249,75 @@ pub(crate) fn preview(kind: &str, failed: Signal<bool>) -> impl IntoElement {
         }
         "setup" => settings::preview_setup(handle).into_element(),
         _ => surface::preview_inline(handle).into_element(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nsh_core::element::{Runtime, create_root};
+
+    #[test]
+    fn resolved_launch_privacy_mounts_unlocked_accounts_without_a_blocked_frame() {
+        let graph = Runtime::default();
+        let _entered = graph.enter();
+        let (root, ()) = create_root(|| {
+            for (enabled, locked) in [(false, false), (true, false), (true, true)] {
+                let mut initial = ScreenLockState::default();
+                initial.available = true;
+                initial.enabled = enabled;
+                initial.locked = locked;
+                let handle = Handle::new(None, initial.clone());
+
+                assert_eq!(handle.state.get_untracked(), Some(initial));
+                assert_eq!(handle.blocked(), locked);
+                assert_eq!(handle.enabled(), enabled);
+                assert!(!handle.load_failed.get_untracked());
+            }
+        });
+        root.dispose();
+    }
+
+    #[test]
+    fn unlocked_launch_blocks_on_later_lock_or_missing_state_and_recovers_on_unlock() {
+        let graph = Runtime::default();
+        let _entered = graph.enter();
+        let (root, ()) = create_root(|| {
+            let mut unlocked = ScreenLockState::default();
+            unlocked.available = true;
+            unlocked.enabled = true;
+            let handle = Handle::new(None, unlocked.clone());
+            assert!(!handle.blocked());
+
+            handle.lock_pending.set(true);
+            assert!(handle.blocked());
+            let mut locked = unlocked.clone();
+            locked.locked = true;
+            handle.state.set(Some(locked));
+            handle.lock_pending.set(false);
+            assert!(handle.blocked());
+
+            handle.state.set(None);
+            assert!(handle.blocked());
+            handle.state.set(Some(unlocked));
+            assert!(!handle.blocked());
+        });
+        root.dispose();
+    }
+
+    #[test]
+    fn locked_launch_preserves_passcode_cooldown_before_effects_run() {
+        let graph = Runtime::default();
+        let _entered = graph.enter();
+        let (root, ()) = create_root(|| {
+            let mut initial = ScreenLockState::default();
+            initial.enabled = true;
+            initial.locked = true;
+            initial.retry_after_millis = 1501;
+            let handle = Handle::new(None, initial);
+            assert!(handle.blocked());
+            assert_eq!(handle.cooldown_seconds.get_untracked(), 2);
+        });
+        root.dispose();
     }
 }

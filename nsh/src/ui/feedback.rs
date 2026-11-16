@@ -97,20 +97,49 @@ pub(crate) fn busy_indicator(
     label: impl Fn() -> SharedString + 'static,
 ) -> impl IntoElement {
     let label = stored(label);
-    when(busy, move || {
-        svg(ImageSrc::svg_markup(crate::assets::svg::ICONS_SPINNER))
-            .size(icon_sm())
-            .flex_shrink_0()
-            .role(AccessibilityRole::Progressbar)
-            .label(move || label.with(|label| label()))
-            .style_with(|s| {
-                if reduce_motion() {
-                    s.animate_none()
-                } else {
-                    s.animate_spin()
-                }
-            })
-    })
+    when(busy, move || spinner(move || label.with(|label| label())))
+}
+
+fn spinner(label: impl Fn() -> SharedString + 'static) -> Svg {
+    svg(ImageSrc::svg_markup(crate::assets::svg::ICONS_SPINNER))
+        .size(icon_sm())
+        .flex_shrink_0()
+        .role(AccessibilityRole::Progressbar)
+        .label(label)
+        .style_with(|s| {
+            if reduce_motion() {
+                s.animate_none()
+            } else {
+                s.animate_spin()
+            }
+        })
+}
+
+/// Flutter Landing's initialization content inside the shared landing card.
+pub(crate) fn landing_loading(
+    title: impl Fn() -> &'static str + Copy + 'static,
+    message: impl Fn() -> &'static str + 'static,
+) -> View {
+    view()
+        .w(super::loading_content_width())
+        .max_w(relative(1.0))
+        .items_center()
+        .gap(space_xl())
+        .text_color(fg_primary)
+        .child(spinner(move || title().into()).size_10())
+        .child(
+            view()
+                .w_full()
+                .items_center()
+                .gap(space_sm())
+                .child(text(title).text_role(TextRole::Headline).text_center())
+                .child(
+                    text(message)
+                        .text_role(TextRole::Label)
+                        .text_center()
+                        .text_color(super::fg_landing_hint),
+                ),
+        )
 }
 
 /// A state with nothing to show yet: the mark, what is empty and what to do next.

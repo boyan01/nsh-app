@@ -68,7 +68,8 @@ mod ui;
 
 use crate::ui::Typography as _;
 use mixin_desktop_api::{
-    AccountClient, ClientError, ClientResult, DesktopClient, MediaClient, SettingsClient,
+    AccountClient, ClientError, ClientResult, DesktopClient, MediaClient, ScreenLockState,
+    SettingsClient,
 };
 use nsh_core::prelude::*;
 use std::sync::Arc;
@@ -148,8 +149,19 @@ mod media_scope_tests {
 pub(crate) enum Phase {
     Launching,
     SignedOut(DesktopClient),
-    SignedIn(Arc<AccountClient>),
+    SignedIn(Arc<AccountClient>, ScreenLockState),
     Failed,
+}
+
+impl Phase {
+    /// Both restored and newly authorized accounts must resolve screen privacy
+    /// before Home can mount. Keep the account available for shutdown on failure.
+    async fn signed_in(account: AccountClient) -> ClientResult<Self> {
+        let account = Arc::new(account);
+        runtime::retain_account(account.clone());
+        let security = account.screen_lock().state().await?;
+        Ok(Self::SignedIn(account, security))
+    }
 }
 
 /// The application surface. Business services remain outside the UI tree.
@@ -209,25 +221,14 @@ fn app_surface() -> impl IntoElement {
         .child(dynamic(move || {
             let current = phase.get();
             untracked(|| match current {
-                Phase::Launching => status_screen(
-                    view()
-                        .flex_row()
-                        .items_center()
-                        .gap_2()
-                        .child(ui::busy_indicator(
-                            || true,
-                            move || i18n.t(i18n::Key::NshOpeningMixin).into(),
-                        ))
-                        .child(
-                            text(move || i18n.t(i18n::Key::NshOpeningMixin))
-                                .text_role(ui::TextRole::Body)
-                                .text_color(ui::fg_secondary),
-                        ),
-                )
-                .into_element(),
-                Phase::SignedOut(desktop) => login::screen(desktop, phase).into_element(),
-                Phase::SignedIn(account) => ui::owned(account.account_id(), move || {
-                    home::screen(account.clone(), move || retry.update(|value| *value += 1))
+                Phase::Launching => startup_screen().into_element(),
+                Phase::SignedOut(desktop) => {
+                    login::screen(desktop, move || retry.update(|value| *value += 1)).into_element()
+                }
+                Phase::SignedIn(account, security) => ui::owned(account.account_id(), move || {
+                    home::screen(account.clone(), security.clone(), move || {
+                        retry.update(|value| *value += 1)
+                    })
                 })
                 .into_element(),
                 Phase::Failed => {
@@ -240,14 +241,42 @@ fn app_surface() -> impl IntoElement {
 
 /// A signed-out window has no sidebar, so this screen keeps the title bar draggable.
 fn status_screen(content: View) -> View {
-    view().flex_1().child(ui::title_bar()).child(
-        view()
-            .flex_1()
-            .p_8()
-            .items_center()
-            .justify_center()
-            .child(content),
-    )
+    view()
+        .flex_1()
+        .relative()
+        .bg(ui::surface_landing)
+        .child(ui::title_bar())
+        .child(
+            view().flex_1().p_4().items_center().justify_center().child(
+                view()
+                    .w(ui::login_width)
+                    .max_w(relative(1.0))
+                    .h(ui::login_height())
+                    .bg(ui::surface_popover)
+                    .rounded(ui::radius_login())
+                    .shadow_lg()
+                    .p_8()
+                    .items_center()
+                    .justify_center()
+                    .child(content),
+            ),
+        )
+        .child(
+            text(env!("CARGO_PKG_VERSION"))
+                .absolute()
+                .bottom(ui::space_lg())
+                .right(ui::space_lg())
+                .text_role(ui::TextRole::Body)
+                .text_color(ui::fg_secondary),
+        )
+}
+
+fn startup_screen() -> View {
+    let i18n = i18n::current();
+    status_screen(ui::landing_loading(
+        move || i18n.t(i18n::Key::Initializing),
+        move || i18n.t(i18n::Key::ChatHintE2e),
+    ))
 }
 
 async fn launch(i18n: i18n::I18n, clients: Clients) -> ClientResult<Phase> {
@@ -266,11 +295,7 @@ async fn launch(i18n: i18n::I18n, clients: Clients) -> ClientResult<Phase> {
     i18n.load(desktop.settings()).await;
     runtime::run(async move {
         match desktop.restore_account().await {
-            Ok(account) => {
-                let account = Arc::new(account);
-                runtime::retain_account(account.clone());
-                Ok(Phase::SignedIn(account))
-            }
+            Ok(account) => Phase::signed_in(account).await,
             Err(ClientError::NotFound) => {
                 runtime::release_account();
                 Ok(Phase::SignedOut(desktop))

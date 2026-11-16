@@ -38,6 +38,11 @@ struct Scene {
 
 const SCENES: &[Scene] = &[
     Scene {
+        name: "startup",
+        actions: &[],
+        mount: |_| crate::startup_screen(),
+    },
+    Scene {
         name: "window-shortcuts",
         actions: window_shortcuts::ACTIONS,
         mount: window_shortcuts::scene,

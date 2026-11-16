@@ -143,6 +143,8 @@ lengths! {
     sticker_tab_bar_height = "sticker-tab-bar-height";
     sticker_tab_size = "sticker-tab-size";
     radius_login = "radius-login";
+    /// Flutter Landing's bounded loading title and encryption hint.
+    loading_content_width = "loading-content-width";
     radius_composer = "radius-composer";
     /// A day separator and a notice in the timeline.
     radius_chip = "radius-chip";
@@ -237,6 +239,7 @@ colors! {
     surface_popover = "popover";
     /// The sign-in screen behind its card.
     surface_landing = "landing-background";
+    fg_landing_hint = "landing-hint-foreground";
 
     /// A message from someone else, and the controls floating over the timeline.
     bubble_in = "bubble-in";

@@ -1,6 +1,6 @@
 use crate::i18n::{self, Key};
 use crate::{
-    Phase, qr, runtime,
+    qr, runtime,
     ui::{self, Typography as _},
 };
 use mixin_desktop_api::{ClientError, ClientResult, DesktopClient, LoginClient};
@@ -16,7 +16,10 @@ enum LoginPhase {
     Failed,
 }
 
-pub(crate) fn screen(desktop: DesktopClient, phase: Signal<Phase>) -> impl IntoElement {
+pub(crate) fn screen(
+    desktop: DesktopClient,
+    on_authenticated: impl Fn() + Copy + 'static,
+) -> impl IntoElement {
     let state = signal(LoginPhase::Creating);
     let retry = signal(0_u64);
     let active = Rc::new(RefCell::new(None::<Arc<LoginClient>>));
@@ -32,9 +35,12 @@ pub(crate) fn screen(desktop: DesktopClient, phase: Signal<Phase>) -> impl IntoE
         let active = active.clone();
         state.set(LoginPhase::Creating);
         spawn(async move {
-            if let Err(error) = authorize(desktop, state, phase, active).await {
-                log::warn!("Sign-in failed: {error}");
-                state.set(LoginPhase::Failed);
+            match authorize(desktop, state, active).await {
+                Ok(()) => on_authenticated(),
+                Err(error) => {
+                    log::warn!("Sign-in failed: {error}");
+                    state.set(LoginPhase::Failed);
+                }
             }
         });
     });
@@ -44,7 +50,6 @@ pub(crate) fn screen(desktop: DesktopClient, phase: Signal<Phase>) -> impl IntoE
 async fn authorize(
     desktop: DesktopClient,
     state: Signal<LoginPhase>,
-    phase: Signal<Phase>,
     active: Rc<RefCell<Option<Arc<LoginClient>>>>,
 ) -> ClientResult<()> {
     loop {
@@ -63,14 +68,15 @@ async fn authorize(
         log::info!("NSH sign-in QR code ready");
         match runtime::run(async move {
             let account = Arc::new(login.wait().await?);
-            runtime::retain_account(account.clone());
-            Ok(account)
+            runtime::retain_account(account);
+            Ok(())
         })
         .await
         {
-            Ok(account) => {
+            Ok(()) => {
                 log::info!("NSH sign-in completed");
-                phase.set(Phase::SignedIn(account));
+                // The root restores this active account and resolves privacy.
+                // Post-authentication failures must retry startup, not begin_login.
                 return Ok(());
             }
             Err(mixin_desktop_api::ClientError::TimedOut) => continue,

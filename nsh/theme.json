@@ -122,6 +122,7 @@
       "bubble-highlight-media": "#00000033",
       "file-extension": "#b8bdc7",
       "login-width": "520px",
+      "loading-content-width": "375px",
       "login-height": "418px",
       "sidebar-width": "300px",
       "navigation-width": "176px",
@@ -204,6 +205,7 @@
       "bubble-highlight-in": "#00000021",
       "bubble-highlight-out": "#00000029",
       "landing-background": "#e5e5e5",
+      "landing-hint-foreground": "#bcbec3",
       "media-overlay": "#00000099",
       "media-overlay-foreground": "#ffffff"
     },
@@ -258,6 +260,7 @@
       "bubble-highlight-in": "#ffffff1f",
       "bubble-highlight-out": "#0000002e",
       "landing-background": "#23272b",
+      "landing-hint-foreground": "#ffffff66",
       "media-overlay": "#00000099",
       "media-overlay-foreground": "#ffffff"
     }

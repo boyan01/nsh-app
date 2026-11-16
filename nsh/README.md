@@ -44,10 +44,12 @@ macOS is the first validation target. Windows and Linux are unverified; see the 
 
 The repository's `.cargo/config.toml` owns the native development profile for
 ordinary `cargo test` and the preview helper's generated NSH workspaces. Both use
-the root `target/` by default. Project crates retain line-table debugging and
-incremental compilation, even when NSH treats them as dependencies. Third-party
-crates omit debugging information and incremental caches. The four optimized
-dependencies match NSH's generated native profile. The test profile inherits
+the root `target/` by default. Project crates
+retain line-table debugging, even when NSH treats them as dependencies. Dev/test
+incremental compilation is disabled to bound cache growth across UI builds;
+`CARGO_INCREMENTAL=1` opts into faster incremental rebuilds for a session at the
+cost of additional disk space. Third-party crates omit debugging information.
+The four optimized dependencies match NSH's generated native profile. The test profile inherits
 these settings; release profiles are unchanged.
 `quickjs-jit-macro` keeps its symbols because stripping its embedded native code
 can produce a Mach-O library that the macOS loader rejects. Its Rust debugging
@@ -64,7 +66,9 @@ otherwise selects a target directory below the preview entry. A caller's
 `CARGO_TARGET_DIR` override is respected and relative overrides are resolved from
 the caller's directory. Use `python3 nsh/tool/preview.py run` from the repository
 root for an interactive preview with this same cache. Calling `nsh run` directly
-still uses the CLI's entry-local target directory unless `CARGO_TARGET_DIR` is set.
+in `nsh/preview/` still uses the CLI's entry-local target directory unless
+`CARGO_TARGET_DIR` is set. `python3 nsh/tool/preview_web.py` uses the same shared
+directory and respects caller overrides as well.
 
 Sharing a directory and profile avoids duplicate artifacts when the resolved
 crate, version and features agree. NSH currently turns its pinned Git checkout
@@ -72,6 +76,21 @@ into path dependencies for generated hosts; ordinary tests still use the Git
 source. Those NSH artifacts, test executables and different feature combinations
 can remain separate. Do not edit generated `.nsh/rust/Cargo.toml` files or change
 the pinned NSH source just to remove those differences.
+
+`cargo check` and `nsh check nsh` check the workspace crate; `nsh build nsh`
+builds and runs a generated description program, rather than a native app.
+`nsh run nsh` and `nsh package nsh --target macos` build generated native runners.
+This Rust-root app uses `nsh run`, not `nsh dev`. Web previews additionally build
+for `wasm32-unknown-unknown` with NSH's `web-dev` profile; their artifacts cannot
+be reused as native test binaries. Generated workspaces have their own lockfiles.
+
+Cargo does not automatically prune artifacts left by older source revisions,
+feature sets, profiles or compiler versions. Changing these defaults does not
+remove existing `target/`, `nsh/preview/target/` or incremental caches. Inspect
+their sizes before removing obsolete build directories. `.nsh/out/` contains
+packaged apps, and preview `output/` contains review captures; retain outputs
+that are still needed. Use `cargo clean` only when intentionally discarding the
+configured shared cache.
 
 ## Button design previews
 

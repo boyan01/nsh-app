@@ -1,5 +1,6 @@
 {
   "name": "Mixin Messenger",
+  "nsh": ">=0.5, <0.6",
   "id": "one.mixin.messenger.nsh",
   "version": "7.0.0",
   "build": 2,

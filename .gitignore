@@ -6,5 +6,7 @@ target
 *.db-shm
 *.db-wal
 /Build/
+# NSH commands invoked from the repository root write generated output here.
+/.nsh/
 
 mixin-db-mcp.toml

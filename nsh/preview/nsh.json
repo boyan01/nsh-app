@@ -1,5 +1,6 @@
 {
   "name": "Mixin Preview",
+  "nsh": ">=0.5, <0.6",
   "id": "one.mixin.messenger.preview",
   "rust": "..",
   "root": "Preview",

@@ -73,7 +73,11 @@ impl Fixture {
         let session = auth(SESSION, 1);
         auth_service.save_auth(&session).await.unwrap();
         let settings = database.setting_dao.clone();
-        let network = Arc::new(NetworkService::new(settings.clone()).await.unwrap());
+        let network = Arc::new(
+            NetworkService::new(settings.clone(), "fixture-device".into())
+                .await
+                .unwrap(),
+        );
         let listener = tokio::net::TcpListener::bind(("127.0.0.1", 0))
             .await
             .unwrap();

@@ -56,7 +56,7 @@ impl AppDatabase {
             .to_path_buf();
         let hydrated = crate::db::hive::hydrated_box(&root)?;
         let property_dao = PropertyDao(pool);
-        let auth_dao = AuthDao::new(root, hydrated.clone());
+        let auth_dao = AuthDao::new(root, hydrated.clone(), property_dao.clone());
         Ok(Self {
             setting_dao: SettingDao::new(
                 property_dao.clone(),

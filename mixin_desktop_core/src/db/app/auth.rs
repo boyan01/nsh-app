@@ -4,7 +4,6 @@ use ring::signature::{Ed25519KeyPair, KeyPair};
 use sdk::Account;
 use serde::{Deserialize, Serialize};
 
-#[cfg(target_arch = "wasm32")]
 use super::{PropertyDao, PropertyGroup};
 
 #[cfg(target_arch = "wasm32")]
@@ -25,7 +24,6 @@ const DEVICE_ID_KEY: &str = "deviceId";
 /// list keeps the current session last. wasm keeps them in `app.db`.
 #[derive(Clone)]
 pub struct AuthDao {
-    #[cfg(target_arch = "wasm32")]
     properties: PropertyDao,
     #[cfg(not(target_arch = "wasm32"))]
     root: std::path::PathBuf,
@@ -137,8 +135,56 @@ impl AuthDao {
     pub(crate) fn new(
         root: std::path::PathBuf,
         hydrated: std::sync::Arc<crate::db::hive::HiveBox>,
+        properties: PropertyDao,
     ) -> Self {
-        Self { root, hydrated }
+        Self {
+            root,
+            hydrated,
+            properties,
+        }
+    }
+
+    /// Installation-scoped request identity, persisted before any API call.
+    /// Account-box device IDs remain machine guards and are not overwritten.
+    pub(crate) async fn request_device_id(&self) -> anyhow::Result<String> {
+        const KEY: &str = "request_device_id";
+        if let Some(id) = self.properties.get(PropertyGroup::Auth, KEY).await? {
+            return Ok(id);
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        let existing = crate::core::device::current_device_id().await;
+        #[cfg(target_arch = "wasm32")]
+        let existing: Option<String> = None;
+        self.persist_request_device_id(existing).await
+    }
+
+    async fn persist_request_device_id(&self, existing: Option<String>) -> anyhow::Result<String> {
+        const KEY: &str = "request_device_id";
+        #[cfg(not(target_arch = "wasm32"))]
+        let existing = if existing.is_some() {
+            existing
+        } else if let Some((_, identity_number)) = self.saved_identities()?.last() {
+            self.device_id(identity_number)
+                .await?
+                .filter(|id| !id.trim().is_empty() && id != "unknown")
+        } else {
+            None
+        };
+        let id = existing.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        // Multiple runtimes opening the same directory must agree on the
+        // winning value, including when no machine ID is available.
+        crate::db::query(
+            r#"INSERT INTO properties ("group", "key", value) VALUES ('auth', ?, ?)
+               ON CONFLICT("key", "group") DO NOTHING"#,
+        )
+        .bind(KEY)
+        .bind(&id)
+        .execute(&self.properties.0)
+        .await?;
+        self.properties
+            .get(PropertyGroup::Auth, KEY)
+            .await?
+            .ok_or_else(|| anyhow!("request device id was not persisted"))
     }
 
     pub async fn find_all_auth(&self) -> anyhow::Result<Vec<Auth>> {
@@ -358,6 +404,70 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn missing_machine_id_generates_one_persisted_identity_across_concurrent_calls_and_reopen(
+    ) {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("app.db");
+        let database = crate::db::app::AppDatabase::connect_at(&path)
+            .await
+            .unwrap();
+        let (first, second) = tokio::join!(
+            database.auth_dao.persist_request_device_id(None),
+            database.auth_dao.persist_request_device_id(None),
+        );
+        let first = first.unwrap();
+        assert_eq!(first, second.unwrap());
+        assert_eq!(uuid::Uuid::parse_str(&first).unwrap().get_version_num(), 4);
+        database.property_dao.0.close().await;
+        drop(database);
+
+        let reopened = crate::db::app::AppDatabase::connect_at(&path)
+            .await
+            .unwrap();
+        assert_eq!(reopened.auth_dao.request_device_id().await.unwrap(), first);
+    }
+
+    #[tokio::test]
+    async fn existing_flutter_machine_identity_is_reused_without_changing_account_state() {
+        let directory = tempfile::tempdir().unwrap();
+        let database = crate::db::app::AppDatabase::connect_at(directory.path().join("app.db"))
+            .await
+            .unwrap();
+        database
+            .auth_dao
+            .hydrated
+            .put(
+                MULTI_AUTH_KEY,
+                &json!({
+                    "auths": [flutter_auth("user-a", "7001", 1)]
+                }),
+            )
+            .unwrap();
+        database
+            .auth_dao
+            .set_device_id("7001", "existing-device")
+            .await
+            .unwrap();
+        let id = database
+            .auth_dao
+            .persist_request_device_id(None)
+            .await
+            .unwrap();
+        assert_eq!(id, "existing-device");
+        assert_eq!(
+            database
+                .auth_dao
+                .device_id("7001")
+                .await
+                .unwrap()
+                .as_deref(),
+            Some("existing-device")
+        );
+        database.auth_dao.remove_auth("user-a").await.unwrap();
+        assert_eq!(database.auth_dao.request_device_id().await.unwrap(), id);
+    }
+
+    #[tokio::test]
     async fn flutter_multi_auth_state_reads_current_last_and_saves_it_last() {
         let directory = tempfile::tempdir().unwrap();
         let hydrated = hydrated_box(directory.path()).unwrap();
@@ -374,7 +484,10 @@ mod tests {
                 &json!("30000000-0000-4000-8000-000000000001"),
             )
             .unwrap();
-        let dao = AuthDao::new(directory.path().to_path_buf(), hydrated.clone());
+        let database = crate::db::app::AppDatabase::connect_at(directory.path().join("app.db"))
+            .await
+            .unwrap();
+        let dao = database.auth_dao.clone();
 
         let auths = dao.find_all_auth().await.unwrap();
         assert_eq!(

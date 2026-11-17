@@ -224,7 +224,13 @@ impl AccountRuntime {
         auth_service: Arc<AuthService>,
         setting_dao: SettingDao,
     ) -> Result<Self> {
-        let network = Arc::new(crate::network::NetworkService::new(setting_dao.clone()).await?);
+        let network = Arc::new(
+            crate::network::NetworkService::new(
+                setting_dao.clone(),
+                auth_service.device_id().await?,
+            )
+            .await?,
+        );
         Self::start_with_network(auth, auth_service, setting_dao, network).await
     }
 

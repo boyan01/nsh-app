@@ -39,7 +39,9 @@ async fn oversized_remote_response_is_rejected_before_waiting_for_its_body() {
     let app = AppDatabase::connect_at(directory.path().join("app.db"))
         .await
         .unwrap();
-    let network = NetworkService::new(app.setting_dao.clone()).await.unwrap();
+    let network = NetworkService::new(app.setting_dao.clone(), "fixture-device".into())
+        .await
+        .unwrap();
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let url = format!("http://{}/image", listener.local_addr().unwrap());
     let (finish, wait) = tokio::sync::oneshot::channel();
@@ -80,7 +82,9 @@ async fn remote_download_waiting_for_body_stops_when_transfer_is_canceled() {
     let app = AppDatabase::connect_at(directory.path().join("app.db"))
         .await
         .unwrap();
-    let network = NetworkService::new(app.setting_dao.clone()).await.unwrap();
+    let network = NetworkService::new(app.setting_dao.clone(), "fixture-device".into())
+        .await
+        .unwrap();
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let url = format!("http://{}/image", listener.local_addr().unwrap());
     let cancellation = CancellationToken::new();

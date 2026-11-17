@@ -177,7 +177,11 @@ mod tests {
         let app = AppDatabase::connect_at(directory.path().join("app.db"))
             .await
             .unwrap();
-        let network = Arc::new(NetworkService::new(app.setting_dao).await.unwrap());
+        let network = Arc::new(
+            NetworkService::new(app.setting_dao, "fixture-device".into())
+                .await
+                .unwrap(),
+        );
         (directory, database, network)
     }
 

@@ -51,16 +51,15 @@ impl AuthService {
         self
     }
 
-    fn client(&self) -> sdk::Client {
-        self.network
-            .as_ref()
-            .map(|network| network.sdk_client(Credential::None))
-            .unwrap_or_else(|| {
-                sdk::Client::new_with_user_agent(
-                    Credential::None,
-                    Some(crate::core::user_agent::generate_user_agent()),
-                )
-            })
+    pub(crate) async fn device_id(&self) -> anyhow::Result<String> {
+        self.auth_dao.request_device_id().await
+    }
+
+    async fn client(&self) -> anyhow::Result<sdk::Client> {
+        if let Some(network) = &self.network {
+            return Ok(network.sdk_client(Credential::None));
+        }
+        crate::network::standalone_sdk_client(Credential::None, &self.device_id().await?)
     }
 
     pub async fn authorize(&self) -> anyhow::Result<AuthResult> {
@@ -87,7 +86,7 @@ impl AuthService {
         &self,
         platform: &str,
     ) -> anyhow::Result<AuthorizationSession> {
-        let client = self.client();
+        let client = self.client().await?;
         let response = client
             .provisioning_api
             .get_provisioning_id(platform)
@@ -114,7 +113,7 @@ impl AuthService {
         &self,
         session: &AuthorizationSession,
     ) -> anyhow::Result<Option<AuthResult>> {
-        let client = Arc::new(self.client());
+        let client = Arc::new(self.client().await?);
         check_auth(client, &session.device_id, &session.key_pair).await
     }
 
@@ -302,4 +301,77 @@ async fn verify_auth(
         registration_id,
         identity_key_private: private,
     })
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+    use reqwest::{Method, Request};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
+
+    #[tokio::test]
+    async fn provisioning_transport_sends_persisted_identity_with_and_without_shared_network() {
+        tokio::time::timeout(Duration::from_secs(10), async {
+            let directory = tempfile::tempdir().unwrap();
+            let database = Arc::new(
+                AppDatabase::connect_at(directory.path().join("app.db"))
+                    .await
+                    .unwrap(),
+            );
+            let device_id = database.auth_dao.request_device_id().await.unwrap();
+            let network = Arc::new(
+                crate::network::NetworkService::new(
+                    database.setting_dao.clone(),
+                    device_id.clone(),
+                )
+                .await
+                .unwrap(),
+            );
+            let standalone = AuthService::new(database.clone());
+            let shared = AuthService::new(database.clone()).with_network(network);
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move {
+                for _ in 0..2 {
+                    for expected in [
+                        "POST /provisionings HTTP/1.1",
+                        "GET /provisionings/qr-id HTTP/1.1",
+                        "POST /provisionings/verify HTTP/1.1",
+                    ] {
+                        let (mut stream, _) = listener.accept().await.unwrap();
+                        let mut header = Vec::new();
+                        while !header.ends_with(b"\r\n\r\n") {
+                            assert!(header.len() < 16 * 1024);
+                            header.push(stream.read_u8().await.unwrap());
+                        }
+                        let header = String::from_utf8(header).unwrap();
+                        assert!(header.starts_with(expected));
+                        assert!(header.to_lowercase().contains(&format!(
+                            "mixin-device-id: {device_id}\r\n"
+                        )));
+                        stream.write_all(
+                            b"HTTP/1.1 200 OK\r\nContent-Length: 11\r\nConnection: close\r\n\r\n{\"data\":{}}"
+                        ).await.unwrap();
+                    }
+                }
+            });
+            // Exercise the actual AuthService client factory for all three QR
+            // request paths, without depending on a live provisioning session.
+            for auth in [&standalone, &shared] {
+                let client = auth.client().await.unwrap();
+                for (method, path) in [
+                    (Method::POST, "provisionings"),
+                    (Method::GET, "provisionings/qr-id"),
+                    (Method::POST, "provisionings/verify"),
+                ] {
+                    let _: serde_json::Value = client.request(Request::new(
+                        method, format!("http://{address}/{path}").parse().unwrap()
+                    )).await.unwrap();
+                }
+            }
+            server.await.unwrap();
+            assert!(database.property_dao.get(crate::db::app::PropertyGroup::Auth, "request_device_id").await.unwrap().is_some());
+        }).await.unwrap();
+    }
 }

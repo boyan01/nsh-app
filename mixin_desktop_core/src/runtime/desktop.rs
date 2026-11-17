@@ -7,6 +7,10 @@ use chrono::Local;
 use log::{info, warn};
 use tokio::sync::Mutex;
 
+#[cfg(not(target_arch = "wasm32"))]
+use crate::core::device::current_device_id;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+use crate::core::device::name_uuid_from_bytes;
 use crate::core::model::auth::AuthService;
 use crate::db::app::{AppDatabase, SettingDao};
 use crate::db::path::{account_data_directory, data_directory};
@@ -40,7 +44,13 @@ impl DesktopRuntime {
         let database = Arc::new(AppDatabase::connect().await?);
         let auth_service = AuthService::new(database.clone());
         auth_service.initialize().await?;
-        let network_service = Arc::new(NetworkService::new(database.setting_dao.clone()).await?);
+        let network_service = Arc::new(
+            NetworkService::new(
+                database.setting_dao.clone(),
+                auth_service.device_id().await?,
+            )
+            .await?,
+        );
         let auth_service = Arc::new(auth_service.with_network(network_service.clone()));
         #[cfg(not(target_arch = "wasm32"))]
         let mcp_server = McpServer::new(database.setting_dao.clone()).await?;
@@ -330,69 +340,6 @@ pub(super) async fn record_current_device(
     _identity_number: &str,
 ) -> Result<()> {
     Ok(())
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-async fn current_device_id() -> Option<String> {
-    tokio::task::spawn_blocking(current_device_id_sync)
-        .await
-        .ok()
-        .flatten()
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn current_device_id_sync() -> Option<String> {
-    #[cfg(target_os = "linux")]
-    {
-        let id = std::fs::read_to_string("/etc/machine-id").ok()?;
-        let id = id.trim();
-        if id.len() != 32 {
-            return None;
-        }
-        return Some(name_uuid_from_bytes(id.as_bytes()));
-    }
-    #[cfg(target_os = "macos")]
-    {
-        let output = std::process::Command::new("ioreg")
-            .args(["-rd1", "-c", "IOPlatformExpertDevice"])
-            .output()
-            .ok()?;
-        let output = String::from_utf8(output.stdout).ok()?;
-        return output.lines().find_map(|line| {
-            if !line.contains("IOPlatformUUID") {
-                return None;
-            }
-            line.split('=')
-                .nth(1)
-                .map(|value| value.trim().trim_matches('"').to_lowercase())
-                .filter(|value| !value.is_empty())
-        });
-    }
-    #[cfg(target_os = "windows")]
-    {
-        let output = std::process::Command::new("wmic")
-            .args(["csproduct", "get", "UUID"])
-            .output()
-            .ok()?;
-        let output = String::from_utf8(output.stdout).ok()?;
-        return output
-            .lines()
-            .map(str::trim)
-            .find(|line| !line.is_empty() && !line.eq_ignore_ascii_case("uuid"))
-            .map(str::to_lowercase);
-    }
-    #[allow(unreachable_code)]
-    None
-}
-
-/// Java's `UUID.nameUUIDFromBytes`, which the Flutter app applies to the
-/// Linux machine id.
-#[cfg(any(target_os = "linux", test))]
-fn name_uuid_from_bytes(bytes: &[u8]) -> String {
-    let mut digest = md5::compute(bytes).0;
-    digest[6] = (digest[6] & 0x0f) | 0x30;
-    digest[8] = (digest[8] & 0x3f) | 0x80;
-    uuid::Uuid::from_bytes(digest).to_string()
 }
 
 #[cfg(all(test, not(target_arch = "wasm32")))]

@@ -84,7 +84,7 @@ async fn sdk_and_attachment_bytes_follow_proxy_authentication_and_live_switch() 
             })
             .await
             .unwrap();
-        let network = NetworkService::new(database.setting_dao.clone())
+        let network = NetworkService::new(database.setting_dao.clone(), "fixture-device".into())
             .await
             .unwrap();
         let sdk = Arc::new(network.sdk_client(sdk::Credential::KeyStore(sdk::KeyStore {
@@ -111,6 +111,9 @@ async fn sdk_and_attachment_bytes_follow_proxy_authentication_and_live_switch() 
                     let lower = header.to_lowercase();
                     assert!(lower.contains("user-agent: mixin"));
                     assert!(lower.contains("authorization: bearer ey"));
+                    assert!(lower.contains("mixin-device-id: fixture-device\r\n"));
+                } else {
+                    assert!(!header.to_lowercase().contains("mixin-device-id:"));
                 }
                 if method == "PUT" {
                     assert_eq!(body, b"upload bytes");
@@ -129,6 +132,12 @@ async fn sdk_and_attachment_bytes_follow_proxy_authentication_and_live_switch() 
                 let (header, body) = request(&mut stream).await;
                 assert!(header.starts_with(&format!("GET http://network.invalid/{path} HTTP/1.1")));
                 assert!(body.is_empty());
+                assert_eq!(
+                    header
+                        .to_lowercase()
+                        .contains("mixin-device-id: fixture-device\r\n"),
+                    path == "sdk"
+                );
                 respond(&mut stream, response).await;
             }
         });
@@ -208,7 +217,7 @@ async fn provisioning_uses_selected_proxy_before_attempting_the_remote_api() {
         let directory=tempfile::tempdir().unwrap();let database=Arc::new(AppDatabase::connect_at(directory.path().join("app.db")).await.unwrap());
         let listener=TcpListener::bind("127.0.0.1:0").await.unwrap();let proxy=config(listener.local_addr().unwrap().port(),"login");
         database.setting_dao.set_proxy_settings(ProxySettings {enabled:true,selected_proxy_id:Some("login".into()),proxies:vec![proxy]}).await.unwrap();
-        let network=Arc::new(NetworkService::new(database.setting_dao.clone()).await.unwrap());
+        let network=Arc::new(NetworkService::new(database.setting_dao.clone(), "fixture-device".into()).await.unwrap());
         let auth=crate::core::model::auth::AuthService::new(database).with_network(network);
         let server=tokio::spawn(async move {
             let(mut stream,_)=listener.accept().await.unwrap();let(header,body)=request(&mut stream).await;
@@ -238,7 +247,9 @@ async fn sdk_socks_proxy_authenticates_and_resolves_the_target_at_the_proxy() {
             })
             .await
             .unwrap();
-        let network = NetworkService::new(database.setting_dao).await.unwrap();
+        let network = NetworkService::new(database.setting_dao, "fixture-device".into())
+            .await
+            .unwrap();
         let client = network.sdk_client(sdk::Credential::None);
         let server = tokio::spawn(async move {
             let (mut stream, _) = listener.accept().await.unwrap();

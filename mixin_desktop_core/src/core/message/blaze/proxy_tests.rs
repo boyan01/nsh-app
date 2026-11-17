@@ -122,7 +122,11 @@ async fn changing_and_disabling_proxy_reconnects_live_blaze_and_cancellation_rel
             })
             .await
             .unwrap();
-        let network = Arc::new(NetworkService::new(app.setting_dao.clone()).await.unwrap());
+        let network = Arc::new(
+            NetworkService::new(app.setting_dao.clone(), "fixture-device".into())
+                .await
+                .unwrap(),
+        );
         let mut applied = network.proxy_changes();
         // Reject status-API signing locally; disabling the proxy must never
         // make this socket-only fixture contact a real Mixin endpoint.
@@ -226,7 +230,11 @@ async fn disabling_proxy_cancels_a_pending_connect_tunnel_before_its_timeout() {
             })
             .await
             .unwrap();
-        let network = Arc::new(NetworkService::new(app.setting_dao.clone()).await.unwrap());
+        let network = Arc::new(
+            NetworkService::new(app.setting_dao.clone(), "fixture-device".into())
+                .await
+                .unwrap(),
+        );
         let mut applied = network.proxy_changes();
         let invalid = Credential::KeyStore(sdk::KeyStore {
             app_id: "fixture".into(),

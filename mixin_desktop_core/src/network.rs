@@ -31,12 +31,15 @@ pub struct HttpResponse {
 
 pub struct NetworkService {
     client: watch::Receiver<reqwest::Client>,
+    api_client: watch::Receiver<reqwest::Client>,
     proxy: watch::Receiver<Option<ProxyConfig>>,
     settings_task: JoinHandle<()>,
 }
 
 impl NetworkService {
-    pub async fn new(setting_dao: SettingDao) -> Result<Self> {
+    /// `device_id` must be resolved and persisted by the owning AuthService.
+    pub async fn new(setting_dao: SettingDao, device_id: String) -> Result<Self> {
+        let device_id = HeaderValue::from_str(&device_id).context("invalid Mixin device id")?;
         let mut settings = Box::pin(setting_dao.subscribe_proxy_settings());
         let initial = settings
             .next()
@@ -44,8 +47,10 @@ impl NetworkService {
             .transpose()?
             .ok_or_else(|| anyhow!("proxy settings subscription closed"))?;
         initial.validate()?;
-        let client = build_client(initial.active_proxy())?;
+        let client = build_client(initial.active_proxy(), None)?;
+        let api_client = build_client(initial.active_proxy(), Some(&device_id))?;
         let (client_sender, client) = watch::channel(client);
+        let (api_client_sender, api_client) = watch::channel(api_client);
         let (proxy_sender, proxy) = watch::channel(initial.active_proxy().cloned());
         let settings_task = crate::task::spawn(async move {
             while let Some(next) = settings.next().await {
@@ -64,8 +69,11 @@ impl NetworkService {
                 if *proxy_sender.borrow() == active {
                     continue;
                 }
-                match build_client(next.active_proxy()) {
-                    Ok(client) => {
+                match build_client(next.active_proxy(), None).and_then(|client| {
+                    Ok((client, build_client(next.active_proxy(), Some(&device_id))?))
+                }) {
+                    Ok((client, api_client)) => {
+                        api_client_sender.send_replace(api_client);
                         client_sender.send_replace(client);
                         proxy_sender.send_replace(active);
                     }
@@ -75,6 +83,7 @@ impl NetworkService {
         });
         Ok(Self {
             client,
+            api_client,
             proxy,
             settings_task,
         })
@@ -84,10 +93,11 @@ impl NetworkService {
         sdk::Client::new_with_http_clients(
             credential,
             Some(crate::core::user_agent::generate_user_agent()),
-            self.http_clients(),
+            self.api_client.clone(),
         )
     }
 
+    /// Transport for arbitrary URLs and attachment bytes, without API identity.
     pub(crate) fn http_clients(&self) -> watch::Receiver<reqwest::Client> {
         self.client.clone()
     }
@@ -170,7 +180,10 @@ impl Drop for NetworkService {
     }
 }
 
-fn build_client(proxy: Option<&ProxyConfig>) -> Result<reqwest::Client> {
+fn build_client(
+    proxy: Option<&ProxyConfig>,
+    device_id: Option<&HeaderValue>,
+) -> Result<reqwest::Client> {
     // wasm: the browser owns network egress, timeouts, and proxy settings;
     // the reqwest browser backend exposes none of them on the client builder.
     #[cfg(target_arch = "wasm32")]
@@ -193,7 +206,31 @@ fn build_client(proxy: Option<&ProxyConfig>) -> Result<reqwest::Client> {
     // wasm: the browser owns network egress; proxy settings cannot apply.
     #[cfg(target_arch = "wasm32")]
     let _ = proxy;
+    let builder = if let Some(device_id) = device_id {
+        let mut headers = HeaderMap::new();
+        headers.insert("mixin-device-id", device_id.clone());
+        let builder = builder.default_headers(headers);
+        // API redirects must not disclose the device identity to another host.
+        #[cfg(not(target_arch = "wasm32"))]
+        let builder = builder.redirect(reqwest::redirect::Policy::none());
+        builder
+    } else {
+        builder
+    };
     Ok(builder.build()?)
+}
+
+pub(crate) fn standalone_sdk_client(
+    credential: sdk::Credential,
+    device_id: &str,
+) -> Result<sdk::Client> {
+    let device_id = HeaderValue::from_str(device_id).context("invalid Mixin device id")?;
+    let (_, clients) = watch::channel(build_client(None, Some(&device_id))?);
+    Ok(sdk::Client::new_with_http_clients(
+        credential,
+        Some(crate::core::user_agent::generate_user_agent()),
+        clients,
+    ))
 }
 
 pub type SharedNetworkService = Arc<NetworkService>;
@@ -214,7 +251,9 @@ mod tests {
             let (mut stream, _) = listener.accept().await.unwrap();
             let mut request = [0_u8; 1024];
             let count = stream.read(&mut request).await.unwrap();
-            assert!(String::from_utf8_lossy(&request[..count]).starts_with("POST /asset HTTP/1.1"));
+            let request = String::from_utf8_lossy(&request[..count]);
+            assert!(request.starts_with("POST /asset HTTP/1.1"));
+            assert!(!request.to_lowercase().contains("mixin-device-id:"));
             stream
                 .write_all(
                     b"HTTP/1.1 201 Created\r\nContent-Type: image/gif\r\nContent-Length: 4\r\nConnection: close\r\n\r\nGIF8",
@@ -226,7 +265,9 @@ mod tests {
         let database = AppDatabase::connect_at(directory.path().join("app.db"))
             .await
             .unwrap();
-        let service = NetworkService::new(database.setting_dao).await.unwrap();
+        let service = NetworkService::new(database.setting_dao, "fixture-device".into())
+            .await
+            .unwrap();
 
         let response = service
             .request(
@@ -268,7 +309,9 @@ mod tests {
             .await
             .unwrap();
         let settings = database.setting_dao.clone();
-        let service = NetworkService::new(database.setting_dao).await.unwrap();
+        let service = NetworkService::new(database.setting_dao, "fixture-device".into())
+            .await
+            .unwrap();
         let mut client_changes = service.client.clone();
         settings
             .set_proxy_settings(ProxySettings {
@@ -304,8 +347,37 @@ mod tests {
         let request = server.await.unwrap().to_lowercase();
 
         assert_eq!(response.body, b"proxied");
+        assert!(!request.contains("mixin-device-id:"));
         assert!(request.starts_with("get http://example.invalid/proxied http/1.1"));
         assert!(request.contains("proxy-authorization: basic dxnlcjpwyxnzd29yza=="));
+    }
+
+    #[tokio::test]
+    async fn sdk_redirect_does_not_send_device_identity_to_the_redirect_target() {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let server = tokio::spawn(async move {
+                let (mut stream, _) = listener.accept().await.unwrap();
+                let mut request = Vec::new();
+                while !request.ends_with(b"\r\n\r\n") {
+                    request.push(stream.read_u8().await.unwrap());
+                }
+                assert!(String::from_utf8(request).unwrap().contains("mixin-device-id: fixture-device"));
+                stream.write_all(format!(
+                    "HTTP/1.1 302 Found\r\nLocation: http://{address}/third-party\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                ).as_bytes()).await.unwrap();
+                listener
+            });
+            let client = standalone_sdk_client(sdk::Credential::None, "fixture-device").unwrap();
+            let result = client.request::<serde_json::Value>(reqwest::Request::new(
+                Method::GET, format!("http://{address}/api").parse().unwrap()
+            )).await;
+            assert!(result.is_err());
+            let listener = server.await.unwrap();
+            // A redirect would already have opened a second connection.
+            assert!(tokio::time::timeout(Duration::from_millis(50), listener.accept()).await.is_err());
+        }).await.unwrap();
     }
 
     #[test]

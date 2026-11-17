@@ -371,7 +371,10 @@ mod tests {
                 &json!({"auths": [{"account": {"user_id": "user", "identity_number": "7000"}, "privateKey": ""}]}),
             )
             .unwrap();
-        SharedSettings::new(hydrated.clone(), AuthDao::new(root.to_path_buf(), hydrated))
+        let database = crate::db::app::AppDatabase::connect_at(root.join("app.db"))
+            .await
+            .unwrap();
+        SharedSettings::new(hydrated, database.auth_dao)
     }
 
     #[tokio::test]

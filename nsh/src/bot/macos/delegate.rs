@@ -6,7 +6,10 @@ use std::{
 use block2::DynBlock;
 use nsh_platform_macos::{
     ComponentContext,
-    objc2_app_kit::{NSMenu, NSMenuItem, NSPasteboard, NSPasteboardTypeString, NSView, NSWindow},
+    objc2_app_kit::{
+        NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
+        NSView, NSWindow,
+    },
 };
 use objc2::{
     ClassType, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
@@ -14,26 +17,23 @@ use objc2::{
     runtime::{AnyObject, Bool},
     sel,
 };
-use objc2_foundation::{
-    NSArray, NSNotification, NSObject, NSObjectProtocol, NSPoint, NSString, NSURL,
-};
+use objc2_foundation::{NSArray, NSObject, NSObjectProtocol, NSString, NSURL};
 use serde_json::{Value, json};
 
 pub(super) struct Ivars {
     context: ComponentContext,
     web: RefCell<Option<Weak<AnyObject>>>,
-    window: RefCell<Option<Weak<NSWindow>>>,
     generation: Cell<u64>,
     pending: RefCell<HashSet<String>>,
     labels: RefCell<Value>,
     locale: RefCell<String>,
+    immersive: Cell<bool>,
     script: RefCell<String>,
     closed: Cell<bool>,
     dialogs: super::dialogs::Dialogs,
     downloads: super::downloads::Downloads,
-    chrome: super::chrome::Chrome,
+    theme_key: RefCell<Option<(String, String)>>,
     observing: Cell<bool>,
-    follow_title: Cell<bool>,
     shareable: Cell<bool>,
 }
 
@@ -90,7 +90,7 @@ define_class!(
                     data.insert("generation".into(), Value::from(self.ivars().generation.get()));
                     self.emit("signature", Value::Object(data));
                 }
-                "theme" => self.ivars().chrome.theme(data.get("color").unwrap_or(&Value::Null)),
+                "theme" => self.theme(data.get("color").unwrap_or(&Value::Null)),
                 "reloadTheme" => {},
                 _ => {},
             }
@@ -216,13 +216,16 @@ define_class!(
         #[unsafe(method(observeValueForKeyPath:ofObject:change:context:))]
         fn observed(&self, key: Option<&NSString>, object: Option<&AnyObject>, change: Option<&AnyObject>, context: *mut std::ffi::c_void) {
             if key.is_some_and(|key| key.to_string() == "title") {
-                if self.ivars().follow_title.get() && !self.ivars().closed.get() {
+                if !self.ivars().closed.get() {
                     self.update_title();
                 }
+            } else if key.is_some_and(|key| key.to_string() == "URL") {
+                self.navigation_state(None);
             } else if key.is_some_and(|key| key.to_string() == "canGoBack") {
                 if !self.ivars().closed.get() && let Some(web) = object {
                     let can_back: Bool = unsafe { msg_send![web, canGoBack] };
-                    self.ivars().chrome.navigation(can_back.as_bool());
+                    let _ = can_back;
+                    self.navigation_state(None);
                 }
             } else {
                 unsafe { let _: () = msg_send![super(self), observeValueForKeyPath: key, ofObject: object, change: change, context: context]; }
@@ -233,11 +236,12 @@ define_class!(
         fn started(&self, _web: &AnyObject, _navigation: Option<&AnyObject>) {
             self.ivars().generation.set(self.ivars().generation.get().wrapping_add(1));
             self.ivars().pending.borrow_mut().clear();
+            self.navigation_state(Some(true));
         }
 
         #[unsafe(method(webView:didFinishNavigation:))]
         fn finished(&self, _web: &AnyObject, _navigation: Option<&AnyObject>) {
-            if !self.ivars().closed.get() { self.update_locale(); }
+            if !self.ivars().closed.get() { self.update_locale(); self.navigation_state(Some(false)); }
         }
 
         #[unsafe(method(webView:didFailNavigation:withError:))]
@@ -257,68 +261,7 @@ define_class!(
             self.failed("The web content process stopped");
         }
 
-        #[unsafe(method(windowWillClose:))]
-        fn window_closed(&self, _notification: &NSNotification) {
-            let was_closed = self.ivars().closed.replace(true);
-            self.ivars().pending.borrow_mut().clear();
-            self.cancel_native_work();
-            if !was_closed { self.emit("closed", Value::Null); }
-        }
 
-        #[unsafe(method(back:))]
-        fn back(&self, _sender: Option<&AnyObject>) {
-            self.with_web(|web| unsafe { let _: Option<Retained<AnyObject>> = msg_send![web, goBack]; });
-        }
-
-        #[unsafe(method(close:))]
-        fn close(&self, _sender: Option<&AnyObject>) { self.close_window(); }
-
-        #[unsafe(method(refresh:))]
-        fn refresh(&self, _sender: Option<&AnyObject>) {
-            self.with_web(|web| unsafe { let _: Option<Retained<AnyObject>> = msg_send![web, reload]; });
-        }
-
-        #[unsafe(method(copyLink:))]
-        fn copy_link(&self, _sender: Option<&AnyObject>) {
-            if let Some(url) = self.current_url() {
-                let clipboard = NSPasteboard::generalPasteboard();
-                clipboard.clearContents();
-                unsafe { clipboard.setString_forType(&NSString::from_str(&url), NSPasteboardTypeString); }
-            }
-        }
-
-        #[unsafe(method(openBrowser:))]
-        fn open_browser(&self, _sender: Option<&AnyObject>) {
-            if let Some(url) = self.current_url().filter(|url| is_web(url)) { self.emit("browser", Value::String(url)); }
-        }
-
-        #[unsafe(method(forwardPage:))]
-        fn forward_page(&self, _sender: Option<&AnyObject>) {
-            if self.ivars().closed.get() || !self.ivars().shareable.get() { return; }
-            if let Some(url) = self.current_url().filter(|url| is_web(url)) {
-                self.emit("share", json!({ "url": url, "title": self.page_title().unwrap_or_default() }));
-            }
-        }
-
-        #[unsafe(method(more:))]
-        fn more(&self, sender: &AnyObject) {
-            let mtm = MainThreadMarker::new().expect("Native menu actions run on AppKit's main thread");
-            let labels = self.ivars().labels.borrow().clone();
-            let menu = NSMenu::initWithTitle(NSMenu::alloc(mtm), &NSString::new());
-            menu.setAutoenablesItems(false);
-            for (key, action) in [
-                ("Refresh", sel!(refresh:)), ("Forward…", sel!(forwardPage:)), ("Copy link", sel!(copyLink:)),
-                ("Open in browser", sel!(openBrowser:)), ("Close", sel!(close:)),
-            ] {
-                let item = unsafe { NSMenuItem::initWithTitle_action_keyEquivalent(NSMenuItem::alloc(mtm), &NSString::from_str(super::label(&labels, key)), Some(action), &NSString::new()) };
-                unsafe { item.setTarget(Some(self)); }
-                if key == "Forward…" { item.setEnabled(self.ivars().shareable.get()); }
-                menu.addItem(&item);
-            }
-            // SAFETY: the sender is the menu button installed by Host::open.
-            let view = unsafe { &*(sender as *const AnyObject).cast::<NSView>() };
-            menu.popUpMenuPositioningItem_atLocation_inView(None, NSPoint::new(0.0, 0.0), Some(view));
-        }
     }
 );
 
@@ -327,54 +270,56 @@ impl Delegate {
         let value = Self::alloc(mtm).set_ivars(Ivars {
             context,
             web: RefCell::new(None),
-            window: RefCell::new(None),
             generation: Cell::new(0),
             pending: RefCell::new(HashSet::new()),
             labels: RefCell::new(Value::Null),
             locale: RefCell::new(String::new()),
+            immersive: Cell::new(false),
             script: RefCell::new(String::new()),
             closed: Cell::new(false),
             dialogs: super::dialogs::Dialogs::default(),
             downloads: super::downloads::Downloads::default(),
-            chrome: super::chrome::Chrome::default(),
+            theme_key: RefCell::new(None),
             observing: Cell::new(false),
-            follow_title: Cell::new(false),
             shareable: Cell::new(true),
         });
         // SAFETY: NSObject's initializer initializes this allocation once.
         unsafe { msg_send![super(value), init] }
     }
-    pub(super) fn attach_chrome(
-        &self,
-        window: &NSWindow,
-        title: Option<&nsh_platform_macos::objc2_app_kit::NSTextField>,
-        icon: Option<&nsh_platform_macos::objc2_app_kit::NSImageView>,
-        buttons: &[Retained<nsh_platform_macos::objc2_app_kit::NSButton>],
-        session: &str,
-        app: &str,
-    ) {
-        self.ivars()
-            .chrome
-            .attach(window, title, icon, buttons, session, app);
-        self.ivars().chrome.labels(&self.ivars().labels.borrow());
+    pub(super) fn attach_theme(&self, session: &str, app: &str) {
+        *self.ivars().theme_key.borrow_mut() = Some((session.into(), app.into()));
+        self.emit("theme", json!(super::session::theme(session, app)));
     }
-    pub(super) fn attach_capsule(&self, capsule: &NSView, divider: &NSView) {
-        self.ivars().chrome.capsule(capsule, divider);
+    fn theme(&self, value: &Value) {
+        let color = super::super::chrome::theme_color(value);
+        if let Some((session, app)) = self.ivars().theme_key.borrow().as_ref() {
+            super::session::set_theme(session, app, color);
+        }
+        self.emit("theme", json!(color));
     }
     pub(super) fn system_dark(&self, dark: bool) {
-        self.ivars().chrome.system_dark(dark);
-    }
-    pub(super) fn icon(&self, value: Option<&str>) {
-        self.ivars().chrome.icon(value);
+        self.with_web(|web| unsafe {
+            let view = &*(web as *const AnyObject).cast::<NSView>();
+            view.setAppearance(
+                NSAppearance::appearanceNamed(if dark {
+                    NSAppearanceNameDarkAqua
+                } else {
+                    NSAppearanceNameAqua
+                })
+                .as_deref(),
+            );
+        });
     }
     fn browser_window(&self) -> Option<Retained<NSWindow>> {
         if self.ivars().closed.get() {
             return None;
         }
-        self.ivars().window.borrow().as_ref().and_then(Weak::load)
+        let web = self.ivars().web.borrow().as_ref().and_then(Weak::load)?;
+        let view = unsafe { &*(Retained::as_ptr(&web).cast::<NSView>()) };
+        view.window()
     }
     fn cancel_native_work(&self) {
-        let window = self.ivars().window.borrow().as_ref().and_then(Weak::load);
+        let window = self.browser_window();
         self.ivars().dialogs.cancel_all(window.as_deref());
         self.ivars().downloads.cancel_all();
     }
@@ -404,12 +349,8 @@ impl Delegate {
     }
     pub(super) fn set_labels(&self, labels: &Value) {
         *self.ivars().labels.borrow_mut() = labels.clone();
-        self.ivars().chrome.labels(labels);
     }
     pub(super) fn presentation(&self, page: &Value) -> Result<(), &'static str> {
-        self.ivars()
-            .follow_title
-            .set(page.get("app_id").and_then(Value::as_str).is_none());
         self.ivars().shareable.set(
             page.get("shareable")
                 .and_then(Value::as_bool)
@@ -441,32 +382,39 @@ impl Delegate {
             *self.ivars().locale.borrow_mut() = locale.to_owned();
             self.update_locale();
         }
+        let immersive = page
+            .get("immersive")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        self.ivars().immersive.set(immersive);
+        self.update_locale();
         Ok(())
     }
     fn update_locale(&self) {
         // The bridge keeps the existing page and pending callbacks alive.
         let script = format!(
-            "window.__mixinBotSetLocale?.({});",
-            json!(*self.ivars().locale.borrow())
+            "window.__mixinBotSetLocale?.({}); window.__mixinBotSetImmersive?.({});",
+            json!(*self.ivars().locale.borrow()),
+            self.ivars().immersive.get()
         );
         self.with_web(|web| unsafe {
             let _: () = msg_send![web, evaluateJavaScript: &*NSString::from_str(&script), completionHandler: std::ptr::null::<AnyObject>()];
         });
     }
-    pub(super) fn attach(&self, web: &AnyObject, window: &NSWindow) {
+    pub(super) fn attach(&self, web: &AnyObject) {
         *self.ivars().web.borrow_mut() = Some(Weak::new(web));
-        *self.ivars().window.borrow_mut() = Some(Weak::new(window));
         if !self.ivars().observing.replace(true) {
             unsafe {
                 let _: () = msg_send![web, addObserver: self, forKeyPath: &*NSString::from_str("canGoBack"), options: 5_usize, context: std::ptr::null_mut::<std::ffi::c_void>()];
                 let _: () = msg_send![web, addObserver: self, forKeyPath: &*NSString::from_str("title"), options: 5_usize, context: std::ptr::null_mut::<std::ffi::c_void>()];
+                let _: () = msg_send![web, addObserver: self, forKeyPath: &*NSString::from_str("URL"), options: 5_usize, context: std::ptr::null_mut::<std::ffi::c_void>()];
             }
         }
     }
     pub(super) fn detach(&self) {
+        self.cancel_native_work();
         self.ivars().closed.set(true);
         self.ivars().pending.borrow_mut().clear();
-        self.cancel_native_work();
         self.ivars()
             .generation
             .set(self.ivars().generation.get().wrapping_add(1));
@@ -474,10 +422,10 @@ impl Delegate {
             self.with_web(|web| unsafe {
                 let _: () = msg_send![web, removeObserver: self, forKeyPath: &*NSString::from_str("canGoBack")];
                 let _: () = msg_send![web, removeObserver: self, forKeyPath: &*NSString::from_str("title")];
+                let _: () = msg_send![web, removeObserver: self, forKeyPath: &*NSString::from_str("URL")];
             });
         }
         self.ivars().web.borrow_mut().take();
-        self.ivars().window.borrow_mut().take();
     }
     fn emit(&self, name: &str, data: Value) {
         self.ivars().context.emit(name, data);
@@ -523,9 +471,18 @@ impl Delegate {
         }
     }
     fn close_window(&self) {
-        if let Some(window) = self.ivars().window.borrow().as_ref().and_then(Weak::load) {
-            window.close();
+        if !self.ivars().closed.get() {
+            self.emit("closed", Value::Null);
         }
+    }
+    fn navigation_state(&self, loading: Option<bool>) {
+        if self.ivars().closed.get() {
+            return;
+        }
+        self.with_web(|web| {
+            let can_back: Bool = unsafe { msg_send![web, canGoBack] };
+            self.emit("navigation", json!({"url": self.current_url(), "title": self.page_title(), "can_back": can_back.as_bool(), "loading": loading}));
+        });
     }
     fn with_web(&self, callback: impl FnOnce(&AnyObject)) {
         if let Some(web) = self.ivars().web.borrow().as_ref().and_then(Weak::load) {
@@ -540,14 +497,7 @@ impl Delegate {
             .filter(|title| !title.trim().is_empty())
     }
     fn update_title(&self) {
-        let title = self.page_title().or_else(|| {
-            self.current_url()
-                .and_then(|url| url::Url::parse(&url).ok())
-                .and_then(|url| url.host_str().map(str::to_owned))
-        });
-        if let Some(title) = title {
-            self.ivars().chrome.title(&title);
-        }
+        self.navigation_state(None);
     }
     fn current_url(&self) -> Option<String> {
         let web = self.ivars().web.borrow().as_ref().and_then(Weak::load)?;

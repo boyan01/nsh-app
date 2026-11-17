@@ -52,7 +52,7 @@ pub(crate) use icon::{Icon, icon, inscription_background, logo, wallpaper};
 pub(crate) use markdown::{markdown, markdown_reader};
 pub(crate) use menu_icon::MenuIcon;
 pub(crate) use overlay::{
-    context_menu_on, hint, menu, menu_groups, menu_row, menu_row_icon, menu_row_symbol,
+    context_menu_on, glass_menu, hint, menu, menu_groups, menu_row, menu_row_icon, menu_row_symbol,
     native_context_menu, popover_flush,
 };
 pub(crate) use owned::owned;

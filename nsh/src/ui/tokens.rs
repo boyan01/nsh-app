@@ -111,6 +111,8 @@ lengths! {
     content_max_width = "content-max-width";
     /// A decision, a short form or a person: Flutter's `UserDialog`.
     dialog_width_compact = "dialog-width-compact";
+    /// Bot identity and navigation actions in a compact glass popup.
+    bot_menu_width = "bot-menu-width";
     /// A dialog with a list or a longer form.
     dialog_width_regular = "dialog-width-regular";
     /// A dialog with room for a document.
@@ -285,6 +287,8 @@ colors! {
     fg_primary = "foreground";
     /// Metadata, previews, placeholders and disclosure arrows.
     fg_secondary = "muted-foreground";
+    /// Metadata that remains readable over a translucent glass material.
+    fg_glass_secondary = "glass-secondary-foreground";
     /// What may go unread: inactive decoration.
     fg_tertiary = "foreground-tertiary";
     /// What is drawn on an `accent` fill.

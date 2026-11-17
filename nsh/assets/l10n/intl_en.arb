@@ -1402,5 +1402,7 @@
   "nshPosts": "Posts",
   "nshReturnToSearch": "Return to Search",
   "nshReturnToPinned": "Return to Pinned",
-  "nshDismissInspectorReturn": "Dismiss return to inspector"
+  "nshDismissInspectorReturn": "Dismiss return to inspector",
+  "nshHideBotHeader": "Hide header",
+  "nshShowBotHeader": "Show header"
 }

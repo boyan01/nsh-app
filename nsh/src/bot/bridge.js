@@ -24,6 +24,9 @@
   Object.defineProperty(window, '__mixinBotSetLocale', { value: function (locale) {
     if (typeof locale === 'string') context.locale = locale;
   }});
+  Object.defineProperty(window, '__mixinBotSetImmersive', { value: function (immersive) {
+    if (typeof immersive === 'boolean') context.immersive = immersive;
+  }});
   window.MixinContext = {
     getContext: function () {
       context.appearance = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

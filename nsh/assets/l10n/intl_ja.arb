@@ -1235,5 +1235,7 @@
   },
   "nshReturnToSearch": "検索に戻る",
   "nshReturnToPinned": "ピン留めに戻る",
-  "nshDismissInspectorReturn": "パネルに戻るボタンを閉じる"
+  "nshDismissInspectorReturn": "パネルに戻るボタンを閉じる",
+  "nshHideBotHeader": "ヘッダーを隠す",
+  "nshShowBotHeader": "ヘッダーを表示"
 }

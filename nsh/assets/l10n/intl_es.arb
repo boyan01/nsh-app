@@ -1256,5 +1256,7 @@
   },
   "nshReturnToSearch": "Volver a la búsqueda",
   "nshReturnToPinned": "Volver a los fijados",
-  "nshDismissInspectorReturn": "Cerrar el acceso de regreso al panel"
+  "nshDismissInspectorReturn": "Cerrar el acceso de regreso al panel",
+  "nshHideBotHeader": "Ocultar encabezado",
+  "nshShowBotHeader": "Mostrar encabezado"
 }

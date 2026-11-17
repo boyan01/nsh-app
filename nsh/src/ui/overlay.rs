@@ -150,3 +150,11 @@ pub(crate) fn popover() -> PopoverElement {
         .popup_starting_style(motion::popup_start)
         .popup_ending_style(motion::popup_end)
 }
+
+/// A navigation menu above embedded native content, using the app's glass material.
+pub(crate) fn glass_menu() -> MenuElement {
+    menu().popup_style(|style| {
+        let style = super::chrome::glass(popup(style).bg(|| surface_popover().opacity(0.0)));
+        style.overflow_hidden()
+    })
+}

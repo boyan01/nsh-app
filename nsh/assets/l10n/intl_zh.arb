@@ -1400,5 +1400,7 @@
   "nshPosts": "文章",
   "nshReturnToSearch": "返回搜索",
   "nshReturnToPinned": "返回置顶",
-  "nshDismissInspectorReturn": "关闭面板返回入口"
+  "nshDismissInspectorReturn": "关闭面板返回入口",
+  "nshHideBotHeader": "隐藏标题栏",
+  "nshShowBotHeader": "显示标题栏"
 }

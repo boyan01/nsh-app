@@ -1128,5 +1128,7 @@
   "@participantsCount": {"placeholders": {"arg0": {"type": "String"}}},
   "nshReturnToSearch": "Kembali ke Carian",
   "nshReturnToPinned": "Kembali ke Mesej Disemat",
-  "nshDismissInspectorReturn": "Tutup akses kembali ke panel"
+  "nshDismissInspectorReturn": "Tutup akses kembali ke panel",
+  "nshHideBotHeader": "Sembunyikan pengepala",
+  "nshShowBotHeader": "Tunjukkan pengepala"
 }

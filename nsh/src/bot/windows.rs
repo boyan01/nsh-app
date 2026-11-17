@@ -3,7 +3,10 @@ use std::rc::Rc;
 
 use nsh_platform_windows::Components;
 
-mod chrome;
+mod drag;
+mod input;
+mod visual;
+pub(super) use input::element as input;
 mod dispatch;
 mod downloads;
 mod events;
@@ -17,7 +20,7 @@ pub(crate) fn register(components: &Components) {
         Rc::new(|context| Box::new(session::Session::new(context))),
     );
     components.register(
-        "MixinBotWindow",
+        "MixinBotWebView",
         Rc::new(|context| Box::new(window::Host::new(context))),
     );
 }

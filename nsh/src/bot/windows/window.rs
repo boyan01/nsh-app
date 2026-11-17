@@ -8,14 +8,15 @@ use nsh_platform_windows::{ComponentContext, NativeComponent};
 use serde_json::{Value, json};
 use webview2_com::{
     AddScriptToExecuteOnDocumentCreatedCompletedHandler,
-    CreateCoreWebView2ControllerCompletedHandler, Microsoft::Web::WebView2::Win32::*, take_pwstr,
+    CreateCoreWebView2CompositionControllerCompletedHandler, Microsoft::Web::WebView2::Win32::*,
+    take_pwstr,
 };
 use windows::{
     Win32::UI::Shell::IFileSaveDialog,
     core::{HSTRING, Interface, PWSTR},
 };
 
-use super::{chrome, dispatch, events, session};
+use super::{dispatch, events, session, visual::Visual};
 
 pub(super) struct State {
     pub context: ComponentContext,
@@ -27,16 +28,18 @@ pub(super) struct State {
     pub generation: Cell<u64>,
     pub closed: Cell<bool>,
     pub dark: Cell<bool>,
+    pub hovered: Cell<bool>,
+    pub drag: super::drag::Drag,
     pub download_started: Cell<bool>,
-    pub chrome: RefCell<Option<chrome::Chrome>>,
+    pub visual: Rc<Visual>,
+    pub placement: Cell<Option<nsh_platform_windows::Placement>>,
+    pub composition: RefCell<Option<ICoreWebView2CompositionController>>,
     pub pending: RefCell<HashSet<String>>,
     pub saving: RefCell<Option<IFileSaveDialog>>,
     pub downloads: RefCell<Vec<ICoreWebView2DownloadOperation>>,
-    pub icon: RefCell<Option<chrome::Icon>>,
     script: RefCell<Option<String>>,
     script_revision: Cell<u64>,
     navigated: Cell<bool>,
-    focus: Cell<u64>,
 }
 
 impl State {
@@ -45,6 +48,8 @@ impl State {
         page: Value,
         entry: Rc<session::Entry>,
         dark: bool,
+        native: Rc<dispatch::Window>,
+        visual: Rc<Visual>,
     ) -> Result<Rc<Self>, &'static str> {
         let raw = page
             .get("url")
@@ -53,12 +58,6 @@ impl State {
         if !is_web(raw) {
             return Err("Invalid browser URL");
         }
-        let title = page
-            .get("title")
-            .and_then(Value::as_str)
-            .unwrap_or_default();
-        let native =
-            dispatch::Window::new(title, true).map_err(|_| "Could not create browser window")?;
         let state = Rc::new(Self {
             context,
             native,
@@ -69,18 +68,19 @@ impl State {
             generation: Cell::new(0),
             closed: Cell::new(false),
             dark: Cell::new(dark),
+            hovered: Cell::new(false),
+            drag: Default::default(),
             download_started: Cell::new(false),
-            chrome: RefCell::default(),
+            visual,
+            placement: Cell::new(None),
+            composition: RefCell::default(),
             pending: RefCell::default(),
             saving: RefCell::default(),
             downloads: RefCell::default(),
-            icon: RefCell::default(),
             script: RefCell::default(),
             script_revision: Cell::new(0),
             navigated: Cell::new(false),
-            focus: Cell::new(0),
         });
-        chrome::install(&state).map_err(|_| "Could not create browser controls")?;
         let weak = Rc::downgrade(&state);
         *state.native.closing.borrow_mut() = Some(Box::new(move || {
             if let Some(state) = weak.upgrade() {
@@ -112,12 +112,14 @@ impl State {
                 return;
             };
             let weak = Rc::downgrade(&state);
-            let done = CreateCoreWebView2ControllerCompletedHandler::create(Box::new(
+            let done = CreateCoreWebView2CompositionControllerCompletedHandler::create(Box::new(
                 move |result, controller| {
                     let Some(state) = weak.upgrade().filter(|state| !state.closed.get()) else {
                         if let Some(controller) = controller {
-                            unsafe {
-                                let _ = controller.Close();
+                            if let Ok(controller) = controller.cast::<ICoreWebView2Controller>() {
+                                unsafe {
+                                    let _ = controller.Close();
+                                }
                             }
                         }
                         return Ok(());
@@ -134,8 +136,14 @@ impl State {
                     Ok(())
                 },
             ));
-            if unsafe { environment.CreateCoreWebView2Controller(state.native.hwnd.get(), &done) }
-                .is_err()
+            if unsafe {
+                environment
+                    .cast::<ICoreWebView2Environment3>()
+                    .and_then(|environment| {
+                        environment.CreateCoreWebView2CompositionController(state.parent(), &done)
+                    })
+            }
+            .is_err()
             {
                 state.fail();
                 state.close();
@@ -144,8 +152,16 @@ impl State {
         Ok(state)
     }
 
-    fn attach(self: &Rc<Self>, controller: ICoreWebView2Controller) -> windows::core::Result<()> {
+    fn attach(
+        self: &Rc<Self>,
+        composition: ICoreWebView2CompositionController,
+    ) -> windows::core::Result<()> {
+        let controller = composition.cast::<ICoreWebView2Controller>()?;
         *self.controller.borrow_mut() = Some(controller.clone());
+        unsafe {
+            composition.SetRootVisualTarget(&self.visual.target)?;
+        }
+        *self.composition.borrow_mut() = Some(composition);
         let web = unsafe { controller.CoreWebView2()? };
         let settings = unsafe { web.Settings()? };
         unsafe {
@@ -212,6 +228,7 @@ impl State {
         if self.closed.replace(true) {
             return;
         }
+        super::input::cancel(self);
         self.generation.set(self.generation.get().wrapping_add(1));
         self.pending.borrow_mut().clear();
         let dialog = self.saving.borrow_mut().take();
@@ -239,26 +256,72 @@ impl State {
                 let _ = controller.Close();
             }
         }
-        chrome::clear_icon(self);
-        self.chrome.borrow_mut().take();
+        if let Some(composition) = self.composition.borrow_mut().take() {
+            unsafe {
+                let _ = composition.SetRootVisualTarget(None::<&windows::core::IUnknown>);
+            }
+        }
         self.native.close();
         self.context.emit("closed", Value::Null);
     }
 
+    pub fn parent(&self) -> windows::Win32::Foundation::HWND {
+        unsafe {
+            windows::Win32::UI::WindowsAndMessaging::GetAncestor(
+                self.native.hwnd.get(),
+                windows::Win32::UI::WindowsAndMessaging::GA_ROOT,
+            )
+        }
+    }
+
     pub fn resize(&self) {
-        let mut rect = self.native.bounds();
-        let header = chrome::layout(self, &rect);
-        rect.top += header;
+        let rect = self
+            .placement
+            .get()
+            .map(|p| {
+                let left = p.matrix.M31.round() as i32;
+                let top = p.matrix.M32.round() as i32;
+                windows::Win32::Foundation::RECT {
+                    left,
+                    top,
+                    right: left + p.size.0,
+                    bottom: top + p.size.1,
+                }
+            })
+            .unwrap_or_else(|| self.native.bounds());
         if let Some(controller) = self.controller.borrow().as_ref() {
             unsafe {
+                // Bounds are relative to the NSH window, so IME candidates,
+                // select menus and native dialogs follow the embedded page.
+                let _ = controller.SetParentWindow(self.parent());
                 let _ = controller.SetBounds(rect);
+                let _ = controller.NotifyParentWindowPositionChanged();
+                if let Ok(controller) = controller.cast::<ICoreWebView2Controller3>() {
+                    let _ = controller.SetShouldDetectMonitorScaleChanges(false);
+                    let _ = controller.SetRasterizationScale(self.scale());
+                }
             }
         }
-        chrome::raise(self);
+    }
+
+    pub fn scale(&self) -> f64 {
+        f64::from(
+            unsafe { windows::Win32::UI::HiDpi::GetDpiForWindow(self.native.hwnd.get()) }.max(96),
+        ) / 96.0
+    }
+
+    pub fn update(&self, loading: Option<bool>) {
+        let mut can_back = windows::core::BOOL(0);
+        if let Some(web) = self.web.borrow().as_ref() {
+            unsafe {
+                let _ = web.CanGoBack(&mut can_back);
+            }
+        }
+        self.emit("navigation", json!({"url": self.url(), "title": self.title(), "can_back": can_back.as_bool(), "loading": loading}));
     }
 
     pub fn presentation(self: &Rc<Self>) {
-        chrome::update(self);
+        self.update(None);
         let Some(web) = self.web.borrow().clone() else {
             return;
         };
@@ -268,10 +331,6 @@ impl State {
             .and_then(Value::as_str)
             .unwrap_or_default()
             .to_owned();
-        let locale = page
-            .get("locale")
-            .and_then(Value::as_str)
-            .unwrap_or_default();
         // Main-frame-only injection is defense in depth. Message source and
         // generation are still taken from native WebView2 events below.
         let script = format!("if (window === window.top) {{\n{script}\n}}");
@@ -319,17 +378,7 @@ impl State {
         {
             self.fail();
         }
-        let locale_script = format!("window.__mixinBotSetLocale?.({});", json!(locale));
-        unsafe {
-            let _ = web.ExecuteScript(&HSTRING::from(locale_script), None);
-        }
-        let focus = page
-            .get("focus")
-            .and_then(Value::as_u64)
-            .unwrap_or_default();
-        if self.focus.replace(focus) != focus {
-            self.native.focus();
-        }
+        self.update_context();
         if let Ok(profile) = unsafe { web.cast::<ICoreWebView2_13>().and_then(|web| web.Profile()) }
         {
             unsafe {
@@ -338,6 +387,23 @@ impl State {
                 } else {
                     COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT
                 });
+            }
+        }
+    }
+
+    pub fn update_context(&self) {
+        let page = self.page.borrow();
+        let locale = page
+            .get("locale")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let immersive = page
+            .get("immersive")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        if let Some(web) = self.web.borrow().as_ref() {
+            unsafe {
+                let _ = web.ExecuteScript(&HSTRING::from(format!("window.__mixinBotSetLocale?.({}); window.__mixinBotSetImmersive?.({immersive});",json!(locale))), None);
             }
         }
     }
@@ -384,6 +450,8 @@ pub(super) fn is_web(raw: &str) -> bool {
 
 pub(super) struct Host {
     context: ComponentContext,
+    native: Option<Rc<dispatch::Window>>,
+    visual: Option<Rc<Visual>>,
     session: String,
     pending: Option<Value>,
     state: Option<Rc<State>>,
@@ -391,8 +459,14 @@ pub(super) struct Host {
 }
 impl Host {
     pub fn new(context: ComponentContext) -> Self {
+        let native = dispatch::Window::embedded().ok();
+        if native.is_none() {
+            context.emit("failed", Value::Null);
+        }
         Self {
             context,
+            native,
+            visual: None,
             session: String::new(),
             pending: None,
             state: None,
@@ -400,7 +474,7 @@ impl Host {
         }
     }
     fn page(&mut self, page: &Value) {
-        if self.session.is_empty() {
+        if self.session.is_empty() || self.visual.is_none() {
             self.pending = Some(page.clone());
             return;
         }
@@ -409,17 +483,75 @@ impl Host {
             state.presentation();
             return;
         }
+        let Some(native) = self.native.clone() else {
+            return;
+        };
         let Some(entry) = session::get(&self.session) else {
             self.context.emit("failed", Value::Null);
             return;
         };
-        match State::open(self.context.clone(), page.clone(), entry, self.dark) {
+        match State::open(
+            self.context.clone(),
+            page.clone(),
+            entry,
+            self.dark,
+            native,
+            self.visual.as_ref().unwrap().clone(),
+        ) {
             Ok(state) => self.state = Some(state),
             Err(_) => self.context.emit("failed", Value::Null),
         }
     }
 }
 impl NativeComponent for Host {
+    fn window(&self) -> Option<windows::Win32::Foundation::HWND> {
+        self.native.as_ref().map(|native| native.hwnd.get())
+    }
+    fn composed(&self) -> bool {
+        true
+    }
+    fn visual(
+        &mut self,
+        device: &windows::Win32::Graphics::DirectComposition::IDCompositionDesktopDevice,
+    ) -> Option<windows::Win32::Graphics::DirectComposition::IDCompositionVisual2> {
+        let visual = match Visual::new(device) {
+            Ok(visual) => Rc::new(visual),
+            Err(_) => {
+                self.context.emit("failed", Value::Null);
+                return None;
+            }
+        };
+        let result = visual.outer.clone();
+        self.visual = Some(visual);
+        if let Some(page) = self.pending.take() {
+            self.page(&page);
+        }
+        Some(result)
+    }
+    fn placed(&mut self, at: Option<nsh_platform_windows::Placement>) {
+        if at.is_none()
+            && let Some(state) = &self.state
+        {
+            super::input::cancel(state);
+        }
+        if let Some(visual) = &self.visual {
+            visual.place(at);
+        }
+        if let Some(state) = &self.state {
+            state.placement.set(at);
+            if let Some(controller) = state.controller.borrow().as_ref() {
+                unsafe {
+                    let _ = controller.SetIsVisible(at.is_some());
+                }
+            }
+            state.resize();
+        }
+    }
+    fn wheel(&mut self, event: &nsh_platform_windows::Wheel) -> bool {
+        self.state
+            .as_ref()
+            .is_some_and(|state| super::input::wheel(state, event))
+    }
     fn set_prop(&mut self, name: &str, value: Option<&Value>) {
         match name {
             "session" => {
@@ -444,10 +576,31 @@ impl NativeComponent for Host {
         }
     }
     fn command(&mut self, name: &str, args: &Value) {
-        if name == "reply"
-            && let Some(state) = &self.state
-        {
-            state.reply(args);
+        if let Some(state) = &self.state {
+            match name {
+                "reply" => state.reply(args),
+                "focus" => super::focus::take(state),
+                "pointer" => super::input::pointer(state, args),
+                "pointer-cancel" => super::input::cancel(state),
+                "reload" | "back" | "forward" => {
+                    if let Some(web) = state.web.borrow().as_ref() {
+                        unsafe {
+                            match name {
+                                "reload" => {
+                                    let _ = web.Reload();
+                                }
+                                "back" => {
+                                    let _ = web.GoBack();
+                                }
+                                _ => {
+                                    let _ = web.GoForward();
+                                }
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
         }
     }
 }
@@ -456,9 +609,11 @@ impl Drop for Host {
         if let Some(state) = self.state.take() {
             state.close();
         }
+        if let Some(native) = &self.native {
+            native.close();
+        }
     }
 }
-
 impl Drop for State {
     fn drop(&mut self) {
         self.close();

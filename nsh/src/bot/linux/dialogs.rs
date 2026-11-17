@@ -41,10 +41,10 @@ impl Dialogs {
         }
         let kind = request.dialog_type();
         let dialog = gtk::Window::builder()
-            .transient_for(&owner.window)
             .modal(true)
             .title(owner.label("Webpage"))
             .build();
+        dialog.set_transient_for(owner.window().as_ref());
         let area = gtk::Box::new(gtk::Orientation::Vertical, 8);
         area.set_margin_top(16);
         area.set_margin_bottom(16);
@@ -170,15 +170,23 @@ impl Dialogs {
             }
         };
         if multiple {
-            dialog.open_multiple(Some(&owner.window), Some(&cancellation), move |result| {
-                complete(
-                    result.map(|files| files.iter::<gio::File>().filter_map(Result::ok).collect()),
-                )
-            });
+            dialog.open_multiple(
+                owner.window().as_ref(),
+                Some(&cancellation),
+                move |result| {
+                    complete(
+                        result.map(|files| {
+                            files.iter::<gio::File>().filter_map(Result::ok).collect()
+                        }),
+                    )
+                },
+            );
         } else {
-            dialog.open(Some(&owner.window), Some(&cancellation), move |result| {
-                complete(result.map(|file| vec![file]))
-            });
+            dialog.open(
+                owner.window().as_ref(),
+                Some(&cancellation),
+                move |result| complete(result.map(|file| vec![file])),
+            );
         }
     }
     pub fn error(&self, owner: &Rc<State>) {
@@ -186,10 +194,10 @@ impl Dialogs {
             return;
         }
         let dialog = gtk::Window::builder()
-            .transient_for(&owner.window)
             .modal(true)
             .title(owner.label("Webpage"))
             .build();
+        dialog.set_transient_for(owner.window().as_ref());
         let area = gtk::Box::new(gtk::Orientation::Vertical, 16);
         area.set_margin_top(16);
         area.set_margin_bottom(16);

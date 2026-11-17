@@ -108,7 +108,7 @@ fn choose(
             ));
         }
         *state.saving.borrow_mut() = Some(dialog.clone());
-        let shown = dialog.Show(Some(state.native.hwnd.get()));
+        let shown = dialog.Show(Some(state.parent()));
         state.saving.borrow_mut().take();
         shown?;
         if state.closed.get() {

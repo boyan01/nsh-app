@@ -77,28 +77,32 @@ impl Downloads {
             let download = download.clone();
             let pending = Rc::downgrade(&choosers);
             let active = Rc::downgrade(&active);
-            chooser.save(Some(&owner.window), Some(&cancellation), move |result| {
-                let Some(pending) = pending.upgrade() else {
-                    download.cancel();
-                    return;
-                };
-                if pending.borrow_mut().remove(&id).is_none() {
-                    return;
-                }
-                let valid = active
-                    .upgrade()
-                    .is_some_and(|active| active.borrow().contains_key(&id));
-                if valid
-                    && let Ok(file) = result
-                    && file.path().is_some()
-                {
-                    // The native save chooser has confirmed the selected target.
-                    download.set_allow_overwrite(true);
-                    download.set_destination(&file.uri());
-                } else {
-                    download.cancel();
-                }
-            });
+            chooser.save(
+                owner.window().as_ref(),
+                Some(&cancellation),
+                move |result| {
+                    let Some(pending) = pending.upgrade() else {
+                        download.cancel();
+                        return;
+                    };
+                    if pending.borrow_mut().remove(&id).is_none() {
+                        return;
+                    }
+                    let valid = active
+                        .upgrade()
+                        .is_some_and(|active| active.borrow().contains_key(&id));
+                    if valid
+                        && let Ok(file) = result
+                        && file.path().is_some()
+                    {
+                        // The native save chooser has confirmed the selected target.
+                        download.set_allow_overwrite(true);
+                        download.set_destination(&file.uri());
+                    } else {
+                        download.cancel();
+                    }
+                },
+            );
             true
         });
         let weak = Rc::downgrade(owner);

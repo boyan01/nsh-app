@@ -2,6 +2,7 @@
 //! Scenes place production components over fixtures; `.agents/skills/nsh-preview`
 //! describes how to capture and compare them.
 
+mod bot_window;
 mod button_pages;
 mod components;
 mod composer;
@@ -37,6 +38,16 @@ struct Scene {
 }
 
 const SCENES: &[Scene] = &[
+    Scene {
+        name: "bot-window",
+        actions: bot_window::ACTIONS,
+        mount: bot_window::bot,
+    },
+    Scene {
+        name: "webpage-window",
+        actions: bot_window::ACTIONS,
+        mount: bot_window::webpage,
+    },
     Scene {
         name: "startup",
         actions: &[],

@@ -62,6 +62,8 @@ windows = { version = "0.62", features = [
     "Win32_UI_WindowsAndMessaging",
     "Win32_Graphics_Dwm",
     "Win32_Graphics_Gdi",
+    "Win32_Graphics_DirectComposition",
+    "Win32_Graphics_Direct2D_Common",
     "UI_Notifications",
     "Data_Xml_Dom",
     "Foundation",

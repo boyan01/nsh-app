@@ -1234,5 +1234,7 @@
   },
   "nshReturnToSearch": "Вернуться к поиску",
   "nshReturnToPinned": "Вернуться к закреплённым",
-  "nshDismissInspectorReturn": "Закрыть возврат к панели"
+  "nshDismissInspectorReturn": "Закрыть возврат к панели",
+  "nshHideBotHeader": "Скрыть заголовок",
+  "nshShowBotHeader": "Показать заголовок"
 }

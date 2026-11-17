@@ -88,6 +88,31 @@ impl Window {
         Ok(window)
     }
 
+    /// Transparent input/IME parent only: the browser draws into NSH's composition.
+    /// Layered + transparent makes hit-testing pass through to NSH overlays.
+    pub fn embedded() -> Result<Rc<Self>> {
+        let window = Self::new("", false)?;
+        unsafe {
+            SetWindowLongPtrW(
+                window.hwnd.get(),
+                GWL_STYLE,
+                (WS_POPUP | WS_CLIPSIBLINGS).0 as isize,
+            );
+            SetWindowLongPtrW(
+                window.hwnd.get(),
+                GWL_EXSTYLE,
+                (WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE).0 as isize,
+            );
+            SetLayeredWindowAttributes(
+                window.hwnd.get(),
+                windows::Win32::Foundation::COLORREF(0),
+                0,
+                LWA_ALPHA,
+            )?;
+        }
+        Ok(window)
+    }
+
     pub fn later(&self, task: impl FnOnce() + 'static) -> bool {
         if self.hwnd.get().is_invalid() || self.tasks.borrow().len() >= 32 {
             return false;
@@ -125,13 +150,6 @@ impl Window {
             let _ = GetClientRect(self.hwnd.get(), &mut rect);
         }
         rect
-    }
-
-    pub fn focus(&self) {
-        unsafe {
-            let _ = ShowWindow(self.hwnd.get(), SW_RESTORE);
-            let _ = SetForegroundWindow(self.hwnd.get());
-        }
     }
 
     pub fn close(&self) {

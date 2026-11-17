@@ -1,45 +1,22 @@
-//! Header controls and browser content form one native keyboard focus cycle.
-use std::rc::{Rc, Weak};
-
-use webview2_com::{Microsoft::Web::WebView2::Win32::*, MoveFocusRequestedEventHandler};
+//! NSH header controls and WebView2 share the native keyboard focus cycle.
+use super::window::State;
+use std::rc::Rc;
+use webview2_com::{
+    AcceleratorKeyPressedEventHandler, CursorChangedEventHandler,
+    Microsoft::Web::WebView2::Win32::*, MoveFocusRequestedEventHandler,
+};
 use windows::{
-    Win32::{
-        Foundation::{HWND, LPARAM, LRESULT, WPARAM},
-        System::Com::{CLSCTX_INPROC_SERVER, CoCreateInstance},
-        UI::{
-            Accessibility::{CAccPropServices, IAccPropServices, PROPID_ACC_NAME},
-            Input::KeyboardAndMouse::{GetKeyState, IsWindowEnabled, SetFocus, VK_SHIFT},
-            Shell::{DefSubclassProc, RemoveWindowSubclass, SetWindowSubclass},
-            WindowsAndMessaging::*,
-        },
+    Win32::UI::{
+        Input::KeyboardAndMouse::{GetKeyState, SetFocus, VK_CONTROL, VK_MENU, VK_SHIFT},
+        WindowsAndMessaging::{GA_ROOT, GetAncestor},
     },
-    core::{HSTRING, Result},
+    core::Result,
 };
 
-use super::window::State;
-
-pub(super) fn button(state: &Rc<State>, window: HWND) -> Result<()> {
-    let raw = Box::into_raw(Box::new(Rc::downgrade(state)));
-    if !unsafe { SetWindowSubclass(window, Some(procedure), 1, raw as usize) }.as_bool() {
-        drop(unsafe { Box::from_raw(raw) });
-        return Err(windows::core::Error::from_thread());
-    }
-    Ok(())
-}
-
-pub(super) fn name(window: HWND, name: &str) {
-    // Standard Win32 button captions are glyphs; expose the actual action name.
-    let service: Result<IAccPropServices> =
-        unsafe { CoCreateInstance(&CAccPropServices, None, CLSCTX_INPROC_SERVER) };
-    if let Ok(service) = service {
+pub(super) fn take(state: &State) {
+    if let Some(controller) = state.controller.borrow().as_ref() {
         unsafe {
-            let _ = service.SetHwndPropStr(
-                window,
-                OBJID_CLIENT.0 as u32,
-                0,
-                PROPID_ACC_NAME,
-                &HSTRING::from(name),
-            );
+            let _ = controller.MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
         }
     }
 }
@@ -47,106 +24,115 @@ pub(super) fn name(window: HWND, name: &str) {
 pub(super) fn browser(state: &Rc<State>, controller: &ICoreWebView2Controller) -> Result<()> {
     let weak = Rc::downgrade(state);
     let moving = MoveFocusRequestedEventHandler::create(Box::new(move |_, args| {
-        let (Some(state), Some(args)) = (weak.upgrade().filter(|state| !state.closed.get()), args)
-        else {
+        let (Some(state), Some(args)) = (weak.upgrade().filter(|s| !s.closed.get()), args) else {
             return Ok(());
         };
         let mut reason = COREWEBVIEW2_MOVE_FOCUS_REASON_NEXT;
         unsafe {
             args.Reason(&mut reason)?;
+            let _ = SetFocus(Some(GetAncestor(state.native.hwnd.get(), GA_ROOT)));
+            args.SetHandled(true)?;
         }
-        let buttons = super::chrome::buttons(&state);
-        let target = if reason == COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS {
-            buttons.into_iter().rev().find(|button| {
-                unsafe { IsWindowEnabled(*button) }.as_bool()
-                    && unsafe { IsWindowVisible(*button) }.as_bool()
-            })
-        } else {
-            buttons.into_iter().find(|button| {
-                unsafe { IsWindowEnabled(*button) }.as_bool()
-                    && unsafe { IsWindowVisible(*button) }.as_bool()
-            })
-        };
-        if let Some(target) = target {
-            unsafe {
-                let _ = SetFocus(Some(target));
-                args.SetHandled(true)?;
-            }
-        }
+        state.emit(
+            "focus-exit",
+            (reason == COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS).into(),
+        );
         Ok(())
     }));
     let mut token = 0;
     unsafe {
         controller.add_MoveFocusRequested(&moving, &mut token)?;
     }
-    let controller = controller.clone();
+    let live = controller.clone();
     state.removers.borrow_mut().push(Box::new(move || unsafe {
-        let _ = controller.remove_MoveFocusRequested(token);
+        let _ = live.remove_MoveFocusRequested(token);
     }));
-    Ok(())
-}
-
-unsafe extern "system" fn procedure(
-    hwnd: HWND,
-    message: u32,
-    wparam: WPARAM,
-    lparam: LPARAM,
-    id: usize,
-    data: usize,
-) -> LRESULT {
-    let weak = unsafe { &*(data as *const Weak<State>) };
-    if message == WM_NCDESTROY {
-        unsafe {
-            let _ = RemoveWindowSubclass(hwnd, Some(procedure), id);
-        }
-        drop(unsafe { Box::from_raw(data as *mut Weak<State>) });
-    } else if let Some(state) = weak.upgrade().filter(|state| !state.closed.get()) {
-        if message == WM_KEYDOWN && wparam.0 == 9 {
-            let backwards = unsafe { GetKeyState(VK_SHIFT.0 as i32) } < 0;
-            let buttons = super::chrome::buttons(&state);
-            if let Some(index) = buttons.iter().position(|button| *button == hwnd) {
-                let target = if backwards {
-                    buttons[..index].iter().rev().find(|button| {
-                        unsafe { IsWindowEnabled(**button) }.as_bool()
-                            && unsafe { IsWindowVisible(**button) }.as_bool()
-                    })
-                } else {
-                    buttons[index + 1..].iter().find(|button| {
-                        unsafe { IsWindowEnabled(**button) }.as_bool()
-                            && unsafe { IsWindowVisible(**button) }.as_bool()
-                    })
-                };
-                if let Some(target) = target {
-                    unsafe {
-                        let _ = SetFocus(Some(*target));
+    if let Some(composition) = state.composition.borrow().clone() {
+        let weak = Rc::downgrade(state);
+        let changed = CursorChangedEventHandler::create(Box::new(move |sender, _| {
+            if let (Some(state), Some(sender)) = (
+                weak.upgrade()
+                    .filter(|s| !s.closed.get() && s.hovered.get()),
+                sender,
+            ) {
+                let mut cursor = windows::Win32::UI::WindowsAndMessaging::HCURSOR::default();
+                unsafe {
+                    sender.Cursor(&mut cursor)?;
+                    if !cursor.is_invalid() {
+                        windows::Win32::UI::WindowsAndMessaging::SetCursor(Some(cursor));
                     }
-                } else if let Some(controller) = state.controller.borrow().as_ref() {
-                    unsafe {
-                        let _ = controller.MoveFocus(if backwards {
-                            COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS
-                        } else {
-                            COREWEBVIEW2_MOVE_FOCUS_REASON_NEXT
-                        });
+                }
+                let _ = state;
+            }
+            Ok(())
+        }));
+        unsafe {
+            composition.add_CursorChanged(&changed, &mut token)?;
+        }
+        state.removers.borrow_mut().push(Box::new(move || unsafe {
+            let _ = composition.remove_CursorChanged(token);
+        }));
+    }
+    // WebView2 owns key/IME input once focused. Its native accelerator callback
+    // preserves browser commands without relying on NSH seeing those keys.
+    let weak = Rc::downgrade(state);
+    let accelerators = AcceleratorKeyPressedEventHandler::create(Box::new(move |_, args| {
+        let (Some(state), Some(args)) = (weak.upgrade().filter(|s| !s.closed.get()), args) else {
+            return Ok(());
+        };
+        let mut kind = COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN;
+        let mut key = 0;
+        unsafe {
+            args.KeyEventKind(&mut kind)?;
+            args.VirtualKey(&mut key)?;
+        }
+        if kind != COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN
+            || unsafe { GetKeyState(VK_CONTROL.0 as i32) } >= 0
+            || unsafe { GetKeyState(VK_SHIFT.0 as i32) } < 0
+            || unsafe { GetKeyState(VK_MENU.0 as i32) } < 0
+        {
+            return Ok(());
+        }
+        if !matches!(key, 0x52 | 0x57 | 0xDB | 0xDD) {
+            return Ok(());
+        }
+        unsafe {
+            args.SetHandled(true)?;
+        }
+        // Never make a synchronous WebView2 call inside an accelerator handler.
+        let weak = Rc::downgrade(&state);
+        state.native.later(move || {
+            let Some(state) = weak.upgrade().filter(|s| !s.closed.get()) else {
+                return;
+            };
+            if key == 0x57 {
+                state.close();
+                return;
+            }
+            if let Some(web) = state.web.borrow().as_ref() {
+                unsafe {
+                    match key {
+                        0x52 => {
+                            let _ = web.Reload();
+                        }
+                        0xDB => {
+                            let _ = web.GoBack();
+                        }
+                        _ => {
+                            let _ = web.GoForward();
+                        }
                     }
                 }
             }
-            return LRESULT(0);
-        }
-        if message == WM_CHAR && wparam.0 == 9 {
-            return LRESULT(0);
-        }
-        if message == WM_KEYDOWN && wparam.0 == 13 {
-            let id = unsafe { GetDlgCtrlID(hwnd) };
-            unsafe {
-                SendMessageW(
-                    state.native.hwnd.get(),
-                    WM_COMMAND,
-                    Some(WPARAM(id as usize)),
-                    Some(LPARAM(hwnd.0 as isize)),
-                );
-            }
-            return LRESULT(0);
-        }
+        });
+        Ok(())
+    }));
+    unsafe {
+        controller.add_AcceleratorKeyPressed(&accelerators, &mut token)?;
     }
-    unsafe { DefSubclassProc(hwnd, message, wparam, lparam) }
+    let live = controller.clone();
+    state.removers.borrow_mut().push(Box::new(move || unsafe {
+        let _ = live.remove_AcceleratorKeyPressed(token);
+    }));
+    Ok(())
 }

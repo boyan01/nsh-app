@@ -3,7 +3,6 @@ use std::rc::Rc;
 
 use nsh_platform_linux::Components;
 
-mod chrome;
 mod dialogs;
 mod downloads;
 mod events;
@@ -18,7 +17,7 @@ pub(crate) fn register(components: &Components) {
         Rc::new(|context| Box::new(session::Session::new(context))),
     );
     components.register(
-        "MixinBotWindow",
+        "MixinBotWebView",
         Rc::new(|context| Box::new(host::Host::new(context))),
     );
 }

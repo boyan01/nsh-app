@@ -5,13 +5,13 @@ use serde_json::{Value, json};
 use webview2_com::{
     DocumentTitleChangedEventHandler, HistoryChangedEventHandler,
     Microsoft::Web::WebView2::Win32::*, NavigationCompletedEventHandler,
-    NavigationStartingEventHandler, NewWindowRequestedEventHandler, WebMessageReceivedEventHandler,
-    WindowCloseRequestedEventHandler, take_pwstr,
+    NavigationStartingEventHandler, NewWindowRequestedEventHandler, SourceChangedEventHandler,
+    WebMessageReceivedEventHandler, WindowCloseRequestedEventHandler, take_pwstr,
 };
 use windows::core::{BOOL, Interface, PWSTR};
 
 use super::{
-    chrome, downloads,
+    downloads,
     window::{State, is_web},
 };
 
@@ -50,6 +50,7 @@ pub(super) fn install(state: &Rc<State>, web: &ICoreWebView2) -> windows::core::
         state.generation.set(state.generation.get().wrapping_add(1));
         state.pending.borrow_mut().clear();
         state.download_started.set(false);
+        state.update(Some(true));
         Ok(())
     }));
     let mut token = 0;
@@ -74,13 +75,15 @@ pub(super) fn install(state: &Rc<State>, web: &ICoreWebView2) -> windows::core::
             args.IsSuccess(&mut success)?;
             args.WebErrorStatus(&mut status)?;
         }
+        state.update_context();
+        state.update(Some(false));
         if !success.as_bool()
             && status != COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED
             && !state.download_started.replace(false)
         {
             state.fail();
         }
-        chrome::update(&state);
+        state.update(None);
         Ok(())
     }));
     unsafe {
@@ -147,7 +150,7 @@ pub(super) fn install(state: &Rc<State>, web: &ICoreWebView2) -> windows::core::
                     state.emit("signature", Value::Object(data));
                 }
             }
-            Some("theme") => chrome::theme(&state, data.get("color")),
+            Some("theme") => state.emit("theme", data.get("color").cloned().unwrap_or(Value::Null)),
             _ => {}
         }
         Ok(())
@@ -213,7 +216,7 @@ pub(super) fn install(state: &Rc<State>, web: &ICoreWebView2) -> windows::core::
     let weak = Rc::downgrade(state);
     let title = DocumentTitleChangedEventHandler::create(Box::new(move |_, _| {
         if let Some(state) = weak.upgrade().filter(|state| !state.closed.get()) {
-            chrome::update(&state);
+            state.update(None);
         }
         Ok(())
     }));
@@ -228,7 +231,7 @@ pub(super) fn install(state: &Rc<State>, web: &ICoreWebView2) -> windows::core::
     let weak = Rc::downgrade(state);
     let history = HistoryChangedEventHandler::create(Box::new(move |_, _| {
         if let Some(state) = weak.upgrade().filter(|state| !state.closed.get()) {
-            chrome::update(&state);
+            state.update(None);
         }
         Ok(())
     }));
@@ -238,6 +241,21 @@ pub(super) fn install(state: &Rc<State>, web: &ICoreWebView2) -> windows::core::
     let live = web.clone();
     state.removers.borrow_mut().push(Box::new(move || unsafe {
         let _ = live.remove_HistoryChanged(token);
+    }));
+
+    let weak = Rc::downgrade(state);
+    let source = SourceChangedEventHandler::create(Box::new(move |_, _| {
+        if let Some(state) = weak.upgrade().filter(|state| !state.closed.get()) {
+            state.update(None);
+        }
+        Ok(())
+    }));
+    unsafe {
+        web.add_SourceChanged(&source, &mut token)?;
+    }
+    let live = web.clone();
+    state.removers.borrow_mut().push(Box::new(move || unsafe {
+        let _ = live.remove_SourceChanged(token);
     }));
 
     downloads::install(state, &web.cast::<ICoreWebView2_4>()?)?;

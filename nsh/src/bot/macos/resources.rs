@@ -1,6 +1,5 @@
 //! Shared native resources let the account session close every WebKit view before purging.
 use super::Delegate;
-use nsh_platform_macos::objc2_app_kit::NSWindow;
 use objc2::{
     msg_send,
     rc::{Retained, Weak},
@@ -8,7 +7,6 @@ use objc2::{
 };
 
 pub(super) struct Resources {
-    pub window: Option<Retained<NSWindow>>,
     pub web: Option<Retained<AnyObject>>,
     pub delegate: Weak<Delegate>,
 }
@@ -29,16 +27,10 @@ impl Resources {
                 let _: () = msg_send![&content, removeScriptMessageHandlerForName: &*objc2_foundation::NSString::from_str("mixinBot")];
                 let _: () = msg_send![&content, removeAllUserScripts];
             }
-            if let Some(window) = &self.window {
-                window.setContentView(None);
+            unsafe {
+                let _: () = msg_send![&web, removeFromSuperview];
             }
             drop(web);
-        }
-        if let Some(window) = self.window.take() {
-            unsafe {
-                let _: () = msg_send![&window, setDelegate: std::ptr::null::<AnyObject>()];
-            }
-            window.close();
         }
     }
 }

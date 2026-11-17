@@ -463,3 +463,31 @@ query, filters, bounded results and native list position.
 | Locate and return open/close inspector | Existing `PANEL_WIDTH` tween; retain the same inspector and virtual list while hidden; apply visibility hidden at the exit end to exclude descendants from keyboard focus without changing layout; focus the return command on suspension | Existing reduced-motion policy |
 | Search filters, results and pinned selection while returning | Retain existing state and live event subscriptions; no reset or row entry animation | Same |
 | Close session or switch conversation | Release retained inspector with its owner; normal toolbar returns immediately | Same |
+
+## Bot and webpage windows
+
+NSH owns the 380 x 750 desktop window, chrome and popups. Account-scoped native
+WebViews remain sized children of its content. Bot names stay fixed; plain pages
+follow native document titles. Normal headers reserve space for Back or the bot
+avatar and title; immersive bots float the More / Close glass capsule above the
+page. Their popup width and glass metadata foreground use dedicated semantic
+tokens for compact sizing and legibility over native content. Bot menus show
+identity with the shared membership / verified / Bot badge priority, share when allowed, refresh and About; webpage
+menus show the current title and URL, share, refresh, copy and browser actions.
+Forwarding uses the live document title independently of the fixed Bot identity.
+Keyboard exit from the browser targets only mounted header or capsule controls.
+
+Bot-window motion inventory:
+
+| Change | Tool and tokens | Reduced motion |
+| --- | --- | --- |
+| Capsule hover, press and keyboard focus | Existing ui round-button feedback | Existing reduced-motion policy |
+| More menu opens or closes | Existing ui menu popup transition and motion tokens, glass material | Existing popup reduced-motion policy |
+| Identity badge changes | Existing shared identity badge component and assets | Existing badge behavior |
+| History, title, loading and navigation failure | Immediate native-state binding; loading indicator only during real work | Same |
+| Immersive mode changes | Immediate layout change retaining the same native WebView and document | Same |
+| Window opens, focuses, resizes or closes | NSH desktop window lifecycle and native platform behavior | Platform behavior |
+
+Native WebViews are not captured by browser preview. The preview scene covers
+shared chrome only; composition, input, dialogs and glass over native content
+require native validation on each platform.

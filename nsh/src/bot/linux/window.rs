@@ -1,4 +1,4 @@
-//! A bot owns one native window; target=_blank navigates this same view.
+//! A sized WebKitGTK child; NSH owns its containing window.
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
@@ -13,13 +13,10 @@ use webkit6::{
     prelude::*,
 };
 
-use super::{
-    chrome, dialogs::Dialogs, downloads::Downloads, events, protocol::Gate, session::Entry,
-};
+use super::{dialogs::Dialogs, downloads::Downloads, events, protocol::Gate, session::Entry};
 
 pub(super) struct State {
     pub context: ComponentContext,
-    pub window: gtk::Window,
     pub web: WebView,
     pub content: UserContentManager,
     pub entry: Rc<Entry>,
@@ -29,18 +26,8 @@ pub(super) struct State {
     pub handlers: RefCell<Vec<glib::SignalHandlerId>>,
     pub dialogs: Dialogs,
     pub downloads: Downloads,
-    pub title: gtk::Label,
-    pub icon: gtk::Image,
-    pub back: gtk::Button,
-    pub more: gtk::MenuButton,
-    pub close_button: gtk::Button,
-    pub menu: gio::Menu,
-    pub header: gtk::Box,
-    pub colors: gtk::CssProvider,
-    pub style_name: String,
     timeout: RefCell<Option<glib::SourceId>>,
     script: RefCell<String>,
-    focus: Cell<u64>,
 }
 
 impl State {
@@ -61,43 +48,23 @@ impl State {
             .network_session(&entry.network)
             .user_content_manager(&content)
             .build();
-        let window = gtk::Window::builder()
-            .default_width(380)
-            .default_height(750)
-            .build();
-        if let Some(application) = gio::Application::default().and_downcast::<gtk::Application>() {
-            window.set_application(Some(&application));
-        }
-        let style_name = format!("mixin-bot-header-{}", events::next_generation());
+        web.set_hexpand(true);
+        web.set_vexpand(true);
         let state = Rc::new(Self {
             context,
-            window,
             web,
             content,
             entry,
             page: RefCell::new(page),
             closed: Cell::new(false),
-            style_name,
             gate: Gate::default(),
             handlers: RefCell::default(),
             dialogs: Dialogs::default(),
             downloads: Downloads::default(),
-            title: gtk::Label::new(None),
-            icon: gtk::Image::new(),
-            back: gtk::Button::from_icon_name("go-previous-symbolic"),
-            more: gtk::MenuButton::builder()
-                .icon_name("view-more-symbolic")
-                .build(),
-            close_button: gtk::Button::from_icon_name("window-close-symbolic"),
-            menu: gio::Menu::new(),
-            header: gtk::Box::new(gtk::Orientation::Horizontal, 8),
-            colors: gtk::CssProvider::new(),
             timeout: RefCell::default(),
             script: RefCell::default(),
-            focus: Cell::new(0),
         });
         state.entry.register(&state);
-        chrome::install(&state);
         events::install(&state);
         state.presentation();
         state.arm_timeout();
@@ -110,7 +77,6 @@ impl State {
             .ok_or("Invalid browser URL")?
             .to_owned();
         state.web.load_uri(&url);
-        state.window.present();
         Ok(state)
     }
 
@@ -143,13 +109,9 @@ impl State {
         }
         self.web.stop_loading();
         self.content.remove_all_scripts();
-        gtk::style_context_remove_provider_for_display(
-            &gtk::prelude::WidgetExt::display(&self.window),
-            &self.colors,
-        );
-        self.window.set_child(gtk::Widget::NONE);
-        // GTK destroys the titlebar; replacing it while realized is invalid.
-        self.window.destroy();
+        if let Some(parent) = self.web.parent().and_downcast::<gtk::Box>() {
+            parent.remove(&self.web);
+        }
         self.context.emit("closed", Value::Null);
     }
 
@@ -204,39 +166,30 @@ impl State {
                 page.get("version").and_then(Value::as_str),
             );
         }
-        self.window.set_title(Some(
-            page.get("title")
-                .and_then(Value::as_str)
-                .unwrap_or_default(),
-        ));
-        self.title.set_text(
-            page.get("title")
-                .and_then(Value::as_str)
-                .unwrap_or_default(),
-        );
-        let icon = page
-            .get("icon_data")
-            .and_then(Value::as_str)
-            .filter(|text| text.len() <= 1024 * 1024)
-            .and_then(|text| {
-                use base64::Engine as _;
-                base64::engine::general_purpose::STANDARD.decode(text).ok()
-            })
-            .and_then(|data| gtk::gdk::Texture::from_bytes(&glib::Bytes::from_owned(data)).ok());
-        self.icon.set_paintable(icon.as_ref());
-        self.icon.set_visible(icon.is_some());
-        let focus = page
-            .get("focus")
-            .and_then(Value::as_u64)
-            .unwrap_or_default();
-        if self.focus.replace(focus) != focus {
-            self.window.present();
-            self.web.grab_focus();
-        }
-        let locale = page.get("locale").and_then(Value::as_str).unwrap_or("en");
-        self.evaluate(&format!("window.__mixinBotSetLocale?.({});", json!(locale)));
         drop(page);
-        chrome::labels(self);
+        self.update_context();
+        self.update();
+    }
+
+    pub fn update_context(&self) {
+        let page = self.page.borrow();
+        let locale = page.get("locale").and_then(Value::as_str).unwrap_or("en");
+        let immersive = page
+            .get("immersive")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        self.evaluate(&format!(
+            "window.__mixinBotSetLocale?.({}); window.__mixinBotSetImmersive?.({immersive});",
+            json!(locale)
+        ));
+    }
+
+    pub fn window(&self) -> Option<gtk::Window> {
+        self.web.root().and_downcast::<gtk::Window>()
+    }
+
+    pub fn update(&self) {
+        self.emit("navigation", json!({"url": self.web.uri().as_deref(), "title": self.web.title().as_deref(), "can_back": self.web.can_go_back(), "loading": self.web.is_loading()}));
     }
 
     pub fn evaluate(&self, script: &str) {

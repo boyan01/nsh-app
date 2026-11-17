@@ -1,8 +1,5 @@
 //! Web-process messages are accepted only after a native document challenge.
-use super::{
-    chrome,
-    window::{State, is_web},
-};
+use super::window::{State, is_web};
 use nsh_platform_linux::gtk4 as gtk;
 use serde_json::{Value, json};
 use std::{cell::Cell, rc::Rc};
@@ -52,11 +49,12 @@ pub(super) fn install(state: &Rc<State>) {
                 probe(&s);
             }
             LoadEvent::Finished if s.gate.is_ready() => {
+                s.update_context();
                 s.stop_timeout();
             }
             _ => {}
         }
-        chrome::update(&s);
+        s.update();
     });
     connect!(connect_web_process_terminated, |s, _reason| {
         s.stop_timeout();
@@ -159,7 +157,9 @@ pub(super) fn install(state: &Rc<State>) {
                             data.insert("generation".into(), json!(generation));
                             s.emit("signature", Value::Object(data));
                         }
-                        Some("theme") => chrome::theme(&s, data.get("color")),
+                        Some("theme") => {
+                            s.emit("theme", data.get("color").cloned().unwrap_or(Value::Null))
+                        }
                         _ => {}
                     }
                 }
@@ -272,7 +272,7 @@ pub(super) fn install(state: &Rc<State>) {
                 .filter(|s| !s.closed.get() && s.gate.committed.get())
             {
                 probe(&s);
-                chrome::update(&s);
+                s.update();
             }
         }));
     let weak = Rc::downgrade(state);
@@ -281,7 +281,7 @@ pub(super) fn install(state: &Rc<State>) {
         .borrow_mut()
         .push(state.web.connect_title_notify(move |_| {
             if let Some(s) = weak.upgrade().filter(|s| !s.closed.get()) {
-                chrome::update(&s);
+                s.update();
             }
         }));
 }

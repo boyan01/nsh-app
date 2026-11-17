@@ -1,5 +1,15 @@
 //! Bot-window presentation. Signing and bot identity remain account business rules.
 use crate::i18n::Key;
+mod chrome;
+#[cfg(debug_assertions)]
+mod preview;
+#[cfg(debug_assertions)]
+pub(crate) use preview::surface as preview_surface;
+#[cfg(all(test, not(target_os = "windows")))]
+#[path = "bot/windows/drag.rs"]
+mod drag_tests;
+#[cfg(test)]
+mod tests;
 mod window;
 
 use std::sync::{
@@ -53,11 +63,19 @@ struct Page {
     focus: u64,
     icon_data: Option<String>,
     shareable: bool,
+    identity_number: Option<String>,
+    is_verified: bool,
+    membership: Option<String>,
 }
 
 impl PartialEq for Page {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id && self.focus == other.focus && self.icon_data == other.icon_data
+        self.id == other.id
+            && self.focus == other.focus
+            && self.icon_data == other.icon_data
+            && self.identity_number == other.identity_number
+            && self.is_verified == other.is_verified
+            && self.membership == other.membership
     }
 }
 
@@ -226,9 +244,13 @@ impl BotWindows {
                                 focus: 0,
                                 icon_data: None,
                                 shareable,
+                                identity_number: None,
+                                is_verified: false,
+                                membership: None,
                             })
                         });
                         self.load_icon(id, icon);
+                        self.load_identity(id);
                     }
                     Err(_) => self.failed.set(true),
                 }
@@ -277,6 +299,42 @@ impl BotWindows {
         });
     }
 
+    fn load_identity(self, id: u64) {
+        let Some(app_id) = self.pages.with_untracked(|pages| {
+            pages
+                .iter()
+                .find(|p| p.id == id)
+                .and_then(|p| p.app_id.clone())
+        }) else {
+            return;
+        };
+        let account = self
+            .account
+            .with(|account| account.clone())
+            .expect("a bot has an account");
+        self.owner.run(|| {
+            spawn(async move {
+                let result =
+                    runtime::run(
+                        async move { account.user().user_profile(Some(app_id), None).await },
+                    )
+                    .await;
+                if self.ending.get_untracked() {
+                    return;
+                }
+                if let Ok(Some(profile)) = result {
+                    self.pages.update(|pages| {
+                        if let Some(page) = pages.iter_mut().find(|p| p.id == id) {
+                            page.identity_number = Some(profile.identity_number);
+                            page.is_verified = profile.is_verified;
+                            page.membership = profile.membership;
+                        }
+                    });
+                }
+            })
+        });
+    }
+
     pub(crate) fn ending(self) -> bool {
         self.ending.get()
     }
@@ -288,6 +346,12 @@ impl BotWindows {
 
     fn event(self, page: Page, reference: ElementRef, event: NativeEvent) {
         if self.ending.get_untracked() {
+            return;
+        }
+        if !self
+            .pages
+            .with_untracked(|pages| pages.iter().any(|p| p.id == page.id))
+        {
             return;
         }
         match event.name.as_ref() {

@@ -1,9 +1,10 @@
-//! The NSH anchor owns a native window without participating in its layout.
+//! The native browser fills the widget NSH allocates to this component.
 use super::{session, window::State};
 use gtk::prelude::*;
 use nsh_platform_linux::{ComponentContext, NativeComponent, gtk4 as gtk};
 use serde_json::Value;
 use std::rc::Rc;
+use webkit6::prelude::WebViewExt;
 
 pub(super) struct Host {
     holder: gtk::Box,
@@ -38,7 +39,10 @@ impl Host {
             return;
         };
         match State::open(self.context.clone(), page.clone(), entry) {
-            Ok(state) => self.state = Some(state),
+            Ok(state) => {
+                self.holder.append(&state.web);
+                self.state = Some(state);
+            }
             Err(_) => self.context.emit("failed", Value::Null),
         }
     }
@@ -73,10 +77,17 @@ impl NativeComponent for Host {
         }
     }
     fn command(&mut self, name: &str, args: &Value) {
-        if name == "reply"
-            && let Some(state) = &self.state
-        {
-            state.reply(args);
+        if let Some(state) = &self.state {
+            match name {
+                "reply" => state.reply(args),
+                "reload" => state.web.reload(),
+                "back" if state.web.can_go_back() => state.web.go_back(),
+                "forward" if state.web.can_go_forward() => state.web.go_forward(),
+                "focus" => {
+                    state.web.grab_focus();
+                }
+                _ => {}
+            }
         }
     }
 }

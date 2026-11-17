@@ -1399,5 +1399,7 @@
   "nshAttachments": "個附件",
   "nshReturnToSearch": "返回搜尋",
   "nshReturnToPinned": "返回置頂",
-  "nshDismissInspectorReturn": "關閉面板返回入口"
+  "nshDismissInspectorReturn": "關閉面板返回入口",
+  "nshHideBotHeader": "隱藏標題列",
+  "nshShowBotHeader": "顯示標題列"
 }

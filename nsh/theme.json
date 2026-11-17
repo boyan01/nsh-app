@@ -152,6 +152,7 @@
       "sticker-detail-art-size": "256px",
       "sticker-tab-bar-height": "50px",
       "sticker-tab-size": "40px",
+      "bot-menu-width": "260px",
       "card-width": "260px"
     },
     "light": {
@@ -168,6 +169,7 @@
       "accent-foreground": "#333333",
       "muted": "#edf0f5",
       "muted-foreground": "#9298a3",
+      "glass-secondary-foreground": "#454a54",
       "border": "#e5e7eb",
       "hairline": "#0000000f",
       "ring": "transparent",
@@ -223,6 +225,7 @@
       "accent-foreground": "#e9eaeb",
       "muted": "#393f45",
       "muted-foreground": "#85898e",
+      "glass-secondary-foreground": "#e8edf5",
       "border": "#252a2e",
       "hairline": "#ffffff0f",
       "ring": "transparent",

@@ -61,6 +61,16 @@ impl Fixture {
 
     /// `runner_stop`, when given, ends the runner without any shutdown request.
     async fn build(runner_stop: Option<watch::Receiver<bool>>) -> Self {
+        Self::build_with_upload_gate(runner_stop, None).await
+    }
+
+    async fn build_with_upload_gate(
+        runner_stop: Option<watch::Receiver<bool>>,
+        mut upload_gate: Option<(
+            tokio::sync::oneshot::Sender<()>,
+            tokio::sync::oneshot::Receiver<()>,
+        )>,
+    ) -> Self {
         let directory = tempfile::tempdir().unwrap();
         let account_directory = directory.path().join("account");
         std::fs::create_dir(&account_directory).unwrap();
@@ -104,6 +114,13 @@ impl Fixture {
                 }
                 let request = String::from_utf8(request).unwrap();
                 let status = if request.starts_with("CONNECT api.mixin.one:443 HTTP/1.1\r\n") {
+                    if let Some((started, release)) = upload_gate.take() {
+                        started.send(()).unwrap();
+                        tokio::select! {
+                            _ = release => {},
+                            _ = stopping.cancelled() => return,
+                        }
+                    }
                     // Sign-out revocation is exercised, without opening any remote socket.
                     "502 Bad Gateway"
                 } else {
@@ -205,7 +222,7 @@ impl Fixture {
             screen_lock: tokio::sync::OnceCell::new(),
             account_health: watch::channel("ready".into()).0,
             active: AtomicBool::new(true),
-            mutation_gate: RwLock::new(()),
+            mutation_gate: Arc::new(RwLock::new(())),
             attachment_downloads: SyncMutex::new(HashMap::new()),
             attachment_progresses: AttachmentProgresses::default(),
             bot_public_keys: Mutex::new(HashMap::new()),
@@ -755,3 +772,6 @@ async fn saved_flutter_downloads_without_a_message_are_dropped_on_resume() {
     assert!(downloads.keys().unwrap().is_empty());
     fixture.close().await;
 }
+
+#[path = "../message/attachment_send_tests.rs"]
+mod attachment_send_tests;

@@ -14,7 +14,6 @@ use chrono::Utc;
 use log::warn;
 use sdk::{AttachmentMessage, MessageStatus};
 use std::sync::Arc;
-use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 impl MessageAccess {
@@ -56,6 +55,42 @@ impl MessageAccess {
         Ok(receipt.message_id)
     }
 
+    /// Imports and accepts a local attachment without waiting for its remote upload.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn enqueue_attachment(
+        &self,
+        conversation_id: String,
+        path: String,
+        kind: String,
+        mime_type: String,
+        name: Option<String>,
+        width: Option<i32>,
+        height: Option<i32>,
+        duration_millis: Option<i64>,
+        thumbnail: Option<String>,
+        caption: Option<String>,
+        quote_message_id: Option<String>,
+        silent: bool,
+    ) -> Result<String> {
+        let (message_id, _upload) = self
+            .start_attachment_send(
+                conversation_id,
+                path,
+                kind,
+                mime_type,
+                name,
+                width,
+                height,
+                duration_millis,
+                thumbnail,
+                caption,
+                quote_message_id,
+                silent,
+            )
+            .await?;
+        Ok(message_id)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub async fn send_attachment_receipt(
         &self,
@@ -72,6 +107,45 @@ impl MessageAccess {
         quote_message_id: Option<String>,
         silent: bool,
     ) -> Result<model::SendReceipt> {
+        let (message_id, upload) = self
+            .start_attachment_send(
+                conversation_id,
+                path,
+                kind,
+                mime_type,
+                name,
+                width,
+                height,
+                duration_millis,
+                thumbnail,
+                caption,
+                quote_message_id,
+                silent,
+            )
+            .await?;
+        let upload_error = upload.await.context("attachment upload task failed")?;
+        Ok(model::SendReceipt {
+            message_id,
+            upload_error,
+        })
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    async fn start_attachment_send(
+        &self,
+        conversation_id: String,
+        path: String,
+        kind: String,
+        mime_type: String,
+        name: Option<String>,
+        width: Option<i32>,
+        height: Option<i32>,
+        duration_millis: Option<i64>,
+        thumbnail: Option<String>,
+        caption: Option<String>,
+        quote_message_id: Option<String>,
+        silent: bool,
+    ) -> Result<(String, crate::task::JoinHandle<Option<String>>)> {
         let quote_message_id = quote_message_id.as_deref();
         let conversation_id = conversation_id.as_str();
         let path = path.as_str();
@@ -79,7 +153,7 @@ impl MessageAccess {
         let mime_type = mime_type.trim();
         let name = name.filter(|value| !value.trim().is_empty());
         let caption = caption.filter(|value| !value.trim().is_empty());
-        let _mutation = self.mutation_gate.read().await;
+        let mutation = self.mutation_gate.clone().read_owned().await;
         self.ensure_active()?;
         self.ensure_can_send(conversation_id).await?;
 
@@ -184,120 +258,129 @@ impl MessageAccess {
             .map_err(crate::CoreError::from)?;
         self.notify_conversation_changed(conversation_id);
         let accepted_id = message_id.clone();
-        let upload_result: Result<String> = async {
-            let cancellation = CancellationToken::new();
-            self.attachment_downloads
-                .lock()
-                .unwrap_or_else(|poisoned| poisoned.into_inner())
-                .insert(message_id.clone(), cancellation.clone());
-            self.set_attachment_progress(&message_id, 0, 0);
-            let progress_state = self.state.clone();
-            let progress_message_id = message_id.clone();
-            let progress = Arc::new(move |completed, total| {
-                progress_state.set_attachment_progress(&progress_message_id, completed, total);
-            });
-            let upload = tokio::select! {
-                result = self.app_service.attachment.upload(
-                    &local_path,
-                    prefix != "PLAIN",
-                    Some(&cancellation),
-                    Some(progress.clone()),
-                ) => result,
-                _ = cancellation.cancelled() => Err(anyhow!("attachment upload canceled")),
-            };
-            self.attachment_downloads
-                .lock()
-                .unwrap_or_else(|poisoned| poisoned.into_inner())
-                .remove(&message_id);
-            self.remove_attachment_progress(&message_id);
-            let upload = match upload {
-                Ok(upload) => upload,
-                Err(error) => {
-                    self.database
-                        .message_dao
-                        .update_media_status(&message_id, MediaStatus::Canceled)
-                        .await?;
-                    self.notify_conversation_changed(conversation_id);
-                    if cancellation.is_cancelled() {
-                        return Ok(message_id);
+        // Register before returning acceptance so cancellation and timeline progress
+        // work even before the detached upload gets its first poll.
+        let cancellation = self.register_attachment_upload(&message_id);
+        self.set_attachment_progress(&message_id, 0, 0);
+        let access = Self::new(self.state.clone());
+        let uploading_id = accepted_id.clone();
+        let conversation_id = conversation_id.to_owned();
+        let mime_type = mime_type.to_owned();
+        let encrypted = prefix != "PLAIN";
+        let upload = crate::task::spawn(async move {
+            // Keep account retirement behind accepted work, independently of the UI.
+            let _mutation = mutation;
+            let upload_result: Result<String> = async {
+                let progress_state = access.state.clone();
+                let progress_message_id = message_id.clone();
+                let progress = Arc::new(move |completed, total| {
+                    progress_state.set_attachment_progress(&progress_message_id, completed, total);
+                });
+                let upload = tokio::select! {
+                    biased;
+                    _ = cancellation.cancelled() => Err(anyhow!("attachment upload canceled")),
+                    result = access.app_service.attachment.upload(
+                        &local_path,
+                        encrypted,
+                        Some(&cancellation),
+                        Some(progress.clone()),
+                    ) => result,
+                };
+                access
+                    .attachment_downloads
+                    .lock()
+                    .unwrap_or_else(|poisoned| poisoned.into_inner())
+                    .remove(&message_id);
+                access.remove_attachment_progress(&message_id);
+                let upload = match upload {
+                    Ok(upload) => upload,
+                    Err(error) => {
+                        access
+                            .database
+                            .message_dao
+                            .update_media_status(&message_id, MediaStatus::Canceled)
+                            .await?;
+                        access.notify_conversation_changed(&conversation_id);
+                        if cancellation.is_cancelled() {
+                            return Ok(message_id);
+                        }
+                        return Err(anyhow!("attachment_upload_failed:{error}"));
                     }
-                    return Err(anyhow!("attachment_upload_failed:{error}"));
-                }
-            };
-            let attachment = AttachmentMessage {
-                key: upload.key.clone(),
-                digest: upload.digest.clone(),
-                attachment_id: upload.attachment_id,
-                mime_type: mime_type.to_string(),
-                size: actual_size,
-                name: name.clone(),
-                width,
-                height,
-                thumbnail: thumbnail.clone(),
-                duration: duration_millis,
-                waveform: None,
-                caption: caption.clone(),
-                created_at: Some(upload.created_at),
-                shareable: Some(true),
-            };
-            let content = Base64::encode_string(serde_json::to_string(&attachment)?.as_bytes());
-            let job = Job::create_sending_job(
-                &message_id,
-                conversation_id,
-                None,
-                None,
-                false,
-                silent,
-                conversation.expire_in,
-            );
-            let completed = self
-                .database
-                .message_dao
-                .complete_pending_attachment(
+                };
+                let attachment = AttachmentMessage {
+                    key: upload.key.clone(),
+                    digest: upload.digest.clone(),
+                    attachment_id: upload.attachment_id,
+                    mime_type: mime_type.to_string(),
+                    size: actual_size,
+                    name: name.clone(),
+                    width,
+                    height,
+                    thumbnail: thumbnail.clone(),
+                    duration: duration_millis,
+                    waveform: None,
+                    caption: caption.clone(),
+                    created_at: Some(upload.created_at),
+                    shareable: Some(true),
+                };
+                let content = Base64::encode_string(serde_json::to_string(&attachment)?.as_bytes());
+                let job = Job::create_sending_job(
                     &message_id,
-                    &local_path.to_string_lossy(),
-                    &AttachmentMessageUpdate {
-                        status: MessageStatus::Sending,
-                        content,
-                        media_mime_type: mime_type.to_string(),
-                        media_size: actual_size,
-                        media_status: MediaStatus::Done,
-                        media_width: width,
-                        media_height: height,
-                        media_digest: upload.digest,
-                        media_key: upload.key,
-                        media_waveform: None,
-                        caption,
-                        name,
-                        thumb_image: thumbnail,
-                        media_duration: duration_millis.map(|value| value.to_string()),
-                    },
-                    &job,
-                )
-                .await?;
-            if !completed {
-                return Ok(message_id);
+                    &conversation_id,
+                    None,
+                    None,
+                    false,
+                    silent,
+                    conversation.expire_in,
+                );
+                let completed = access
+                    .database
+                    .message_dao
+                    .complete_pending_attachment(
+                        &message_id,
+                        &local_path.to_string_lossy(),
+                        &AttachmentMessageUpdate {
+                            status: MessageStatus::Sending,
+                            content,
+                            media_mime_type: mime_type.to_string(),
+                            media_size: actual_size,
+                            media_status: MediaStatus::Done,
+                            media_width: width,
+                            media_height: height,
+                            media_digest: upload.digest,
+                            media_key: upload.key,
+                            media_waveform: None,
+                            caption,
+                            name,
+                            thumb_image: thumbnail,
+                            media_duration: duration_millis.map(|value| value.to_string()),
+                        },
+                        &job,
+                    )
+                    .await?;
+                if !completed {
+                    return Ok(message_id);
+                }
+                access.app_service.job.wake(&job.action)?;
+                access.notify_conversation_changed(&conversation_id);
+                Ok(message_id)
             }
-            self.app_service.job.wake(&job.action)?;
-            self.notify_conversation_changed(conversation_id);
-            Ok(message_id)
-        }
-        .await;
-        let upload_error = upload_result.err().map(|error| error.to_string());
-        if upload_error.is_some() {
-            if let Err(error) = self
-                .database
-                .message_dao
-                .cancel_pending_attachment(&accepted_id)
-                .await
-            {
-                warn!("Marking an accepted attachment as retryable failed: {error}");
+            .await;
+            let upload_error = upload_result.err().map(|error| error.to_string());
+            if let Some(error) = upload_error.as_ref() {
+                warn!("Accepted attachment {uploading_id} needs upload retry: {error}");
+                if let Err(error) = access
+                    .database
+                    .message_dao
+                    .cancel_pending_attachment(&uploading_id)
+                    .await
+                {
+                    warn!("Marking an accepted attachment as retryable failed: {error}");
+                }
+                access.notify_conversation_changed(&conversation_id);
             }
-            self.notify_conversation_changed(conversation_id);
-        }
-        Ok(model::SendReceipt {
-            message_id: accepted_id,
-            upload_error,
-        })
+            upload_error
+        });
+        Ok((accepted_id, upload))
     }
 }

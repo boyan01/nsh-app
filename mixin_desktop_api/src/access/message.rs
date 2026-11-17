@@ -535,6 +535,42 @@ impl MessageAccess {
             .await?)
     }
 
+    /// Imports and accepts a local attachment without waiting for its remote upload.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn enqueue_attachment(
+        &self,
+        conversation_id: String,
+        path: String,
+        kind: String,
+        mime_type: String,
+        name: Option<String>,
+        width: Option<i32>,
+        height: Option<i32>,
+        duration_millis: Option<i64>,
+        thumbnail: Option<String>,
+        caption: Option<String>,
+        quote_message_id: Option<String>,
+        silent: bool,
+    ) -> crate::ClientResult<String> {
+        Ok(self
+            .inner
+            .enqueue_attachment(
+                conversation_id,
+                path,
+                kind,
+                mime_type,
+                name,
+                width,
+                height,
+                duration_millis,
+                thumbnail,
+                caption,
+                quote_message_id,
+                silent,
+            )
+            .await?)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub async fn send_attachment_receipt(
         &self,

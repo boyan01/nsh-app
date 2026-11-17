@@ -259,6 +259,8 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
         incoming_files.update(|items| files = std::mem::take(items));
         tray.add(files);
     });
+    // Tray work ends at local acceptance. Upload progress belongs to the
+    // timeline and must never hold the editor's read-only state.
     let busy = computed(move || sending.get() || tray.busy());
     // With files waiting the draft is their caption, so one send goes to the tray.
     let submit: Rc<dyn Fn(bool)> = {

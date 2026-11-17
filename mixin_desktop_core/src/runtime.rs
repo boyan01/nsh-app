@@ -123,7 +123,7 @@ pub struct AccountState {
     screen_lock: tokio::sync::OnceCell<Arc<screen_lock::ScreenLockService>>,
     account_health: watch::Sender<String>,
     active: AtomicBool,
-    mutation_gate: RwLock<()>,
+    mutation_gate: Arc<RwLock<()>>,
     attachment_downloads: Mutex<HashMap<String, CancellationToken>>,
     attachment_progresses: attachment_progress::AttachmentProgresses,
     bot_public_keys: tokio::sync::Mutex<HashMap<String, [u8; 32]>>,
@@ -168,6 +168,22 @@ impl AccountState {
         for cancellation in downloads.values() {
             cancellation.cancel();
         }
+    }
+
+    fn register_attachment_upload(&self, message_id: &str) -> CancellationToken {
+        let cancellation = CancellationToken::new();
+        let mut transfers = self
+            .attachment_downloads
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        // Shutdown stops admission before scanning this registry. Holding its
+        // lock makes a late registration either part of that scan or canceled
+        // here, including sends still importing files when shutdown began.
+        if !self.active.load(Ordering::Acquire) {
+            cancellation.cancel();
+        }
+        transfers.insert(message_id.to_owned(), cancellation.clone());
+        cancellation
     }
 
     fn set_attachment_progress(&self, message_id: &str, completed: u64, total: u64) {
@@ -315,7 +331,7 @@ impl AccountRuntime {
             screen_lock: tokio::sync::OnceCell::new(),
             account_health: account_health_updates,
             active: AtomicBool::new(true),
-            mutation_gate: RwLock::new(()),
+            mutation_gate: Arc::new(RwLock::new(())),
             attachment_downloads: Mutex::new(HashMap::new()),
             attachment_progresses: attachment_progress::AttachmentProgresses::default(),
             bot_public_keys: tokio::sync::Mutex::new(HashMap::new()),
@@ -769,6 +785,8 @@ impl AccountRuntime {
     }
 
     pub async fn shutdown(&self) {
+        self.active.store(false, Ordering::Release);
+        self.cancel_attachment_downloads();
         let _mutation = self.mutation_gate.write().await;
         self.shutdown_inner().await;
     }

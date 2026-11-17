@@ -28,7 +28,6 @@ use preparation::{Cache, Source, prepare_source, prepare_sources};
 
 struct Outcome {
     accepted: usize,
-    upload_failed: bool,
     finished: bool,
     caption_sent: bool,
 }
@@ -466,64 +465,67 @@ impl Preview {
         let quote = sent_quote.clone();
         self.busy.set(true);
         self.send_failed.set(false);
+        // Commit synchronously with the press: even disposing the owner before
+        // its next poll must not lose a batch the user has already submitted.
+        let sending = runtime::commit(async move {
+            let _source_guards = source_guards;
+            let items = if archive {
+                let password = password.trim();
+                let password = (!password.is_empty()).then(|| password.to_owned());
+                vec![media.prepare_archive(items, password).await?]
+            } else {
+                items
+            };
+            let mut outcome = Outcome {
+                accepted: 0,
+                finished: false,
+                caption_sent: false,
+            };
+            for item in items {
+                // One caption describes the batch: only its first image shows it.
+                let item_caption = (item.kind == "IMAGE").then(|| caption.take()).flatten();
+                let captioned = item_caption.is_some();
+                let result = client
+                    .message()
+                    .enqueue_attachment(
+                        id.clone(),
+                        item.path.clone(),
+                        item.kind.clone(),
+                        item.mime_type.clone(),
+                        Some(item.name.clone()),
+                        item.width,
+                        item.height,
+                        item.duration_millis,
+                        item.thumbnail.clone(),
+                        item_caption,
+                        quote.clone(),
+                        silent,
+                    )
+                    .await;
+                // Keep the preparation handle (and its temporary path) until
+                // the account runtime has imported the original bytes.
+                drop(item);
+                match result {
+                    Ok(_) => {
+                        outcome.accepted += 1;
+                        outcome.caption_sent |= captioned;
+                    }
+                    Err(error) => {
+                        log::warn!("Could not enqueue attachment: {error}");
+                        return Ok(outcome);
+                    }
+                }
+            }
+            outcome.finished = true;
+            Ok(outcome)
+        });
         self.owner.run(|| {
             spawn(async move {
-                let result = runtime::commit(async move {
-                    let _source_guards = source_guards;
-                    let items = if archive {
-                        let password = password.trim();
-                        let password = (!password.is_empty()).then(|| password.to_owned());
-                        vec![media.prepare_archive(items, password).await?]
-                    } else {
-                        items
-                    };
-                    let mut outcome = Outcome {
-                        accepted: 0,
-                        upload_failed: false,
-                        finished: false,
-                        caption_sent: false,
-                    };
-                    for item in items {
-                        // One caption describes the batch: only its first image shows it.
-                        let item_caption = (item.kind == "IMAGE").then(|| caption.take()).flatten();
-                        let captioned = item_caption.is_some();
-                        let result = client
-                            .message()
-                            .send_attachment_receipt(
-                                id.clone(),
-                                item.path.clone(),
-                                item.kind.clone(),
-                                item.mime_type.clone(),
-                                Some(item.name.clone()),
-                                item.width,
-                                item.height,
-                                item.duration_millis,
-                                item.thumbnail.clone(),
-                                item_caption,
-                                quote.clone(),
-                                silent,
-                            )
-                            .await;
-                        // Keep the preparation handle (and its temporary path) until
-                        // the account runtime has imported the original bytes.
-                        drop(item);
-                        match result {
-                            Ok(receipt) => {
-                                outcome.accepted += 1;
-                                outcome.upload_failed |= receipt.upload_error.is_some();
-                                outcome.caption_sent |= captioned;
-                            }
-                            Err(_) => return Ok(outcome),
-                        }
-                    }
-                    outcome.finished = true;
-                    Ok(outcome)
-                })
-                .await;
+                let result = sending.await;
                 self.busy.set(false);
                 match result {
                     Ok(outcome) if outcome.finished => {
-                        self.ctx.failed.set(outcome.upload_failed);
+                        self.ctx.failed.set(false);
                         clear_quote(self.ctx.quote, sent_quote);
                         self.ctx.navigation.show_latest();
                         if outcome.caption_sent {
@@ -539,7 +541,7 @@ impl Preview {
                         });
                     }
                     Ok(outcome) => {
-                        self.ctx.failed.set(outcome.upload_failed);
+                        self.ctx.failed.set(false);
                         if outcome.caption_sent {
                             self.clear_caption.with(|clear| clear());
                         }

@@ -2298,10 +2298,7 @@ ORDER BY message.created_at ASC, message.rowid ASC
         .bind(rank)
         .execute(&self.0)
         .await?;
-        if result.rows_affected() == 0 {
-            return Ok(false);
-        }
-        Ok(true)
+        Ok(result.rows_affected() != 0)
     }
 
     pub async fn delete_messages_batch(

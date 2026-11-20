@@ -3106,7 +3106,7 @@ dependencies = [
 
 [[package]]
 name = "mixin_desktop_ui"
-version = "7.0.0"
+version = "7.1.1"
 dependencies = [
  "base64 0.22.1",
  "block2 0.6.2",

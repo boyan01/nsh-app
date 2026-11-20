@@ -167,27 +167,32 @@ impl Phase {
 /// The application surface. Business services remain outside the UI tree.
 #[component]
 pub fn App() -> impl IntoElement {
-    #[cfg(target_os = "macos")]
-    {
-        bootstrap::surface(|| app_surface().into_element()).into_element()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        app_surface().into_element()
-    }
-}
-
-fn app_surface() -> impl IntoElement {
     let mut title_bar = nsh_core::desktop::TitleBarOptions::default();
     title_bar.style = nsh_core::desktop::TitleBarStyle::Hidden;
     title_bar.height = Some(ui::title_bar_requested_height());
-    let mut window = nsh_core::desktop::WindowAttributes::default();
-    window.title_bar = Some(title_bar);
+    let mut attributes = nsh_core::desktop::WindowAttributes::default();
+    attributes.title_bar = Some(title_bar);
     #[cfg(target_os = "macos")]
     {
-        window.close_on_press = Some(false);
+        attributes.close_on_press = Some(false);
     }
-    nsh_core::element::desktop::current_window().set(window);
+    nsh_core::element::desktop::window()
+        .id("main")
+        .title("Mixin")
+        .attributes(attributes)
+        .content(|| {
+            #[cfg(target_os = "macos")]
+            {
+                bootstrap::surface(|| app_surface().into_element()).into_element()
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                app_surface().into_element()
+            }
+        })
+}
+
+fn app_surface() -> impl IntoElement {
     let i18n = i18n::I18n::new();
     provide_context(i18n);
     let shell = shell::mount();

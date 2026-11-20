@@ -757,6 +757,12 @@ mod window_tests {
 
     #[component]
     fn ComposerWindow() -> impl IntoElement {
+        nsh_core::element::desktop::window()
+            .id("main")
+            .content(composer_window_content)
+    }
+
+    fn composer_window_content() -> impl IntoElement {
         let input = Input::detached(signal("draft".to_owned()));
         // Feed the native editor plugin, then exercise its real owner task.
         on_key("cmd+w", move |_| {

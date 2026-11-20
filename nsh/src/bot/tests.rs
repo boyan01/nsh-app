@@ -6,6 +6,12 @@ use nsh_testing::Headless;
 
 #[component]
 fn RegistryFixture() -> impl IntoElement {
+    nsh_core::element::desktop::window()
+        .id("main")
+        .content(registry_fixture_content)
+}
+
+fn registry_fixture_content() -> impl IntoElement {
     provide_context(crate::navigation::ChatNavigation::new(
         signal(None),
         signal(None),
@@ -144,6 +150,12 @@ fn bot_document_titles_follow_spa_changes_and_clear_without_changing_the_identit
 
 #[component]
 fn FocusFixture() -> impl IntoElement {
+    nsh_core::element::desktop::window()
+        .id("main")
+        .content(focus_fixture_content)
+}
+
+fn focus_fixture_content() -> impl IntoElement {
     let immersive = signal(false);
     let history = signal(false);
     let selected = signal("none");

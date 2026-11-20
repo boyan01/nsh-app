@@ -99,6 +99,12 @@ mod handoff_tests {
 
     #[component]
     fn Fixture() -> impl IntoElement {
+        nsh_core::element::desktop::window()
+            .id("main")
+            .content(fixture_content)
+    }
+
+    fn fixture_content() -> impl IntoElement {
         let gate = SETUP.with(|setup| setup.borrow_mut().take()).unwrap();
         let reference = element_ref();
         view()

@@ -100,7 +100,11 @@ pub(crate) fn mount() -> bool {
         runtime::stop();
         async {}
     });
-    desktop::current_window().on_close_press(|_| desktop::current_window().hide());
+    let window = desktop::current_window();
+    let hidden = window.clone();
+    window.on_close_press(move |_| hidden.hide());
+    // The Dock reopens a window hidden by its close button; NSH shows nothing implicitly.
+    desktop::on_reopen(move || window.show());
     true
 }
 

@@ -7,6 +7,12 @@ use nsh_testing::Headless;
 
 #[component]
 fn DialogOverChat() -> impl IntoElement {
+    nsh_core::element::desktop::window()
+        .id("main")
+        .content(dialog_over_chat_content)
+}
+
+fn dialog_over_chat_content() -> impl IntoElement {
     let open = signal(true);
     let nested = signal(false);
     let blocked = signal(false);

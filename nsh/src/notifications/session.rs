@@ -224,7 +224,8 @@ fn preview_body(i18n: I18n, event: &NotificationEvent, account_id: &str) -> Stri
             &[("sender", &event.sender_name), ("message", &message)],
         )
     } else {
-        presentation::preview(i18n, &event.category, &content)
+        // The conversation list's rule, as the Flutter notification uses.
+        presentation::message_preview(i18n, &event.category, &content, None, false)
     };
     if event.conversation_category == "GROUP"
         && !event.sender_name.is_empty()

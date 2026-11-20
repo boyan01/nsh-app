@@ -530,25 +530,30 @@ impl Actions {
 
 #[component]
 pub fn Preview() -> impl IntoElement {
-    provide_context(crate::i18n::I18n::new());
-    let initial = std::env::var("MIXIN_PREVIEW_SCENE")
-        .ok()
-        .and_then(|name| SCENES.iter().position(|scene| scene.name == name))
-        .unwrap_or_else(|| {
-            SCENES
-                .iter()
-                .position(|scene| scene.name == "create-group")
-                .unwrap_or(0)
-        });
-    let current = signal(initial);
-    view()
-        .flex_1()
-        .bg(ui::surface_pane)
-        .text_color(ui::fg_primary)
-        .child(dynamic(move || {
-            let index = current.get();
-            untracked(|| scene(index, current))
-        }))
+    nsh_core::element::desktop::window()
+        .id("main")
+        .title("Mixin Preview")
+        .content(|| {
+            provide_context(crate::i18n::I18n::new());
+            let initial = std::env::var("MIXIN_PREVIEW_SCENE")
+                .ok()
+                .and_then(|name| SCENES.iter().position(|scene| scene.name == name))
+                .unwrap_or_else(|| {
+                    SCENES
+                        .iter()
+                        .position(|scene| scene.name == "create-group")
+                        .unwrap_or(0)
+                });
+            let current = signal(initial);
+            view()
+                .flex_1()
+                .bg(ui::surface_pane)
+                .text_color(ui::fg_primary)
+                .child(dynamic(move || {
+                    let index = current.get();
+                    untracked(|| scene(index, current))
+                }))
+        })
 }
 
 fn scene(index: usize, current: Signal<usize>) -> View {

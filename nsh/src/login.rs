@@ -12,7 +12,7 @@ use std::sync::Arc;
 #[derive(Clone, PartialEq)]
 enum LoginPhase {
     Creating,
-    Waiting(SharedString),
+    Waiting(SharedString, Option<u32>),
     Failed,
 }
 
@@ -20,6 +20,14 @@ pub(crate) fn screen(
     desktop: DesktopClient,
     on_authenticated: impl Fn() + Copy + 'static,
 ) -> impl IntoElement {
+    let (state, retry) = mount(desktop, on_authenticated);
+    content(state, retry)
+}
+
+fn mount(
+    desktop: DesktopClient,
+    on_authenticated: impl Fn() + Copy + 'static,
+) -> (Signal<LoginPhase>, Signal<u64>) {
     let state = signal(LoginPhase::Creating);
     let retry = signal(0_u64);
     let active = Rc::new(RefCell::new(None::<Arc<LoginClient>>));
@@ -44,7 +52,49 @@ pub(crate) fn screen(
             }
         });
     });
-    content(state, retry)
+    (state, retry)
+}
+
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+pub(crate) fn terminal(
+    desktop: DesktopClient,
+    on_authenticated: impl Fn() + Copy + 'static,
+) -> impl IntoElement {
+    use crate::terminal::{image_supported, ui as terminal_ui};
+    let (state, retry) = mount(desktop, on_authenticated);
+    let i18n = i18n::current();
+    on_key("r", move |_| {
+        if state.get_untracked() == LoginPhase::Failed {
+            retry.update(|value| *value += 1);
+        }
+    });
+    view()
+        .flex_1()
+        .child(terminal_ui::line(move || i18n.t(Key::NshScanToSignIn)).text_emphasis())
+        .child(dynamic(move || {
+            match state.get() {
+                LoginPhase::Creating => text(move || i18n.t(Key::Initializing)).into_element(),
+                LoginPhase::Waiting(source, Some(side)) => {
+                    let rows = side / 2 + 2;
+                    let columns = side + 2;
+                    if !image_supported() {
+                        text("Use a 256-color terminal to scan the code, or sign in from the desktop app.").into_element()
+                    } else if terminal_ui::rows() >= rows as usize && terminal_ui::columns() >= columns as usize {
+                        let points = px(side as f32 * terminal_ui::COLUMN);
+                        image(source)
+                            .w(points)
+                            .h(points)
+                            .flex_shrink_0()
+                            .label(move || i18n.t(Key::NshScanToSignIn))
+                            .into_element()
+                    } else {
+                        text(format!("Enlarge to {columns} columns × {rows} rows for the sign-in code, or sign in from the desktop app."))
+                            .into_element()
+                    }
+                }
+                LoginPhase::Failed | LoginPhase::Waiting(_, None) => text("Sign-in failed. R Retry").into_element(),
+            }
+        }))
 }
 
 async fn authorize(
@@ -52,6 +102,7 @@ async fn authorize(
     state: Signal<LoginPhase>,
     active: Rc<RefCell<Option<Arc<LoginClient>>>>,
 ) -> ClientResult<()> {
+    let terminal = idiom() == nsh_core::platform::Idiom::Terminal;
     loop {
         let start = desktop.clone();
         let login = runtime::run(async move { start.begin_login().await.map(Arc::new) }).await?;
@@ -59,12 +110,16 @@ async fn authorize(
             previous.cancel();
         }
         let url = login.auth_url();
-        let source = runtime::run(async move {
-            qr::source(&url, 256)
-                .ok_or_else(|| ClientError::Internal("Could not render the sign-in code".into()))
+        let (source, side) = runtime::run(async move {
+            let code = if terminal {
+                qr::terminal_source(&url).map(|(source, side)| (source, Some(side)))
+            } else {
+                qr::source(&url, 256).map(|source| (source, None))
+            };
+            code.ok_or_else(|| ClientError::Internal("Could not render the sign-in code".into()))
         })
         .await?;
-        state.set(LoginPhase::Waiting(source.into()));
+        state.set(LoginPhase::Waiting(source.into(), side));
         log::info!("NSH sign-in QR code ready");
         match runtime::run(async move {
             let account = Arc::new(login.wait().await?);
@@ -133,7 +188,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                             .text_color(ui::fg_secondary),
                                     )
                                     .into_element(),
-                                LoginPhase::Waiting(source) => image(source)
+                                LoginPhase::Waiting(source, _) => image(source)
                                     .size_40()
                                     .label(move || i18n.t(Key::NshScanToSignIn))
                                     .on_load(|_: &Size<DevicePixels>| {
@@ -212,6 +267,7 @@ pub(crate) fn preview(failed: Signal<bool>) -> impl IntoElement {
                 crate::qr::source("https://example.com/preview-login", 320)
                     .expect("fixture QR")
                     .into(),
+                None,
             )
         })
     });

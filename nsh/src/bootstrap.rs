@@ -132,37 +132,6 @@ pub(crate) fn surface(render: impl Fn() -> AnyElement + 'static) -> impl IntoEle
         }))
 }
 
-/// The terminal host has its own logger and signal handlers.
-pub(crate) fn terminal_surface(render: impl FnOnce() -> AnyElement) -> AnyElement {
-    let lock = mixin_desktop_api::data_directory()
-        .map_err(|error| error.to_string())
-        .and_then(|directory| {
-            let lock =
-                shell::instance::acquire_terminal(&directory).map_err(|error| error.to_string())?;
-            mixin_desktop_api::init_file_logging(
-                "Mixin".into(),
-                env!("CARGO_PKG_VERSION").into(),
-                "2".into(),
-            )
-            .map_err(|error| error.to_string())?;
-            Ok(lock)
-        });
-    let lock = match lock {
-        Ok(lock) => lock,
-        Err(error) => {
-            eprintln!("Mixin startup failed: {error}");
-            desktop::quit();
-            return view().into_element();
-        }
-    };
-    cleanup(move || {
-        finish_shutdown();
-        drop(lock);
-        log::info!(target: "nsh::mixin", "Terminal application shutdown drained");
-    });
-    render()
-}
-
 fn finish_shutdown() {
     std::thread::scope(|scope| {
         scope

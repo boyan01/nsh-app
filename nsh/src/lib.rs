@@ -62,6 +62,10 @@ mod shell;
 mod sidebar;
 mod snapshot;
 mod sticker;
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+mod terminal;
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+pub use terminal::run as run_terminal;
 mod transfer;
 pub use shell::{Launch, NotificationTarget, prepare_launch};
 mod ui;
@@ -181,14 +185,13 @@ pub fn App() -> impl IntoElement {
         .title("Mixin")
         .attributes(attributes)
         .content(|| {
+            #[cfg(any(target_os = "macos", target_os = "linux"))]
+            if idiom() == nsh_core::platform::Idiom::Terminal {
+                return terminal::development_surface();
+            }
             #[cfg(target_os = "macos")]
             {
-                let render = || app_surface().into_element();
-                if idiom() == nsh_core::platform::Idiom::Terminal {
-                    bootstrap::terminal_surface(render)
-                } else {
-                    bootstrap::surface(render).into_element()
-                }
+                bootstrap::surface(|| app_surface().into_element()).into_element()
             }
             #[cfg(not(target_os = "macos"))]
             {
@@ -303,6 +306,10 @@ async fn launch(i18n: i18n::I18n, clients: Clients) -> ClientResult<Phase> {
     clients.settings.replace(Some(desktop.settings()));
     follow_appearance(desktop.settings());
     i18n.load(desktop.settings()).await;
+    restore_account(desktop).await
+}
+
+async fn restore_account(desktop: DesktopClient) -> ClientResult<Phase> {
     runtime::run(async move {
         match desktop.restore_account().await {
             Ok(account) => Phase::signed_in(account).await,

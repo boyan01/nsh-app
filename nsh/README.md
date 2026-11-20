@@ -40,6 +40,47 @@ The NSH CLI bypasses the native executable entry point. Prefer `cargo run` when
 validating startup, process ownership, native component registration and shutdown.
 macOS is the first validation target. Windows and Linux are unverified; see the roadmap.
 
+## Terminal chat
+
+Install the `mixin` shell executable from the [terminal release artifact](packaging/README.md#terminal-chat) in a directory on `PATH`. From an interactive terminal, run:
+
+```sh
+mixin --tui
+```
+
+The terminal opens the same data directory as Mixin Desktop. Quit the desktop
+session before using that directory in the terminal. Logs go to
+`<data directory>/log/`.
+
+On macOS, respond to the system's app data access prompt when it appears.
+If macOS denies access to the default directory, Mixin shows a separate alert.
+Choose **Open System Settings** to go to **Privacy & Security → Full Disk
+Access** and allow the terminal app or IDE that launched the shell. Use the
+host identified by macOS if its permission prompt names one. Fully quit and
+reopen the authorized host, including its shell server if applicable, then
+run `mixin --tui` again. The permission is granted in System Settings.
+**Cancel** closes the startup alert and returns to the shell.
+
+For a deliberately separate terminal profile, choose an absolute data directory:
+
+```sh
+profile="$HOME/Library/Application Support/Mixin Terminal"
+mkdir -p -m 700 "$profile"
+MIXIN_DESKTOP_DATA_DIR="$profile" mixin --tui
+```
+
+A new profile starts at sign-in with its own local history. Use a dedicated
+account to keep an existing desktop link active. To reopen the existing
+desktop profile, launch `mixin --tui` without the override after granting
+access. Keep the existing profile in its original location.
+
+Use Up and Down to select a conversation and Enter to open it. Type in the
+focused editor and press Enter to queue a text message. Page Up and Page Down
+move through history, Ctrl+End returns to the latest messages, Escape returns
+to the list, and Ctrl+C exits. At 100 columns or more both panes are visible.
+For first-time sign-in, use a 256-color terminal and enlarge it to the size
+shown by the sign-in prompt, or sign in from Mixin Desktop first.
+
 ## Shared development builds
 
 The repository's `.cargo/config.toml` owns the native development profile for

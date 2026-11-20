@@ -182,7 +182,7 @@ pub(crate) fn stop() {
 }
 
 /// Unlike view-owned work, the shutdown drain must survive its own stop signal.
-#[cfg(any(target_os = "macos", test))]
+#[cfg(any(target_os = "macos", target_os = "linux", test))]
 pub(crate) async fn shutdown() {
     if let Err(error) = runtime().spawn(drain_shutdown()).await {
         log::warn!("Runtime shutdown failed: {error}");

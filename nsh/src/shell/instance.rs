@@ -49,9 +49,18 @@ pub enum Launch {
     Forwarded,
 }
 
+fn lock_io_error(operation: &str, path: &Path, error: io::Error) -> io::Error {
+    io::Error::new(
+        error.kind(),
+        format!("{operation} {}: {error}", path.display()),
+    )
+}
+
 fn open_lock(directory: &Path) -> io::Result<(std::path::PathBuf, File)> {
-    std::fs::create_dir_all(directory)?;
-    let directory = std::fs::canonicalize(directory)?;
+    std::fs::create_dir_all(directory)
+        .map_err(|error| lock_io_error("create data directory", directory, error))?;
+    let directory = std::fs::canonicalize(directory)
+        .map_err(|error| lock_io_error("resolve data directory", directory, error))?;
     let mut options = OpenOptions::new();
     options.read(true).write(true).create(true).truncate(false);
     #[cfg(unix)]
@@ -59,15 +68,30 @@ fn open_lock(directory: &Path) -> io::Result<(std::path::PathBuf, File)> {
         use std::os::unix::fs::OpenOptionsExt as _;
         options.mode(0o600);
     }
-    let lock = options.open(directory.join("nsh-instance.lock"))?;
+    let path = directory.join("nsh-instance.lock");
+    let lock = options
+        .open(&path)
+        .map_err(|error| lock_io_error("open instance lock", &path, error))?;
     Ok((directory, lock))
 }
 
 /// The terminal owns the same data directory lock as the native app.
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 pub(crate) fn acquire_terminal(directory: &Path) -> io::Result<File> {
-    let (_, lock) = open_lock(directory)?;
-    lock.try_lock()?;
+    let (directory, lock) = open_lock(directory)?;
+    match lock.try_lock() {
+        Ok(()) => {}
+        Err(TryLockError::WouldBlock) => {
+            return Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                format!(
+                    "Mixin is already using {}. Quit the other Mixin window or terminal and try again.",
+                    directory.display()
+                ),
+            ));
+        }
+        Err(TryLockError::Error(error)) => return Err(error),
+    }
     Ok(lock)
 }
 

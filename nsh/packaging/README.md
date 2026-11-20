@@ -10,6 +10,40 @@ A Mac type check or a generated manifest does not prove a Windows or Linux packa
 still builds or validates a real target binary, checks native dependencies and
 creates all resources; it only skips final archive creation.
 
+## Terminal chat
+
+On macOS, stage the command-line executable alongside the usual
+[`Mixin.app` build](../README.md#macos-bundle). The app bundle retains its native
+GUI entry point. Build and stage on the target architecture from the repository
+root:
+
+```sh
+cargo build --locked --release -p mixin_desktop_ui --bin mixin_desktop_ui --target-dir target
+stage_dir="$(mktemp -d)"
+mkdir -p "$stage_dir/bin"
+install -m 755 target/release/mixin_desktop_ui "$stage_dir/bin/mixin"
+```
+
+Copy the staged release executable to a directory on your `PATH`. The installed
+command runs independently of the source checkout, Rust toolchain and NSH CLI.
+
+```sh
+mkdir -p "$HOME/.local/bin"
+install -m 755 /path/to/release/bin/mixin "$HOME/.local/bin/mixin"
+export PATH="$HOME/.local/bin:$PATH"
+mixin --tui
+```
+
+For a Linux AppDir, expose the unpacked AppDir's launcher as the `mixin` command
+while keeping the AppDir together:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+ln -s /absolute/MixinMessenger.AppDir/AppRun "$HOME/.local/bin/mixin"
+export PATH="$HOME/.local/bin:$PATH"
+mixin --tui
+```
+
 ## Windows
 
 Use a Visual Studio Developer Prompt with Rust, the MSVC C++ workload, Windows SDK

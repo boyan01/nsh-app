@@ -73,6 +73,31 @@ Startup motion inventory:
 | Ready, locked, signed out or failed | Immediate surface replacement; no intermediate privacy-loading surface | Same |
 | Startup failure retry | Existing `ui::link` feedback; return to the same loading card | Existing reduced-motion policy |
 
+## Terminal chat
+
+The terminal uses its own foreground and background and reserves one cell for
+the split divider. At 100 columns, conversations and chat fit side by side.
+Below that width, Enter opens chat and Escape restores the conversation list at
+its selection. Conversation rows have a visible selection marker and unread
+count. The footer shows the keys for the active pane. Chat reserves a row for
+the editor even when the history fills the viewport. Message wrapping and page
+scrolling use terminal columns and rows, including double-width characters.
+
+Terminal motion inventory (reduced motion on this platform):
+
+- Selection and pane changes update immediately with a marker and focus change.
+- Enter focuses the message editor. Escape returns control to the list.
+- Page Up and Page Down move history by one viewport without animation.
+- New messages follow the end when it is visible. Reading older messages keeps
+  the same visible anchor when the live window changes.
+- Loading, queued messages and errors change their text in place.
+
+On macOS, a permission denial while opening the default desktop data uses an
+AppKit alert before the terminal takes over the screen. The system owns its
+appearance, focus, and motion. Escape and Cancel dismiss the alert. Open System
+Settings dismisses it and hands the user to Full Disk Access. After granting
+access, the user restarts the shell host and runs Mixin again.
+
 ## Tokens
 
 Accessors live in `ui/tokens.rs`. Lengths are plain values, read from the embedded

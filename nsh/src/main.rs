@@ -13,6 +13,9 @@ fn image_cache_options() -> platform::CacheOptions {
 
 #[cfg(target_os = "macos")]
 fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("--tui")) {
+        return Ok(mixin_desktop_ui::run_terminal());
+    }
     let tokens = nsh_base::tokens_of(Some(include_str!("../theme.json")))?;
     nsh_platform_macos::set_components(mixin_desktop_ui::register_native_components);
     Ok(nsh_platform_macos::run_app(
@@ -39,6 +42,10 @@ use nsh_platform_windows as platform;
 
 #[cfg(not(target_os = "macos"))]
 fn main() -> Result<std::process::ExitCode, Box<dyn std::error::Error>> {
+    #[cfg(target_os = "linux")]
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("--tui")) {
+        return Ok(mixin_desktop_ui::run_terminal());
+    }
     let directory = mixin_desktop_ui::data_directory()?;
     // Bot web profiles, the notification preview and the shell namespace read
     // the resolved directory from the environment.

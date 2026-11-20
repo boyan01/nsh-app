@@ -380,7 +380,25 @@ pub(crate) fn screen(
                 )
                 .child(chrome(
                     chrome_height,
-                    header::bar(header, group, narrow, back, pinned, chat_width),
+                    header::bar(header, group, narrow, back, pinned, chat_width, move || {
+                        // Support asks a contact for the logs; they go out through the
+                        // file tray, which the user still confirms.
+                        if group
+                            || !can_send.get_untracked()
+                            || header.with_untracked(|row| row.is_bot)
+                        {
+                            return;
+                        }
+                        spawn(async move {
+                            match runtime::run(async { log_files() }).await {
+                                Ok(files) if !files.is_empty() => incoming_files.set(files),
+                                Ok(_) => {}
+                                Err(error) => {
+                                    log::warn!("Could not read the log directory: {error}")
+                                }
+                            }
+                        });
+                    }),
                     view()
                         .pointer_events(PointerEvents::BoxNone)
                         .child(timeline.controls(i18n))
@@ -501,7 +519,7 @@ pub(crate) fn preview_chrome<E: IntoElement>(
         )
         .child(chrome(
             height,
-            header::bar(header, group, || false, || {}, pinned, width),
+            header::bar(header, group, || false, || {}, pinned, width, || {}),
             view(),
         ))
 }
@@ -593,4 +611,20 @@ pub(crate) fn preview_reply(
     let mut actions = message_actions::Actions::detached(account_id);
     actions.quote = quote;
     message_quote::reply_bar(actions, move || input.focus())
+}
+
+fn log_files() -> mixin_desktop_api::ClientResult<Vec<composer::AttachmentSource>> {
+    let directory = mixin_desktop_api::log_directory()?;
+    let entries = std::fs::read_dir(directory)
+        .map_err(|error| mixin_desktop_api::ClientError::Internal(error.to_string()))?;
+    let mut files = entries
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_ok_and(|kind| kind.is_file()))
+        .map(|entry| entry.path().to_string_lossy().into_owned())
+        .collect::<Vec<_>>();
+    files.sort();
+    Ok(files
+        .into_iter()
+        .map(composer::AttachmentSource::Path)
+        .collect())
 }

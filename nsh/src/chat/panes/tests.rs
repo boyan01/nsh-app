@@ -115,6 +115,7 @@ fn SwitchingConversations() -> impl IntoElement {
                         || {},
                         pinned,
                         signal(800.0),
+                        || {},
                     ))
                     .child(text(move || {
                         header.with(|row| format!("Chat {}", row.conversation_id))

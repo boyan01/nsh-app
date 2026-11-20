@@ -18,6 +18,7 @@ pub(super) fn bar(
     back: impl Fn() + 'static,
     pinned: super::pinned::Pinned,
     width: Signal<f32>,
+    share_log: impl Fn() + 'static,
 ) -> impl IntoElement {
     let i18n = i18n::current();
     let navigation = use_context::<ChatNavigation>().expect("Home provides chat navigation");
@@ -114,13 +115,17 @@ pub(super) fn bar(
                         .gap_2()
                         .accessibility_label(move || Some(i18n.t(Key::NshConversationInfo).into()))
                         .on_press(move || navigation.toggle_panel(Panel::Info))
-                        .child(ui::conversation_avatar(
-                            move || {
-                                avatar.with(|_| ());
-                                row.with_untracked(|row| Some(row.clone()))
-                            },
-                            ui::AvatarSize::Compact,
-                        ))
+                        .child(
+                            view()
+                                .on_long_press(share_log)
+                                .child(ui::conversation_avatar(
+                                    move || {
+                                        avatar.with(|_| ());
+                                        row.with_untracked(|row| Some(row.clone()))
+                                    },
+                                    ui::AvatarSize::Compact,
+                                )),
+                        )
                         .child(
                             view()
                                 .flex_shrink(1.0)

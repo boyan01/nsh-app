@@ -17,10 +17,15 @@ struct Fixture {
     directory: tempfile::TempDir,
     service: Arc<DeviceTransferService>,
     signal: Arc<SignalDatabase>,
+    blaze: Arc<Blaze>,
 }
 
 impl Fixture {
     async fn new() -> Self {
+        Self::with_primary_session(None).await
+    }
+
+    async fn with_primary_session(primary_session_id: Option<String>) -> Self {
         let directory = tempfile::tempdir().unwrap();
         let database = Arc::new(
             MixinDatabase::connect_at(directory.path().join("mixin.db"))
@@ -44,7 +49,7 @@ impl Fixture {
             None,
         ));
         let sender = Arc::new(MessageSender::new(
-            blaze,
+            blaze.clone(),
             ConversationService::new(database.clone(), client.clone(), USER.into()),
             database.clone(),
             USER.into(),
@@ -57,7 +62,7 @@ impl Fixture {
             sender,
             USER.into(),
             Uuid::new_v4().to_string(),
-            None,
+            primary_session_id,
             directory.path().into(),
             ConversationChangeNotifier::new(),
         );
@@ -65,6 +70,7 @@ impl Fixture {
             directory,
             service,
             signal,
+            blaze,
         }
     }
 
@@ -679,4 +685,52 @@ async fn cancelling_a_backpressured_control_write_releases_the_stream_and_stagin
         .unwrap();
     assert!(!path.exists());
     assert_eq!(std::fs::read_dir(account.path()).unwrap().count(), 0);
+}
+
+#[tokio::test]
+async fn a_restore_that_cannot_connect_fails_and_cancels_the_other_device() {
+    use futures::StreamExt as _;
+    use std::io::Read as _;
+    let receiver = Fixture::with_primary_session(Some("primary-session".into())).await;
+    let mut frames = receiver.blaze.capture_frames();
+    let closed = TcpListener::bind(("127.0.0.1", 0)).await.unwrap();
+    let port = closed.local_addr().unwrap().port();
+    drop(closed);
+    let cancel = Arc::new(CancellationToken::new());
+    let operation = receiver
+        .service
+        .events
+        .begin(Flow::Restore, Some(cancel.clone()));
+    assert_ne!(operation, 0);
+    receiver.service.state.lock().await.receiver_cancel = Some(cancel.clone());
+    receiver.service.spawn_receiver(
+        RemotePushData {
+            ip: "127.0.0.1".into(),
+            port,
+            code: 1234,
+            key: generate_transfer_key().unwrap(),
+        },
+        cancel,
+    );
+    let frame = tokio::time::timeout(Duration::from_secs(10), frames.next())
+        .await
+        .expect("a cancel is sent")
+        .unwrap();
+    assert_eq!(
+        receiver.service.states().borrow().restore.phase,
+        Some(DeviceTransferEvent::RestoreFailed)
+    );
+    let mut json = Vec::new();
+    flate2::read::GzDecoder::new(frame.into_data().as_ref())
+        .read_to_end(&mut json)
+        .unwrap();
+    let message: sdk::blaze_message::BlazeMessage = serde_json::from_slice(&json).unwrap();
+    let params = message.params.unwrap();
+    assert_eq!(params.session_id.as_deref(), Some("primary-session"));
+    let plain: sdk::blaze_message::PlainJsonMessage =
+        serde_json::from_slice(&Base64::decode_vec(&params.data.unwrap()).unwrap()).unwrap();
+    assert_eq!(plain.action, DEVICE_TRANSFER_ACTION);
+    let command: TransferCommand = serde_json::from_str(&plain.content.unwrap()).unwrap();
+    assert_eq!(command.action, "cancel");
+    receiver.close().await;
 }

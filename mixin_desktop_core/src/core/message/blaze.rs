@@ -616,6 +616,15 @@ impl Blaze {
         }
     }
 
+    /// Connects this Blaze to a channel that receives the frames it sends.
+    #[cfg(test)]
+    pub(crate) fn capture_frames(&self) -> futures_channel::mpsc::UnboundedReceiver<Message> {
+        let (sender, receiver) = futures_channel::mpsc::unbounded();
+        self.connection.lock().unwrap().sink = Some(sender);
+        self.connection_status.send_replace(true);
+        receiver
+    }
+
     pub async fn send_message(&self, message: BlazeMessage) -> Result<BlazeMessage> {
         let mut sender = self.get_sender().await?;
         let completer = Completer::default();

@@ -221,6 +221,16 @@ impl TransferCommand {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone)]
+/// The receiver could not reach the address the other device sent.
+#[derive(Debug)]
+struct ConnectFailed;
+
+impl std::fmt::Display for ConnectFailed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("could not connect to the other device")
+    }
+}
+
 struct RemotePushData {
     ip: String,
     port: u16,
@@ -726,6 +736,14 @@ impl DeviceTransferService {
                             &cancel,
                             DeviceTransferEvent::RestoreFailed,
                         );
+                        if error.downcast_ref::<ConnectFailed>().is_some() {
+                            drop(state);
+                            // The other device waits for this connection until it gets a cancel.
+                            let command = TransferCommand::simple(&service.device_id, "cancel");
+                            if let Err(error) = service.send_remote(command).await {
+                                log::warn!("send device transfer cancel: {error:?}");
+                            }
+                        }
                     }
                 }
             }
@@ -879,8 +897,13 @@ impl DeviceTransferService {
         cancel: Arc<CancellationToken>,
     ) -> Result<()> {
         let stream = tokio::select! {
-            stream = crate::time::timeout(Duration::from_secs(60), TcpStream::connect((&*remote.ip, remote.port))) => stream??,
+            stream = crate::time::timeout(Duration::from_secs(60), TcpStream::connect((&*remote.ip, remote.port))) => stream,
             _ = cancel.cancelled() => return Ok(()),
+        };
+        let stream = match stream {
+            Ok(Ok(stream)) => stream,
+            Ok(Err(error)) => return Err(anyhow::Error::new(error).context(ConnectFailed)),
+            Err(error) => return Err(anyhow::Error::new(error).context(ConnectFailed)),
         };
         let (mut reader, mut writer) = stream.into_split();
         write_command(

@@ -106,25 +106,41 @@ fn titled_card(
     let mine = row.sender_id == actions.account.id();
     let string = |key: &str| value[key].as_str().unwrap_or_default().to_owned();
     let cover = &value["cover"];
-    let (source, aspect) = match cover["url"].as_str().filter(|url| !url.is_empty()) {
+    let (source, aspect, dimensions) = match cover["url"].as_str().filter(|url| !url.is_empty()) {
         Some(url) => {
             let side = |key: &str| cover[key].as_f64().filter(|side| *side > 0.0);
-            let aspect = side("width").zip(side("height"));
-            let aspect = aspect.map_or(1.5, |(width, height)| (width / height).max(1.5));
-            (url.to_owned(), aspect as f32)
+            let dimensions = side("width").zip(side("height"));
+            let aspect = dimensions.map_or(1.5, |(width, height)| (width / height).max(1.5));
+            (url.to_owned(), aspect as f32, dimensions)
         }
-        None => (string("cover_url"), 1.0),
+        None => (string("cover_url"), 1.0, None),
     };
     let mut surface = view()
         .rounded(ui::radius_md())
         .overflow_hidden()
         .pb(ui::chip_inset());
     if !source.is_empty() {
+        let i18n = actions.i18n;
+        let mut preview = row.clone();
+        preview.media_url = Some(source.clone());
+        preview.media_status = "DONE".into();
+        preview.media_width = dimensions.map(|(width, _)| width as i32);
+        preview.media_height = dimensions.map(|(_, height)| height as i32);
+        preview.caption = None;
+        let preview = stored(preview);
         surface = surface.child(
-            image(source)
+            ui::command()
+                .p_0()
                 .w_full()
-                .aspect_ratio(aspect)
-                .object_fit(ResizeMode::Cover),
+                .rounded_none()
+                .accessibility_label(move || Some(i18n.t(Key::NshPhoto).into()))
+                .on_press(move || actions.open_cover(preview.with(|row| row.clone())))
+                .child(
+                    image(source)
+                        .w_full()
+                        .aspect_ratio(aspect)
+                        .object_fit(ResizeMode::Cover),
+                ),
         );
     }
     surface = surface.child(
@@ -275,7 +291,10 @@ pub(super) fn preview(actions: Actions) -> impl IntoElement {
                 detail_card(actions, shown, presence),
                 move || {
                     if shown.with(|detail| {
-                        matches!(detail, Some(Detail::Image { .. } | Detail::Video { .. }))
+                        matches!(
+                            detail,
+                            Some(Detail::Image { .. } | Detail::Video { .. } | Detail::Cover(_))
+                        )
                     }) {
                         px(0.0)
                     } else {
@@ -357,7 +376,12 @@ fn detail_card(
     let qr = move || shown.with(|detail| matches!(detail, Some(Detail::Qr(_))));
     let user_profile = move || shown.with(|detail| matches!(detail, Some(Detail::User(_))));
     let photo = move || {
-        shown.with(|detail| matches!(detail, Some(Detail::Image { .. } | Detail::Video { .. })))
+        shown.with(|detail| {
+            matches!(
+                detail,
+                Some(Detail::Image { .. } | Detail::Video { .. } | Detail::Cover(_))
+            )
+        })
     };
     let sticker = move || shown.with(|detail| matches!(detail, Some(Detail::Sticker(_))));
     let snapshot = move || {
@@ -493,6 +517,7 @@ fn detail_card(
                     message,
                     transcript,
                 }) => super::gallery::screen(*message, transcript, actions).into_element(),
+                Some(Detail::Cover(row)) => super::gallery::cover(*row, actions).into_element(),
                 Some(Detail::AddSticker(row)) => add_image_sticker(*row, actions).into_element(),
                 Some(Detail::Sticker(sticker_id)) => crate::composer::sticker_detail(
                     actions.account.with(|value| value.clone()),
@@ -540,7 +565,7 @@ fn detail_card(
                             | Detail::Sticker(_)
                             | Detail::Markdown { .. }
                             | Detail::TranscriptSummary { .. } => None,
-                            Detail::Image { .. } | Detail::Video { .. } => None,
+                            Detail::Image { .. } | Detail::Video { .. } | Detail::Cover(_) => None,
                         })
                         .unwrap_or_default()
                 })

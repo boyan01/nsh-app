@@ -31,6 +31,8 @@ pub(super) enum Detail {
         message: Box<MessageListView>,
         transcript: Option<String>,
     },
+    /// An AppCard cover, as an image row whose `media_url` is the cover.
+    Cover(Box<MessageListView>),
     AddSticker(Box<MessageListView>),
     Sticker(String),
     TranscriptSummary {
@@ -227,6 +229,10 @@ impl Actions {
             message: Box::new(row),
             transcript,
         });
+    }
+
+    pub fn open_cover(self, row: MessageListView) {
+        self.open(Detail::Cover(Box::new(row)));
     }
 
     pub fn open_video(self, row: MessageListView, transcript: Option<String>) {

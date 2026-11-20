@@ -132,6 +132,26 @@ pub(super) fn screen(
         image_failed,
         source,
         signal(Camera::new((1.0, 1.0), (1.0, 1.0))),
+        true,
+    )
+}
+
+/// An AppCard cover: zoom and rotate, without the attachment commands.
+pub(super) fn cover(row: MessageListView, actions: Actions) -> View {
+    let current = signal(row.message_id.clone());
+    viewer(
+        actions,
+        signal_with(vec![row], SignalEquals::Never),
+        current,
+        signal(false),
+        signal(false),
+        signal(false),
+        signal(0),
+        signal(false),
+        signal(false),
+        stored(None),
+        signal(Camera::new((1.0, 1.0), (1.0, 1.0))),
+        false,
     )
 }
 
@@ -165,6 +185,7 @@ fn viewer(
     image_failed: Signal<bool>,
     source: Stored<Option<String>>,
     camera: Signal<Camera>,
+    attachment: bool,
 ) -> View {
     let i18n = actions.i18n;
     let selected = move || {
@@ -424,7 +445,7 @@ fn viewer(
                 move || !usable(),
             ))
             .child(when(
-                move || source.with(|value| value.is_none()),
+                move || attachment && source.with(|value| value.is_none()),
                 move || {
                     viewer_button(
                         ui::Icon::Forward,
@@ -434,23 +455,31 @@ fn viewer(
                     )
                 },
             ))
-            .child(viewer_button(
-                ui::Icon::Copy,
-                move || i18n.t(Key::NshCopyImage),
-                copy,
-                move || !usable(),
-            ))
-            .child(viewer_button(
-                ui::Icon::Download,
-                move || i18n.t(Key::NshSaveAs),
+            .child(when(
+                move || attachment,
                 move || {
-                    if selected().is_some_and(|row| available(&row)) {
-                        save();
-                    } else {
-                        download();
-                    }
+                    view()
+                        .flex_row()
+                        .gap(ui::space_sm())
+                        .child(viewer_button(
+                            ui::Icon::Copy,
+                            move || i18n.t(Key::NshCopyImage),
+                            copy,
+                            move || !usable(),
+                        ))
+                        .child(viewer_button(
+                            ui::Icon::Download,
+                            move || i18n.t(Key::NshSaveAs),
+                            move || {
+                                if selected().is_some_and(|row| available(&row)) {
+                                    save();
+                                } else {
+                                    download();
+                                }
+                            },
+                            move || busy.get() || loading.get() || selected().is_none(),
+                        ))
                 },
-                move || busy.get() || loading.get() || selected().is_none(),
             ))
     };
     let header = viewer_header(
@@ -578,6 +607,7 @@ pub(crate) fn detached(
         failed,
         stored(None),
         camera,
+        true,
     );
     effect(move || {
         let mode = mode.get();

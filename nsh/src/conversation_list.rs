@@ -29,6 +29,7 @@ struct Cells {
     navigation: ChatNavigation,
     /// Row menus; a detached preview has no account to run them.
     commands: Option<Commands>,
+    terminal_focus: Option<Signal<Option<String>>>,
 }
 
 pub(crate) fn screen(
@@ -49,6 +50,7 @@ pub(crate) fn screen(
         previews: signal(HashMap::new()),
         navigation: use_context().expect("Home provides chat navigation"),
         commands: Some(use_context().expect("Home provides conversation commands")),
+        terminal_focus: crate::terminal::active().then_some(window.terminal_focus),
     };
     resolve_mentions(account, rows, cells);
     view().flex_1().min_h_0().child(
@@ -82,6 +84,7 @@ pub(crate) fn detached(
         previews: signal(HashMap::new()),
         navigation: use_context().expect("the preview provides chat navigation"),
         commands: None,
+        terminal_focus: None,
     };
     view()
         .flex_1()
@@ -156,7 +159,11 @@ impl Cells {
             })
         })
         .element_ref(&list)
-        .estimated_item_size(ui::list_row_height())
+        .estimated_item_size(if crate::terminal::active() {
+            px(2.0 * crate::terminal::ROW)
+        } else {
+            ui::list_row_height()
+        })
         .flex_1()
         .min_h_0()
     }
@@ -171,7 +178,44 @@ impl Cells {
                 })
             })
         });
-        let content = ui::list_row()
+        let terminal = crate::terminal::active();
+        let frame = if terminal {
+            ui::list_row()
+                .h(px(2.0 * crate::terminal::ROW))
+                .min_h(px(2.0 * crate::terminal::ROW))
+                .my(Points::ZERO)
+                .mx(Points::ZERO)
+                .px(px(crate::terminal::COLUMN))
+                .gap(px(crate::terminal::COLUMN))
+        } else {
+            ui::list_row()
+        };
+        let frame = if let Some(focus) = self.terminal_focus {
+            let reference = element_ref();
+            let wanted = move || {
+                row.with(|row| {
+                    focus.with(|focus| {
+                        row.as_ref().is_some_and(|row| {
+                            focus.as_deref() == Some(row.conversation_id.as_str())
+                        })
+                    })
+                })
+            };
+            effect(move || {
+                if wanted() {
+                    after_answer(move || {
+                        if wanted() && reference.node().is_some() {
+                            reference.focus();
+                            focus.set(None);
+                        }
+                    });
+                }
+            });
+            frame.element_ref(&reference)
+        } else {
+            frame
+        };
+        let content = frame
             .selected(selected)
             .on_press(move || {
                 if selected.get_untracked() {
@@ -183,13 +227,18 @@ impl Cells {
             })
             .child(ui::conversation_avatar(
                 move || row.get(),
-                ui::AvatarSize::Large,
+                if terminal {
+                    ui::AvatarSize::Compact
+                } else {
+                    ui::AvatarSize::Large
+                },
             ))
             .child(
                 view()
                     .flex_1()
                     .min_w_0()
                     .gap_1()
+                    .style_when(move || terminal, |s| s.gap_0())
                     .child(self.title_line(row))
                     .child(self.preview_line(row)),
             );
@@ -202,6 +251,7 @@ impl Cells {
     }
 
     fn title_line(self, row: Row) -> impl IntoElement {
+        let terminal = crate::terminal::active();
         let i18n = self.i18n;
         let identity = computed(move || {
             read(row, |row| {
@@ -231,12 +281,20 @@ impl Cells {
             .flex_row()
             .items_center()
             .gap_1()
+            .style_when(
+                move || terminal,
+                |s| s.h(px(crate::terminal::ROW)).flex_shrink_0(),
+            )
             .child(
                 text(move || read(row, |row| row.name.clone()))
                     .min_w_0()
                     .flex_shrink(1.0)
                     .number_of_lines(1)
-                    .text_role(ui::TextRole::Label),
+                    .text_role(ui::TextRole::Label)
+                    .style_when(
+                        move || terminal,
+                        |s| s.line_height(px(crate::terminal::ROW)),
+                    ),
             )
             .child(appearance::identity_badge_reactive(badge))
             .child(when(
@@ -257,6 +315,7 @@ impl Cells {
     }
 
     fn preview_line(self, row: Row) -> impl IntoElement {
+        let terminal = crate::terminal::active();
         let i18n = self.i18n;
         let drafted = computed(move || {
             read(row, |row| {
@@ -281,6 +340,10 @@ impl Cells {
             .flex_row()
             .items_center()
             .gap_2()
+            .style_when(
+                move || terminal,
+                |s| s.h(px(crate::terminal::ROW)).flex_shrink_0(),
+            )
             .child(
                 view()
                     .flex_1()
@@ -316,6 +379,10 @@ impl Cells {
                             .min_w_0()
                             .number_of_lines(1)
                             .text_role(ui::TextRole::Body)
+                            .style_when(
+                                move || terminal,
+                                |s| s.line_height(px(crate::terminal::ROW)),
+                            )
                             .text_color(ui::fg_secondary),
                     ),
             )

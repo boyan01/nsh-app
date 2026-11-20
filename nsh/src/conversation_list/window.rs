@@ -53,6 +53,7 @@ pub(crate) struct Window {
     pub loading: Signal<bool>,
     pub failed: Signal<bool>,
     pub list: ElementRef,
+    pub terminal_focus: Signal<Option<String>>,
     offset: Signal<i64>,
     count: Signal<i64>,
     more: Signal<bool>,
@@ -84,6 +85,7 @@ impl Window {
             loading: signal(false),
             failed: signal(false),
             list: element_ref(),
+            terminal_focus: signal(None),
             offset: signal(0),
             count: signal(PAGE_SIZE),
             more: signal(false),
@@ -145,6 +147,48 @@ impl Window {
             });
         });
         state
+    }
+
+    pub(crate) fn follow_terminal_focus(self, available: impl Fn() -> bool + 'static) {
+        let restore = stored(None::<String>);
+        let pending = stored(true);
+        effect(move || {
+            if let Some(selected) = self.navigation.selected_id.get() {
+                restore.replace(Some(selected));
+                pending.replace(true);
+                self.terminal_focus.set(None);
+                return;
+            }
+            if !available() {
+                self.terminal_focus.set(None);
+                return;
+            }
+            if !pending.get() || self.loading.get() {
+                return;
+            }
+
+            let target = restore.get().or_else(|| self.visible.get());
+            let row = self.rows.with(|rows| {
+                target
+                    .as_deref()
+                    .and_then(|id| rows.iter().position(|row| row.conversation_id == id))
+                    .or((!rows.is_empty()).then_some(0))
+                    .map(|index| (index, rows[index].conversation_id.clone()))
+            });
+            let Some((index, id)) = row else {
+                return;
+            };
+            pending.replace(false);
+            if !self
+                .viewable
+                .get()
+                .is_some_and(|(first, last)| (first..=last).contains(&index))
+            {
+                self.list
+                    .scroll_to_index(index as u32, percentage(0.5), Points::ZERO, false);
+            }
+            self.terminal_focus.set(Some(id));
+        });
     }
 
     fn is_selected(self, id: &str) -> bool {
@@ -453,6 +497,12 @@ impl Window {
             return;
         };
         let Some(id) = self.navigation.selected_id.get_untracked() else {
+            if forward
+                && crate::terminal::active()
+                && let Some(first) = self.rows.with_untracked(|rows| rows.first().cloned())
+            {
+                self.navigation.select(first);
+            }
             return;
         };
         let local = self.rows.with_untracked(|rows| {

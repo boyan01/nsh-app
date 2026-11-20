@@ -55,54 +55,12 @@ fn mount(
     (state, retry)
 }
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
-pub(crate) fn terminal(
-    desktop: DesktopClient,
-    on_authenticated: impl Fn() + Copy + 'static,
-) -> impl IntoElement {
-    use crate::terminal::{image_supported, ui as terminal_ui};
-    let (state, retry) = mount(desktop, on_authenticated);
-    let i18n = i18n::current();
-    on_key("r", move |_| {
-        if state.get_untracked() == LoginPhase::Failed {
-            retry.update(|value| *value += 1);
-        }
-    });
-    view()
-        .flex_1()
-        .child(terminal_ui::line(move || i18n.t(Key::NshScanToSignIn)).text_emphasis())
-        .child(dynamic(move || {
-            match state.get() {
-                LoginPhase::Creating => text(move || i18n.t(Key::Initializing)).into_element(),
-                LoginPhase::Waiting(source, Some(side)) => {
-                    let rows = side / 2 + 2;
-                    let columns = side + 2;
-                    if !image_supported() {
-                        text("Use a 256-color terminal to scan the code, or sign in from the desktop app.").into_element()
-                    } else if terminal_ui::rows() >= rows as usize && terminal_ui::columns() >= columns as usize {
-                        let points = px(side as f32 * terminal_ui::COLUMN);
-                        image(source)
-                            .w(points)
-                            .h(points)
-                            .flex_shrink_0()
-                            .label(move || i18n.t(Key::NshScanToSignIn))
-                            .into_element()
-                    } else {
-                        text(format!("Enlarge to {columns} columns × {rows} rows for the sign-in code, or sign in from the desktop app."))
-                            .into_element()
-                    }
-                }
-                LoginPhase::Failed | LoginPhase::Waiting(_, None) => text("Sign-in failed. R Retry").into_element(),
-            }
-        }))
-}
-
 async fn authorize(
     desktop: DesktopClient,
     state: Signal<LoginPhase>,
     active: Rc<RefCell<Option<Arc<LoginClient>>>>,
 ) -> ClientResult<()> {
-    let terminal = idiom() == nsh_core::platform::Idiom::Terminal;
+    let terminal = crate::terminal::active();
     loop {
         let start = desktop.clone();
         let login = runtime::run(async move { start.begin_login().await.map(Arc::new) }).await?;
@@ -147,12 +105,15 @@ async fn authorize(
 
 fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
     let i18n = i18n::current();
+    let terminal = crate::terminal::active();
     view()
         .flex_1()
         .bg(ui::surface_landing)
         .child(ui::title_bar())
         .child(
-            view().flex_1().items_center().justify_center().p_4().child(
+            view().flex_1().items_center().justify_center().p_4()
+                .style_when(move || terminal, |s| s.p_0())
+                .child(
                 view()
                     .w(ui::login_width)
                     .max_w(relative(1.0))
@@ -164,13 +125,15 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                     .justify_center()
                     .gap_4()
                     .p_8()
+                    .style_when(move || terminal, |s| s.w_full().h_full().p_1().gap_0())
                     .child(
                         view()
-                            .size_40()
+                            .style_when(move || !terminal, |s| s.size_40())
                             .rounded(ui::radius_md())
                             .overflow_hidden()
                             .items_center()
                             .justify_center()
+                            .style_when(move || terminal, |s| s.w_full())
                             .child(dynamic(move || match state.get() {
                                 LoginPhase::Creating => view()
                                     .size_40()
@@ -188,7 +151,23 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                             .text_color(ui::fg_secondary),
                                     )
                                     .into_element(),
-                                LoginPhase::Waiting(source, _) => image(source)
+                                LoginPhase::Waiting(source, Some(side)) => {
+                                    let width = crate::terminal::COLUMN * side as f32;
+                                    let required_rows = side / 2 + 5;
+                                    let rows = window().height.0 / crate::terminal::ROW;
+                                    let required_columns = side + 2;
+                                    if !crate::terminal::image_supported() {
+                                        text("Use a 256-color terminal to scan the code, or sign in from the desktop app.")
+                                            .text_center().into_element()
+                                    } else if rows < required_rows as f32 || crate::terminal::columns() < required_columns as f32 {
+                                        text(format!("Enlarge to {required_columns} columns × {required_rows} rows to scan the code."))
+                                            .text_center().into_element()
+                                    } else {
+                                        image(source).size(px(width)).flex_shrink_0()
+                                            .label(move || i18n.t(Key::NshScanToSignIn)).into_element()
+                                    }
+                                }
+                                LoginPhase::Waiting(source, None) => image(source)
                                     .size_40()
                                     .label(move || i18n.t(Key::NshScanToSignIn))
                                     .on_load(|_: &Size<DevicePixels>| {
@@ -223,6 +202,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                         view()
                             .gap_1()
                             .max_w_96()
+                            .style_when(move || terminal, |s| s.hidden())
                             .child(
                                 text(move || {
                                     format!("1. {}", i18n.t(Key::NshOpenMixinOnYourPhone))

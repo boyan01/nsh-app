@@ -106,6 +106,7 @@ pub(super) struct Props {
     pub actions: Actions,
     pub eligibility: Eligibility,
     pub target: Signal<Option<String>>,
+    pub navigate_history: Option<composer::NavigateHistory>,
     pub drafts: Signal<HashMap<String, String>>,
     pub pending: Signal<HashSet<String>>,
     pub session_owner: Owner,
@@ -124,6 +125,7 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
         actions,
         eligibility,
         target,
+        navigate_history,
         drafts,
         pending,
         session_owner,
@@ -170,6 +172,7 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
             });
         }),
     );
+    input.on_history_navigation(navigate_history);
     if let Some(copy) = use_context::<super::message_selection::CopyFallback>() {
         input.on_copy_fallback(move || (copy.0)());
     }
@@ -197,6 +200,7 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
     let navigation =
         use_context::<crate::navigation::ChatNavigation>().expect("Home provides chat navigation");
     let shell = use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
+    let terminal = crate::terminal::active();
     let escapes = stored(input.escapes.get_untracked());
     effect(move || {
         let count = input.escapes.get();
@@ -208,7 +212,15 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
                 && actions.forwarding.with_untracked(Vec::is_empty)
                 && actions.selected.with_untracked(Vec::is_empty)
             {
-                navigation.back_panel();
+                if terminal
+                    && navigation.panel.get_untracked().is_none()
+                    && navigation.selected_id.get_untracked().as_deref()
+                        == Some(draft_id.get().as_str())
+                {
+                    navigation.close_conversation();
+                } else {
+                    navigation.back_panel();
+                }
             }
         }
     });

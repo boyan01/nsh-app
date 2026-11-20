@@ -8,6 +8,8 @@ use crate::{runtime, ui};
 
 const DRAWER_MAX_WIDTH: f32 = 384.0;
 const COMPACT_MAX_WIDTH: f32 = 496.0;
+const CHAT_SPLIT_MIN_WIDTH: f32 = 620.0;
+const TERMINAL_SPLIT_MIN_COLUMNS: f32 = 100.0;
 
 /// Category, circle and rail layout state shared by the account screen.
 #[derive(Clone, Copy)]
@@ -32,10 +34,21 @@ impl Navigation {
         }
     }
     pub fn drawer(self) -> bool {
-        window().width.0 <= DRAWER_MAX_WIDTH
+        if crate::terminal::active() {
+            crate::terminal::columns() < TERMINAL_SPLIT_MIN_COLUMNS
+        } else {
+            window().width.0 <= DRAWER_MAX_WIDTH
+        }
     }
     pub fn forced_compact(self) -> bool {
-        window().width.0 < COMPACT_MAX_WIDTH
+        crate::terminal::active() || window().width.0 < COMPACT_MAX_WIDTH
+    }
+    pub fn narrow(self) -> bool {
+        if crate::terminal::active() {
+            crate::terminal::columns() < TERMINAL_SPLIT_MIN_COLUMNS
+        } else {
+            window().width.0 - self.width().0 < CHAT_SPLIT_MIN_WIDTH
+        }
     }
     pub fn compact(self) -> bool {
         !self.drawer() && (self.collapsed.get() || self.forced_compact())
@@ -196,6 +209,10 @@ impl ChatNavigation {
             self.search_from_info.set(true);
             self.panel.set(Some(Panel::Search));
         });
+    }
+
+    pub(crate) fn close_conversation(self) {
+        self.selected.set(None);
     }
 
     pub(crate) fn back_panel(self) {

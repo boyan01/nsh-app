@@ -3340,7 +3340,6 @@ dependencies = [
  "tokio",
  "tokio-util",
  "unicode-segmentation",
- "unicode-width",
  "url",
  "wasm-bindgen-futures",
  "webkit6",

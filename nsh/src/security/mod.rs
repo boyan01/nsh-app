@@ -212,49 +212,6 @@ impl Handle {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
-pub(crate) fn terminal(handle: Handle) -> impl IntoElement {
-    use crate::{terminal::ui, ui::Typography as _};
-    let passcode = signal(String::new());
-    on_key("f5", move |_| handle.retry());
-    view()
-        .flex_1()
-        .child(ui::line("Mixin is locked").text_emphasis())
-        .child(dynamic(move || {
-            if handle.load_failed.get() {
-                ui::status("Couldn't check screen lock. F5 Retry").into_element()
-            } else if handle.lock_pending.get() {
-                ui::status("Locking Mixin…").into_element()
-            } else {
-                view()
-                    .flex_1()
-                    .child(
-                        ui::editor("Screen passcode", passcode, move |value: &str| {
-                            if value.len() == 6 && value.bytes().all(|digit| digit.is_ascii_digit())
-                            {
-                                handle.unlock(value.to_owned());
-                                passcode.set(String::new());
-                            }
-                        })
-                        .masked(true)
-                        .max_length(6),
-                    )
-                    .child(ui::hint(move || {
-                        let cooldown = handle.cooldown_seconds.get();
-                        if cooldown > 0 {
-                            format!("Try again in {cooldown}s")
-                        } else if handle.failed.get() {
-                            "Couldn't unlock. Enter the six-digit passcode".to_string()
-                        } else {
-                            "Enter Unlock".to_string()
-                        }
-                    }))
-                    .into_element()
-            }
-        }))
-        .child(ui::hint("Ctrl+C Quit"))
-}
-
 #[cfg(debug_assertions)]
 pub(crate) fn preview(kind: &str, failed: Signal<bool>) -> impl IntoElement {
     let handle = Handle {

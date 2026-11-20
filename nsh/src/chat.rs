@@ -68,7 +68,8 @@ pub(crate) fn screen(
     let i18n = i18n::current();
     let navigation =
         use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
-    let narrow = move || window().width.0 - navigation.width().0 < 620.0;
+    let terminal = crate::terminal::active();
+    let narrow = move || navigation.narrow();
     let narrow_detail = move || {
         let content = window().width.0 - navigation.width().0;
         (if narrow() { content } else { content - 300.0 }) < 620.0
@@ -156,12 +157,45 @@ pub(crate) fn screen(
     );
     let timeline =
         timeline::Timeline::mount(conversation.clone(), target, history, messages, actions);
+    let navigate_history = terminal.then(|| {
+        let navigate = move |direction| {
+            if unobstructed.get_untracked()
+                && side.get_untracked().is_none()
+                && !security.blocked()
+                && pane.is_none_or(|pane| pane.0.get_untracked())
+                && chat_navigation.selected_id.get_untracked().as_deref()
+                    == Some(detail_id.get().as_str())
+            {
+                match direction {
+                    composer::HistoryNavigation::Older => timeline.page(true),
+                    composer::HistoryNavigation::Newer => timeline.page(false),
+                    composer::HistoryNavigation::Latest => timeline.newest(),
+                }
+            }
+        };
+        let options = KeyOptions {
+            when: nsh_core::keymap::When::NotEditing,
+            repeat: true,
+            ..KeyOptions::default()
+        };
+        for (key, direction) in [
+            ("pageup", composer::HistoryNavigation::Older),
+            ("pagedown", composer::HistoryNavigation::Newer),
+            ("ctrl+end", composer::HistoryNavigation::Latest),
+        ] {
+            on_key_with(key, options, move |_| navigate(direction));
+        }
+        std::rc::Rc::new(navigate) as composer::NavigateHistory
+    });
     let loading = timeline.loading;
     let failed = timeline.failed;
     // Once: the pane holding the previous chat gives way to this one.
     let announced = stored(false);
     effect(move || {
         if timeline.settled() && !announced.replace(true) {
+            if !failed.get_untracked() {
+                log::info!(target: "nsh::mixin", "NSH chat ready on {:?}", idiom());
+            }
             untracked(|| ready());
         }
     });
@@ -190,6 +224,12 @@ pub(crate) fn screen(
             ..KeyOptions::default()
         },
         move |_| {
+            if terminal
+                && chat_navigation.selected_id.get_untracked().as_deref()
+                    != Some(detail_id.get().as_str())
+            {
+                return;
+            }
             // A reply is the nearest layer: Escape cancels it first. The
             // composer's own binding does the same while the input has focus.
             if !navigation.settings.get_untracked() && actions.quote.with_untracked(Option::is_some)
@@ -209,6 +249,8 @@ pub(crate) fn screen(
                 }
             } else if side.get_untracked().is_some() {
                 chat_navigation.back_panel();
+            } else if terminal {
+                chat_navigation.close_conversation();
             }
         },
     );
@@ -371,6 +413,7 @@ pub(crate) fn screen(
                             actions,
                             eligibility,
                             target,
+                            navigate_history,
                             drafts,
                             pending,
                             session_owner,

@@ -2,7 +2,9 @@
 
 use std::{
     error::Error,
+    fs::File,
     io::{self, BufWriter, IsTerminal as _, stdout},
+    path::Path,
     process::ExitCode,
     sync::{
         Arc, Mutex,
@@ -25,10 +27,30 @@ use ratatui_crossterm::CrosstermBackend;
 
 use crate::runtime;
 
+#[cfg(target_os = "linux")]
+use nsh_platform_linux::CacheLocation;
+#[cfg(target_os = "macos")]
+use nsh_platform_macos::CacheLocation;
+
 #[cfg(target_os = "macos")]
 mod macos;
 
 static QUIT: AtomicBool = AtomicBool::new(false);
+static INSTALLED: AtomicBool = AtomicBool::new(false);
+
+pub(super) fn installed() -> bool {
+    INSTALLED.load(Ordering::Acquire)
+}
+
+pub(super) fn prepare(directory: &Path) -> Result<File, Box<dyn Error>> {
+    let lock = crate::shell::instance::acquire_terminal(directory)?;
+    mixin_desktop_api::init_file_logging(
+        "Mixin".into(),
+        env!("CARGO_PKG_VERSION").into(),
+        "2".into(),
+    )?;
+    Ok(lock)
+}
 
 pub fn run() -> ExitCode {
     match run_installed() {
@@ -45,7 +67,7 @@ fn run_installed() -> Result<(), Box<dyn Error>> {
         return Err("run mixin --tui from an interactive terminal".into());
     }
     let directory = mixin_desktop_api::data_directory()?;
-    let _instance = match super::prepare(&directory) {
+    let _instance = match prepare(&directory) {
         Ok(instance) => instance,
         #[cfg(target_os = "macos")]
         Err(error) if macos::should_explain_access(&*error) => {
@@ -64,12 +86,18 @@ fn run_installed() -> Result<(), Box<dyn Error>> {
     }
 
     let tokens = nsh_base::tokens_of(Some(include_str!("../../theme.json")))?;
-    let root = Root::of::<super::TerminalApp>()
+    let root = Root::of::<crate::App>()
         .app_id("one.mixin.messenger.desktop")
         .tokens(tokens);
     let mut options = AppOptions::default();
+    options.cache = nsh_platform_tui::CacheOptions::at(CacheLocation::Dir(directory.join("cache")));
     options.data_dir = Some(directory);
+    options.cells = nsh_platform_tui::CellSize::new(
+        nsh_core::Points(super::COLUMN),
+        nsh_core::Points(super::ROW),
+    )?;
     options.capabilities.colors = color_depth();
+    INSTALLED.store(true, Ordering::Release);
     let result = fullscreen(root, options);
 
     // The screen is already restored. Only release the instance lock once
@@ -80,11 +108,7 @@ fn run_installed() -> Result<(), Box<dyn Error>> {
     result.map_err(Into::into)
 }
 
-pub(crate) fn image_supported() -> bool {
-    matches!(color_depth(), ColorDepth::TrueColor | ColorDepth::Ansi256)
-}
-
-fn color_depth() -> ColorDepth {
+pub(super) fn color_depth() -> ColorDepth {
     match std::env::var("NSH_TUI_COLORS").as_deref() {
         Ok("truecolor") => ColorDepth::TrueColor,
         Ok("256") => ColorDepth::Ansi256,

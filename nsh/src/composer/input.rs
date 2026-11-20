@@ -28,8 +28,18 @@ use crate::runtime;
 mod document;
 use document::{WireDocument, document, mention_tokens, mentions_differ, refresh_mentions, schema};
 
+#[derive(Clone, Copy)]
+pub(crate) enum HistoryNavigation {
+    Older,
+    Newer,
+    Latest,
+}
+
+pub(crate) type NavigateHistory = Rc<dyn Fn(HistoryNavigation)>;
+
 enum Command {
     Changed,
+    History(HistoryNavigation),
     CopyFallback,
     #[cfg(target_os = "macos")]
     HideWindow,
@@ -56,6 +66,7 @@ pub(crate) struct Input {
     /// Counts Escape pressed in the editor with no picker open: the editor
     /// takes the key, so a shortcut bound to it never hears it.
     pub escapes: Signal<u64>,
+    navigate_history: Stored<Option<NavigateHistory>>,
     submit: Stored<Option<Rc<dyn Fn()>>>,
     copy_fallback: Stored<Option<Rc<dyn Fn()>>>,
     submit_post: Stored<Option<Rc<dyn Fn()>>>,
@@ -96,6 +107,7 @@ impl Input {
             selection.get_untracked(),
             commands.clone(),
             picker_open.clone(),
+            crate::terminal::active(),
         );
         let changed = commands.clone();
         let subscription = session.subscribe(Arc::new(move |_| {
@@ -108,6 +120,7 @@ impl Input {
             picker_open: stored(picker_open),
             keys: signal((0, String::new())),
             escapes: signal(0),
+            navigate_history: stored(None),
             submit: stored(None),
             copy_fallback: stored(None),
             submit_post: stored(None),
@@ -138,6 +151,15 @@ impl Input {
                         // before hiding without disposing this input's owner.
                         if !self.composing() {
                             window.hide();
+                        }
+                    }
+                    Command::History(direction) => {
+                        if !self.composing() {
+                            self.navigate_history.with(|callback| {
+                                if let Some(callback) = callback {
+                                    callback(direction);
+                                }
+                            });
                         }
                     }
                     Command::CopyFallback => {
@@ -214,6 +236,10 @@ impl Input {
             self.session
                 .with(|session| show_draft(session, &raw, caret, &labels));
         });
+    }
+
+    pub fn on_history_navigation(self, callback: Option<NavigateHistory>) {
+        self.navigate_history.replace(callback);
     }
 
     pub fn on_submit_post(self, send: Rc<dyn Fn()>) {
@@ -481,6 +507,7 @@ fn editor_session(
     caret: (u32, u32),
     commands: mpsc::UnboundedSender<Command>,
     picker_open: Arc<AtomicBool>,
+    terminal: bool,
 ) -> EditorSession {
     let schema = schema();
     let initial = document(draft, &HashMap::new());
@@ -496,6 +523,7 @@ fn editor_session(
                 Arc::new(Behavior {
                     commands,
                     picker_open,
+                    terminal,
                 }),
                 history::history(Default::default()),
             ]),
@@ -572,6 +600,7 @@ fn show_draft(
 struct Behavior {
     commands: mpsc::UnboundedSender<Command>,
     picker_open: Arc<AtomicBool>,
+    terminal: bool,
 }
 impl PluginSpec for Behavior {
     fn handle_key_down(
@@ -624,6 +653,21 @@ impl PluginSpec for Behavior {
             };
             if let Some(direction) = direction {
                 let _ = self.commands.send(Command::Picker(direction.into()));
+                return true;
+            }
+        }
+        if self.terminal && !self.picker_open.load(Ordering::Relaxed) {
+            // RichEditor owns these keystrokes while the sink has focus.
+            let history = match key.key.as_str() {
+                "PageUp" if plain => Some(HistoryNavigation::Older),
+                "PageDown" if plain => Some(HistoryNavigation::Newer),
+                "End" if key.ctrl && !(key.alt || key.shift || key.meta) => {
+                    Some(HistoryNavigation::Latest)
+                }
+                _ => None,
+            };
+            if let Some(history) = history {
+                let _ = self.commands.send(Command::History(history));
                 return true;
             }
         }
@@ -712,10 +756,12 @@ mod copy_tests {
         for (caret, fallback) in [((5, 5), true), ((0, 5), false)] {
             let (commands, mut receive) = mpsc::unbounded_channel();
             let picker_open = Arc::new(AtomicBool::new(false));
-            let session = editor_session("draft", caret, commands.clone(), picker_open.clone());
+            let session =
+                editor_session("draft", caret, commands.clone(), picker_open.clone(), false);
             let behavior = Behavior {
                 commands,
                 picker_open,
+                terminal: false,
             };
             let mut key = KeyEvent::new("c");
             key.mod_key = true;
@@ -739,10 +785,17 @@ mod copy_tests {
     fn modified_copy_strokes_do_not_trigger_message_copy() {
         let (commands, mut receive) = mpsc::unbounded_channel();
         let picker_open = Arc::new(AtomicBool::new(false));
-        let session = editor_session("draft", (5, 5), commands.clone(), picker_open.clone());
+        let session = editor_session(
+            "draft",
+            (5, 5),
+            commands.clone(),
+            picker_open.clone(),
+            false,
+        );
         let behavior = Behavior {
             commands,
             picker_open,
+            terminal: false,
         };
         for (shift, alt) in [(true, false), (false, true)] {
             let mut key = KeyEvent::new("c");
@@ -773,10 +826,17 @@ mod picker_tests {
         ] {
             let (commands, mut receive) = mpsc::unbounded_channel();
             let picker_open = Arc::new(AtomicBool::new(open));
-            let session = editor_session("draft", (5, 5), commands.clone(), picker_open.clone());
+            let session = editor_session(
+                "draft",
+                (5, 5),
+                commands.clone(),
+                picker_open.clone(),
+                false,
+            );
             let behavior = Behavior {
                 commands,
                 picker_open,
+                terminal: false,
             };
             let mut key = KeyEvent::new(letter);
             key.ctrl = true;
@@ -826,6 +886,7 @@ mod window_tests {
                 let behavior = Behavior {
                     commands: input.commands.get(),
                     picker_open: input.picker_open.get(),
+                    terminal: false,
                 };
                 let mut key = KeyEvent::new("w");
                 key.meta = true;

@@ -115,12 +115,16 @@ pub(crate) fn avatar_view(
     source: impl Fn() -> String + 'static,
     size: AvatarSize,
 ) -> AvatarElement {
+    let has_images = !crate::terminal::active() || crate::terminal::image_supported();
     let name = computed(name);
     let id = computed(id);
     let color = computed(move || palette_color(&id.get(), &AVATAR_COLORS, avatar_empty));
     avatar()
         .name(move || Some(name.get()))
         .src(move || {
+            if !has_images {
+                return None;
+            }
             let url = source();
             (!url.is_empty()).then(|| ImageSrc::from(url))
         })

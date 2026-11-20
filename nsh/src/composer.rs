@@ -20,7 +20,7 @@ pub(crate) use files::{
     archive_password, attachment_frame, attachment_strip, file_content, original_toggle,
     remove_button, zip_toggle,
 };
-pub(crate) use input::Input;
+pub(crate) use input::{HistoryNavigation, Input, NavigateHistory};
 pub(crate) use mentions::mentions;
 pub(crate) use sticker_store::detail as sticker_detail;
 pub(crate) use stickers::stickers;

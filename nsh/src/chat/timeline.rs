@@ -255,6 +255,7 @@ pub(super) struct Timeline {
     actions: Actions,
     messages: Signal<Vec<MessageListView>>,
     history: ElementRef,
+    visible_range: Stored<Option<(usize, usize)>>,
     target: Signal<Option<String>>,
     return_target: Signal<Option<String>>,
     request: Signal<Option<(u64, Load)>>,
@@ -295,6 +296,7 @@ impl Timeline {
             actions,
             messages,
             history,
+            visible_range: stored(None),
             target,
             return_target: use_context::<crate::navigation::ChatNavigation>()
                 .expect("Home provides chat navigation")
@@ -681,6 +683,7 @@ impl Timeline {
     }
 
     pub fn viewable(self, event: &ViewableItems) {
+        self.visible_range.replace(event.viewable);
         let anchor = event.viewable.and_then(|(first, _)| {
             self.messages
                 .with_untracked(|rows| rows.get(first).map(|row| row.message_id.clone()))
@@ -701,6 +704,33 @@ impl Timeline {
             return;
         }
         self.show_latest.set(distance > 96.0);
+    }
+
+    pub(super) fn page(self, older: bool) {
+        let Some((first, last)) = self.visible_range.get() else {
+            return;
+        };
+        let end = self
+            .messages
+            .with_untracked(|rows| rows.len().saturating_sub(1));
+        let page = last.saturating_sub(first).max(1);
+        let index = if older {
+            first.saturating_add(page).min(end)
+        } else {
+            first.saturating_sub(page)
+        };
+        self.history
+            .scroll_to_index(index as u32, percentage(0.0), Points::ZERO, false);
+        if older && index == end {
+            self.older();
+        } else if !older && index == 0 {
+            self.newer();
+        }
+    }
+
+    pub(super) fn newest(self) {
+        self.return_target.set(None);
+        self.target.set(None);
     }
 
     pub fn older(self) {

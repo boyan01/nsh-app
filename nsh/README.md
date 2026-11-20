@@ -74,10 +74,15 @@ account to keep an existing desktop link active. To reopen the existing
 desktop profile, launch `mixin --tui` without the override after granting
 access. Keep the existing profile in its original location.
 
-Use Up and Down to select a conversation and Enter to open it. Type in the
-focused editor and press Enter to queue a text message. Page Up and Page Down
-move through history, Ctrl+End returns to the latest messages, Escape returns
-to the list, and Ctrl+C exits. At 100 columns or more both panes are visible.
+The terminal uses the same conversation list, message history, and editor as
+the desktop. Use Up and Down to move between conversation rows and Enter to
+open the focused conversation. The editor accepts typing and paste. Enter
+queues a message and Shift+Enter inserts a line break. Page Up and Page Down
+page through history, Ctrl+End returns to the latest messages, and Escape
+returns to the conversation row after closing any open overlay. F10 opens the
+application menu and Ctrl+C exits. At 100 columns or more both panes are visible.
+Images use half-blocks in 256-color and true-color terminals. Lower color
+depths show avatar initials and a text label for image messages.
 For first-time sign-in, use a 256-color terminal and enlarge it to the size
 shown by the sign-in prompt, or sign in from Mixin Desktop first.
 

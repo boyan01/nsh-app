@@ -16,8 +16,6 @@ use crate::{
     ui::{self, Typography as _},
 };
 
-const NARROW_CONTENT_WIDTH: f32 = 620.0;
-
 /// The signed-in session's view state. Business state stays in the account.
 #[derive(Clone, Copy)]
 struct Home {
@@ -132,6 +130,18 @@ pub(crate) fn screen(
         }
     });
     let palette_open = signal(false);
+    let terminal = crate::terminal::active();
+    if terminal {
+        home.window.follow_terminal_focus(move || {
+            !nav.settings.get()
+                && !nav.drawer_open()
+                && !home.searching()
+                && !composing.get()
+                && !palette_open.get()
+                && !security.blocked()
+                && !bots.ending()
+        });
+    }
     on_key("mod+k", move |_| {
         if !security.blocked() {
             palette_open.set(true);
@@ -198,6 +208,34 @@ pub(crate) fn screen(
                     .child(crate::bot::surface(bots))
             },
         ))
+        .child(when(
+            move || terminal && !security.blocked() && !bots.ending() && !nav.settings.get(),
+            move || {
+                let i18n = home.i18n;
+                text(move || {
+                    if home.selected_id.with(Option::is_some) {
+                        format!(
+                            "Enter {}   PgUp/PgDn {}   Esc {}",
+                            i18n.t(Key::Send),
+                            i18n.t(Key::NshHistory),
+                            i18n.t(Key::NshBack)
+                        )
+                    } else {
+                        format!(
+                            "↑↓ {}   Enter {}   F10",
+                            i18n.t(Key::NshConversations),
+                            i18n.t(Key::Open)
+                        )
+                    }
+                })
+                .h(px(crate::terminal::ROW))
+                .line_height(px(crate::terminal::ROW))
+                .px(px(crate::terminal::COLUMN))
+                .number_of_lines(1)
+                .bg(ui::surface_list)
+                .text_color(ui::fg_secondary)
+            },
+        ))
         .child(toasts.surface())
         .child(crate::security::surface(security))
         .child(when(
@@ -212,7 +250,7 @@ impl Home {
     }
 
     fn narrow(self) -> bool {
-        window().width.0 - self.nav.width().0 < NARROW_CONTENT_WIDTH
+        self.nav.narrow()
     }
 
     fn searching(self) -> bool {
@@ -332,11 +370,45 @@ impl Home {
             ..
         } = self;
         let rows = window.rows;
+        let terminal = crate::terminal::active();
         let chrome_height = signal(0.0_f32);
-        let inset = move || px(chrome_height.get());
+        let inset = move || {
+            if terminal {
+                Points::ZERO
+            } else {
+                px(chrome_height.get())
+            }
+        };
+        let chrome = list_chrome(
+            chrome_height,
+            list_header(
+                self.nav,
+                self.query,
+                self.composing,
+                self.unread,
+                self.search,
+                self.create_action,
+            ),
+            view()
+                .pointer_events(PointerEvents::BoxNone)
+                .child(health_banner(self.health))
+                .child(connection_banner(self.online, move || {
+                    self.client().retry_connection()
+                }))
+                .child(when(
+                    move || window.failed.get() && !rows.with(Vec::is_empty) && !self.searching(),
+                    move || list_notice().child(load_error(move || window.retry(), || false).p_0()),
+                )),
+        );
+        let (flow_chrome, floating_chrome) = if terminal {
+            (Some(chrome), None)
+        } else {
+            (None, Some(chrome))
+        };
         view()
             .flex_1()
             .min_h_0()
+            .children(flow_chrome)
             .child(
                 view()
                     .flex_1()
@@ -389,34 +461,7 @@ impl Home {
                             |s| s.hidden(),
                         ),
                     )
-                    .child(list_chrome(
-                        chrome_height,
-                        list_header(
-                            self.nav,
-                            self.query,
-                            self.composing,
-                            self.unread,
-                            self.search,
-                            self.create_action,
-                        ),
-                        view()
-                            .pointer_events(PointerEvents::BoxNone)
-                            .child(health_banner(self.health))
-                            .child(connection_banner(self.online, move || {
-                                self.client().retry_connection()
-                            }))
-                            .child(when(
-                                move || {
-                                    window.failed.get()
-                                        && !rows.with(Vec::is_empty)
-                                        && !self.searching()
-                                },
-                                move || {
-                                    list_notice()
-                                        .child(load_error(move || window.retry(), || false).p_0())
-                                },
-                            )),
-                    )),
+                    .children(floating_chrome),
             )
             .child(crate::playback::bar(playback, selected))
     }
@@ -443,6 +488,8 @@ impl Home {
             profile_draft,
             ..
         } = self;
+        let chat_navigation = use_context::<crate::navigation::ChatNavigation>()
+            .expect("Home provides chat navigation");
         let hidden = move || {
             self.narrow()
                 && if nav.settings.get() {
@@ -487,7 +534,7 @@ impl Home {
                                 drafts,
                                 pending,
                                 owner,
-                                move || selected.set(None),
+                                move || chat_navigation.close_conversation(),
                                 ready,
                             )
                         },
@@ -524,21 +571,26 @@ pub(crate) fn list_chrome(
     header: impl IntoElement,
     notices: impl IntoElement,
 ) -> View {
-    view()
-        .absolute()
-        .top_0()
-        .left_0()
-        .right_0()
-        .pointer_events(PointerEvents::BoxNone)
-        .on_layout(move |bounds: &Bounds<Points>| {
-            let value = bounds.size.height.0;
-            if height.get_untracked() != value {
-                height.set(value);
-            }
-        })
-        .child(ui::edge_fade(true, ui::surface_list))
-        .child(header)
-        .child(notices)
+    let chrome =
+        view()
+            .pointer_events(PointerEvents::BoxNone)
+            .on_layout(move |bounds: &Bounds<Points>| {
+                let value = bounds.size.height.0;
+                if height.get_untracked() != value {
+                    height.set(value);
+                }
+            });
+    let chrome = if crate::terminal::active() {
+        chrome.flex_shrink_0()
+    } else {
+        chrome
+            .absolute()
+            .top_0()
+            .left_0()
+            .right_0()
+            .child(ui::edge_fade(true, ui::surface_list))
+    };
+    chrome.child(header).child(notices)
 }
 
 pub(crate) fn list_notice() -> View {

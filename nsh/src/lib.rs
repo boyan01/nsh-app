@@ -62,7 +62,6 @@ mod shell;
 mod sidebar;
 mod snapshot;
 mod sticker;
-#[cfg(any(target_os = "macos", target_os = "linux"))]
 mod terminal;
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub use terminal::run as run_terminal;
@@ -186,8 +185,8 @@ pub fn App() -> impl IntoElement {
         .attributes(attributes)
         .content(|| {
             #[cfg(any(target_os = "macos", target_os = "linux"))]
-            if idiom() == nsh_core::platform::Idiom::Terminal {
-                return terminal::development_surface();
+            if terminal::active() {
+                return terminal::surface(|| app_surface().into_element());
             }
             #[cfg(target_os = "macos")]
             {

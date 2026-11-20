@@ -124,7 +124,6 @@ pub(crate) enum Command {
     DeleteConversation,
     Pin,
     ToggleInfo,
-    #[cfg(debug_assertions)]
     Transfer,
 }
 

@@ -120,7 +120,6 @@ pub(crate) fn navigation(
                                 Page::About,
                             ]
                             .into_iter()
-                            .filter(|value| cfg!(debug_assertions) || *value != Page::Transfer)
                             .map(row),
                         ),
                     ),

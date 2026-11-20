@@ -231,7 +231,6 @@ impl Home {
             Command::NewChat => create(create::Action::Chat),
             Command::NewGroup => create(create::Action::Group),
             Command::NewCircle => create(create::Action::Circle),
-            #[cfg(debug_assertions)]
             Command::Transfer => batch(|| {
                 self.settings_page.set(settings::Page::Transfer);
                 self.settings_detail.set(true);

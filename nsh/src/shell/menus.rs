@@ -42,7 +42,6 @@ pub(super) fn mount(shell: Handle) {
             action(Key::NshNewGroup, Command::NewGroup, signed).shortcut("mod+shift+n"),
             action(Key::NshNewCircleMessage, Command::NewCircle, signed),
         ];
-        #[cfg(debug_assertions)]
         file.push(action(
             Key::NshChatBackupAndRestoreMessage,
             Command::Transfer,

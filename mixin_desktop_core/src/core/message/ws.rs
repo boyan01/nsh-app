@@ -27,6 +27,9 @@ pub(crate) struct Handshake {
     pub authorization: String,
     /// Requested subprotocol, `Mixin-Blaze-1`.
     pub protocol: String,
+    /// `X-Request-Id`, the `jti` of the token in `authorization`.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub request_id: String,
     #[cfg(not(target_arch = "wasm32"))]
     pub proxy: Option<crate::network::ProxyConfig>,
 }

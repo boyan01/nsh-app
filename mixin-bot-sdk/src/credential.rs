@@ -35,6 +35,18 @@ impl Credential {
         path: &String,
         body: impl AsRef<[u8]>,
     ) -> Result<String, String> {
+        self.sign_authentication_token_for_request(method, path, body, &Uuid::new_v4().to_string())
+    }
+
+    /// Signs a token whose `jti` is `request_id`, the `X-Request-Id` the
+    /// server matches it against.
+    pub fn sign_authentication_token_for_request(
+        &self,
+        method: &Method,
+        path: &String,
+        body: impl AsRef<[u8]>,
+        request_id: &str,
+    ) -> Result<String, String> {
         match self {
             Credential::KeyStore(key_store) => {
                 let now = SystemTime::now();
@@ -55,7 +67,7 @@ impl Credential {
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap()
                         .as_secs() as i64,
-                    jti: Uuid::new_v4().to_string(),
+                    jti: request_id.to_owned(),
                     sig: base16ct::lower::encode_string(sum.as_ref()),
                     scp: key_store.scp.clone(),
                 };

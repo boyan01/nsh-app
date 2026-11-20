@@ -44,6 +44,10 @@ const RECONNECT_DELAY: Duration = Duration::from_secs(5);
 #[path = "blaze/proxy_tests.rs"]
 mod proxy_tests;
 
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "blaze/handshake_tests.rs"]
+mod handshake_tests;
+
 async fn proxy_changed(changes: &mut Option<watch::Receiver<Option<crate::network::ProxyConfig>>>) {
     if let Some(changes) = changes {
         if changes.changed().await.is_ok() {
@@ -332,15 +336,18 @@ impl Blaze {
     ) -> Result<SocketSessionEnd> {
         #[cfg(target_arch = "wasm32")]
         let _ = proxy;
+        let request_id = uuid::Uuid::new_v4().to_string();
         let token = self
             .credential
-            .sign_authentication_token(&Method::GET, &"/".to_string(), [])
+            .sign_authentication_token_for_request(&Method::GET, &"/".to_string(), [], &request_id)
             .map_err(|e| anyhow!("can not sign request: {}", e))?;
 
         let handshake = Handshake {
             url: host.to_owned(),
             authorization: format!("Bearer {}", token),
             protocol: "Mixin-Blaze-1".to_owned(),
+            #[cfg(not(target_arch = "wasm32"))]
+            request_id,
             #[cfg(not(target_arch = "wasm32"))]
             proxy,
         };

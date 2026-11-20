@@ -20,6 +20,7 @@ pub(crate) async fn connect(handshake: &Handshake) -> Result<(WsSink, WsStream),
         ("Authorization", handshake.authorization.clone()),
         ("Sec-WebSocket-Protocol", handshake.protocol.clone()),
         ("User-Agent", crate::core::user_agent::generate_user_agent()),
+        ("X-Request-Id", handshake.request_id.clone()),
     ] {
         request.headers_mut().insert(
             key,

@@ -78,8 +78,28 @@ pub(crate) fn navigation(
             profile.set(next);
         }
     });
+    let terminal = crate::terminal::active();
+    if terminal {
+        on_key("escape", move |_| on_back());
+    }
+    let selected_row = stored(None::<ElementRef>);
     let row = move |value: Page| {
+        let reference = element_ref();
+        if terminal {
+            effect(move || {
+                if page.get() == value {
+                    selected_row.replace(Some(reference));
+                }
+            });
+        }
         ui::settings_row(Some(value.icon()), move || value.title(i18n))
+            .when(terminal, |row| {
+                row.element_ref(&reference)
+                    .min_h(px(2.0 * crate::terminal::ROW))
+                    .px(px(crate::terminal::COLUMN))
+                    .focus(|s| s.bg(ui::fg_primary).text_color(ui::surface_list))
+                    .selected_style(|s| s.bg(ui::accent).text_color(ui::fg_on_accent))
+            })
             .selected(move || page.get() == value)
             .on_press(move || {
                 batch(|| {
@@ -89,7 +109,20 @@ pub(crate) fn navigation(
             })
             .child(ui::chevron())
     };
+    let shown = stored(false);
     view()
+        .when(terminal, |v| {
+            v.on_layout(move |bounds: &Bounds<Points>| {
+                let visible = bounds.size.width.0 > 0.0 && bounds.size.height.0 > 0.0;
+                if shown.replace(visible) != visible && visible {
+                    request_animation_frame(move |_| {
+                        if let Some(row) = selected_row.get() {
+                            row.focus();
+                        }
+                    });
+                }
+            })
+        })
         .flex_1()
         .min_h_0()
         .child(when(compact, move || {
@@ -100,31 +133,42 @@ pub(crate) fn navigation(
             )
         }))
         .child(when(move || !compact(), ui::title_bar))
-        .child(
-            scroll().flex_1().min_h_0().child(
-                view()
-                    .px(ui::space_lg())
-                    .pb(ui::space_xl())
-                    .gap(ui::space_lg())
-                    .child(account_header(profile))
-                    .child(ui::card().child(row(Page::Profile)))
-                    .child(
-                        ui::card().children(
-                            [
-                                Page::Notifications,
-                                Page::Storage,
-                                Page::Transfer,
-                                Page::Security,
-                                Page::Proxy,
-                                Page::Appearance,
-                                Page::About,
-                            ]
-                            .into_iter()
-                            .map(row),
-                        ),
+        .child(scroll().flex_1().min_h_0().child({
+            let categories = view()
+                .px(ui::space_lg())
+                .pb(ui::space_xl())
+                .gap(ui::space_lg())
+                .when(terminal, |v| {
+                    v.px(px(crate::terminal::COLUMN))
+                        .pb(px(crate::terminal::ROW))
+                        .gap(px(crate::terminal::ROW))
+                })
+                .child(account_header(profile))
+                .child(ui::card().child(row(Page::Profile)))
+                .child(
+                    ui::card().children(
+                        [
+                            Page::Notifications,
+                            Page::Storage,
+                            Page::Transfer,
+                            Page::Security,
+                            Page::Proxy,
+                            Page::Appearance,
+                            Page::About,
+                        ]
+                        .into_iter()
+                        .map(row),
                     ),
-            ),
-        )
+                );
+            if terminal {
+                nsh_base::toolbar()
+                    .axis(nsh_core::geometry::Axis::Vertical)
+                    .child(categories)
+                    .into_element()
+            } else {
+                categories.into_element()
+            }
+        }))
 }
 
 fn account_header(profile: Signal<AccountProfile>) -> impl IntoElement {
@@ -142,6 +186,7 @@ fn account_header(profile: Signal<AccountProfile>) -> impl IntoElement {
                 ui::AvatarSize::Profile,
             )
             .size_20()
+            .when(crate::terminal::active(), |v| v.hidden())
             .mb_2(),
         )
         .child(
@@ -183,11 +228,25 @@ pub(crate) fn screen(
 ) -> impl IntoElement {
     let i18n = i18n::current();
     let on_signed_out = Arc::new(on_signed_out);
+    let visible = signal(false);
     view()
         .flex_1()
         .min_w_0()
         .min_h_0()
         .bg(ui::surface_pane)
+        .when(crate::terminal::active(), |v| {
+            v.px(px(crate::terminal::COLUMN))
+                .on_layout(move |bounds: &Bounds<Points>| {
+                    visible.set(bounds.size.height.0 > 0.0 && bounds.size.width.0 > 0.0)
+                })
+                .child(when(
+                    move || visible.get() && narrow(),
+                    move || {
+                        on_key("escape", move |_| on_back());
+                        view().hidden()
+                    },
+                ))
+        })
         // Storage draws its own bar: its detail page has another title and Back.
         .child(when(
             move || page.get() != Page::Storage,

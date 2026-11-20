@@ -69,6 +69,9 @@ pub(crate) fn attachments(
             .expect("Home provides chat navigation"),
     };
     view()
+        .style_when(crate::terminal::active, |s| {
+            s.mr(px(crate::terminal::COLUMN))
+        })
         .child(attachment_menu(
             move || tray.pick(true),
             move || tray.pick(false),

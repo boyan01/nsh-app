@@ -176,6 +176,20 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
     if let Some(copy) = use_context::<super::message_selection::CopyFallback>() {
         input.on_copy_fallback(move || (copy.0)());
     }
+    let terminal = crate::terminal::active();
+    if let Some(shortcuts) = use_context::<crate::terminal::Shortcuts>() {
+        effect(move || {
+            if input_focused.get() && shortcuts.available.get() {
+                // RichEditor installs its text bindings as focus enters. Own
+                // the terminal palette chord for this same focus lifetime.
+                after_answer(move || {
+                    on_key_with("ctrl+k", crate::terminal::key_options(), move |_| {
+                        shortcuts.palette_open.set(true);
+                    });
+                });
+            }
+        });
+    }
     let focus_pending = signal(false);
     effect(move || {
         let (_, covered, panel_closed) = focus_layout.get();
@@ -190,8 +204,19 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
             focus_pending.set(false);
         }
     });
+    let was_replying = stored(false);
     effect(move || {
-        if quote.with(Option::is_some) {
+        let replying = quote.with(Option::is_some);
+        let previous = was_replying.replace(replying);
+        if terminal && (replying || previous) {
+            // Escape may blur the terminal field in the same input dispatch.
+            request_animation_frame(move |_| {
+                let (_, covered, closed) = focus_layout.get_untracked();
+                if !covered && closed && can_send.get_untracked() {
+                    input.focus();
+                }
+            });
+        } else if replying {
             input.focus();
         }
     });
@@ -200,12 +225,17 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
     let navigation =
         use_context::<crate::navigation::ChatNavigation>().expect("Home provides chat navigation");
     let shell = use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
-    let terminal = crate::terminal::active();
     let escapes = stored(input.escapes.get_untracked());
     effect(move || {
         let count = input.escapes.get();
         if escapes.replace(count) != count {
-            if quote.with_untracked(Option::is_some) {
+            if terminal && navigation.panel.get_untracked().is_some() {
+                navigation.back_panel();
+            } else if terminal && actions.selected.with_untracked(|ids| !ids.is_empty()) {
+                if !actions.busy.get_untracked() {
+                    actions.selected.set(Vec::new());
+                }
+            } else if quote.with_untracked(Option::is_some) {
                 quote.set(None);
             } else if !shell.settings.get_untracked()
                 && !actions.preview.with_untracked(Option::is_some)

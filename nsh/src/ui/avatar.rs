@@ -115,7 +115,8 @@ pub(crate) fn avatar_view(
     source: impl Fn() -> String + 'static,
     size: AvatarSize,
 ) -> AvatarElement {
-    let has_images = !crate::terminal::active() || crate::terminal::image_supported();
+    let terminal = crate::terminal::active();
+    let has_images = !terminal || crate::terminal::image_supported();
     let name = computed(name);
     let id = computed(id);
     let color = computed(move || palette_color(&id.get(), &AVATAR_COLORS, avatar_empty));
@@ -137,14 +138,19 @@ pub(crate) fn avatar_view(
             text(move || placeholder_letter(&name.get()))
                 .text_role(TextRole::Headline)
                 .text_color(move || {
-                    if uuid_hash(&id.get()).is_some() {
+                    if !terminal && uuid_hash(&id.get()).is_some() {
                         fg_on_accent()
                     } else {
                         fg_primary()
                     }
                 }),
         )
-        .fallback_style(move |s| s.items_center().justify_center().bg(color))
+        .fallback_style(move |s| {
+            let s = s.items_center().justify_center();
+            // A terminal draws selection over the whole subtree. Initials in
+            // the native foreground retain their contrast on either row state.
+            if terminal { s } else { s.bg(color) }
+        })
 }
 
 /// Use the same one-to-four participant puzzle as the Flutter conversation list.

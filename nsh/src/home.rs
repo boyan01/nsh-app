@@ -33,6 +33,7 @@ struct Home {
     composing: Signal<bool>,
     unread: Signal<bool>,
     search: ElementRef,
+    search_mode: Signal<bool>,
     online: Signal<bool>,
     health: Signal<String>,
     create_action: Signal<Option<create::Action>>,
@@ -112,6 +113,7 @@ pub(crate) fn screen(
         composing,
         unread,
         search: element_ref(),
+        search_mode: signal(false),
         // The status stream reports the truth at once; do not flash a banner first.
         online: signal(true),
         health: signal(String::from("ready")),
@@ -120,8 +122,10 @@ pub(crate) fn screen(
         settings_detail: signal(false),
         profile_draft: signal(None),
     };
+    let terminal = crate::terminal::active();
     let search_hidden = computed(move || {
-        nav.settings.get() || (home.narrow() && home.selected_id.with(Option::is_some))
+        nav.settings.get()
+            || ((terminal || home.narrow()) && home.selected_id.with(Option::is_some))
     });
     effect(move || {
         if search_hidden.get() {
@@ -130,11 +134,63 @@ pub(crate) fn screen(
         }
     });
     let palette_open = signal(false);
-    let terminal = crate::terminal::active();
     if terminal {
+        let available = computed(move || {
+            !nav.settings.get()
+                && !nav.drawer_open()
+                && !palette_open.get()
+                && !security.blocked()
+                && !bots.ending()
+                && home.create_action.with(Option::is_none)
+        });
+        provide_context(crate::terminal::Shortcuts {
+            available,
+            palette_open,
+        });
+        home.search.on_focus_in(move || home.search_mode.set(true));
+        home.search
+            .on_focus_out(move || home.search_mode.set(false));
+        effect(move || {
+            if !available.get() {
+                return;
+            }
+            on_key_with("ctrl+k", crate::terminal::key_options(), move |_| {
+                palette_open.set(true)
+            });
+            if chat_navigation.panel.get().is_some() {
+                return;
+            }
+            for (key, forward) in [("f5", false), ("f6", true)] {
+                on_key(key, move |_| home.window.step(forward));
+            }
+            if home.selected_id.with(Option::is_some) {
+                home.search_mode.set(false);
+                return;
+            }
+            on_key("f2", move |_| home.search.focus());
+            on_key("f3", move |_| home.unread.update(|value| *value = !*value));
+            on_key("f4", move |_| {
+                let next = match nav.category.get_untracked() {
+                    "chats" => "contacts",
+                    "contacts" => "groups",
+                    "groups" => "bots",
+                    "bots" => "strangers",
+                    _ => "chats",
+                };
+                nav.select(next, None);
+            });
+            if home.search_mode.get() {
+                on_key_with("escape", crate::terminal::key_options(), move |_| {
+                    home.search.blur();
+                    home.query.set(String::new());
+                    home.search_mode.set(false);
+                });
+            }
+        });
         home.window.follow_terminal_focus(move || {
             !nav.settings.get()
                 && !nav.drawer_open()
+                && !home.search_mode.get()
                 && !home.searching()
                 && !composing.get()
                 && !palette_open.get()
@@ -213,26 +269,44 @@ pub(crate) fn screen(
             move || {
                 let i18n = home.i18n;
                 text(move || {
-                    if home.selected_id.with(Option::is_some) {
+                    if palette_open.get() || home.search_mode.get() {
                         format!(
-                            "Enter {}   PgUp/PgDn {}   Esc {}",
-                            i18n.t(Key::Send),
-                            i18n.t(Key::NshHistory),
+                            "↑↓   Enter {}   Esc {}",
+                            i18n.t(Key::Open),
+                            i18n.t(Key::NshBack)
+                        )
+                    } else if chat_navigation.panel.get().is_some() {
+                        format!("Esc {}", i18n.t(Key::NshBack))
+                    } else if home.selected_id.with(Option::is_some) {
+                        format!(
+                            "F7/F8 {}   F9 {}   F1 {}   Esc {}",
+                            i18n.t(Key::Messages),
+                            i18n.t(Key::Reply),
+                            i18n.t(Key::NshChatInfo),
                             i18n.t(Key::NshBack)
                         )
                     } else {
+                        let category = match nav.category.get() {
+                            "contacts" => Key::ContactTitle,
+                            "groups" => Key::Groups,
+                            "bots" => Key::BotsTitle,
+                            "strangers" => Key::Strangers,
+                            _ => Key::NshAllChats,
+                        };
                         format!(
-                            "↑↓ {}   Enter {}   F10",
-                            i18n.t(Key::NshConversations),
-                            i18n.t(Key::Open)
+                            "↑↓ Enter  F2 {}  ^K {}  F3 {}{}  F4 {}  F10",
+                            i18n.t(Key::Search),
+                            i18n.t(Key::NshQuickSearch),
+                            i18n.t(Key::NshUnread),
+                            if unread.get() { " ✓" } else { "" },
+                            i18n.t(category)
                         )
                     }
                 })
                 .h(px(crate::terminal::ROW))
                 .line_height(px(crate::terminal::ROW))
-                .px(px(crate::terminal::COLUMN))
+                .px(px(2.0 * crate::terminal::COLUMN))
                 .number_of_lines(1)
-                .bg(ui::surface_list)
                 .text_color(ui::fg_secondary)
             },
         ))
@@ -424,6 +498,7 @@ impl Home {
                                 self.composing,
                                 selected,
                                 self.unread,
+                                self.search_mode,
                                 inset,
                             )
                         },
@@ -590,7 +665,10 @@ pub(crate) fn list_chrome(
             .right_0()
             .child(ui::edge_fade(true, ui::surface_list))
     };
-    chrome.child(header).child(notices)
+    chrome
+        .child(header)
+        .child(notices)
+        .children(crate::terminal::active().then(crate::terminal::spacer))
 }
 
 pub(crate) fn list_notice() -> View {
@@ -616,6 +694,9 @@ pub(crate) fn list_header(
         .pr_3()
         .py_2()
         .gap_2()
+        .style_when(crate::terminal::active, |s| {
+            s.px(px(2.0 * crate::terminal::COLUMN))
+        })
         .child(sidebar::trigger(nav))
         .child(search_field(query, composing, unread, search))
         .child(ui::glass_button(
@@ -649,7 +730,15 @@ fn search_field(
                     if unread.get() {
                         i18n.t(Key::SearchUnread).to_owned()
                     } else {
-                        format!("{} ({})", i18n.t(Key::Search), key_label("mod+k"))
+                        format!(
+                            "{} ({})",
+                            i18n.t(Key::Search),
+                            if crate::terminal::active() {
+                                "F2".into()
+                            } else {
+                                key_label("mod+k")
+                            }
+                        )
                     }
                 })
                 .label(move || i18n.t(Key::Search))

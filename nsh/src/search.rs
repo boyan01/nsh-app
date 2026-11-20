@@ -87,6 +87,7 @@ pub(crate) fn screen(
     composing: Signal<bool>,
     selected: Signal<Option<ConversationListData>>,
     unread: Signal<bool>,
+    search_mode: Signal<bool>,
     top_inset: impl Fn() -> Points + Copy + 'static,
 ) -> impl IntoElement {
     let nav = use_context::<Navigation>().expect("Home provides category navigation");
@@ -161,6 +162,53 @@ pub(crate) fn screen(
             }
         }
     };
+    let highlighted = state.highlighted;
+    if let Some(shortcuts) = use_context::<crate::terminal::Shortcuts>() {
+        effect(move || {
+            if !shortcuts.available.get()
+                || !search_mode.get()
+                || composing.get()
+                || profile.with(Option::is_some)
+                || state.loading.get()
+                || pending.get()
+            {
+                return;
+            }
+            let ids = state.rows.with(|rows| {
+                rows.iter()
+                    .enumerate()
+                    .filter(|(_, row)| !matches!(row, Row::Header(..)))
+                    .map(|(index, row)| (index, row.key()))
+                    .collect::<Vec<_>>()
+            });
+            if ids.is_empty() {
+                highlighted.set(None);
+                return;
+            }
+            let current = highlighted
+                .with(|key| ids.iter().position(|(_, id)| Some(id) == key.as_ref()))
+                .unwrap_or(0);
+            highlighted.set(Some(ids[current].1.clone()));
+            for (key, index) in [
+                ("up", current.saturating_sub(1)),
+                ("down", (current + 1).min(ids.len() - 1)),
+            ] {
+                let (index, id) = ids[index].clone();
+                on_key_with(key, crate::terminal::key_options(), move |_| {
+                    highlighted.set(Some(id.clone()));
+                    state
+                        .list
+                        .scroll_to_index(index as u32, percentage(0.5), Points::ZERO, false);
+                });
+            }
+            let at = ids[current].0;
+            on_key_with("enter", crate::terminal::key_options(), move |_| {
+                if let Some(row) = state.rows.with_untracked(|rows| rows.get(at).cloned()) {
+                    open(row);
+                }
+            });
+        });
+    }
     content(
         state,
         top_inset,

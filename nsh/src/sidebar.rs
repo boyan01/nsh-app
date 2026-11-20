@@ -16,6 +16,36 @@ mod preference;
 pub(crate) use circles::{Circles, add_to_circle_item, remove_from_circle_item};
 
 use crate::navigation::Navigation;
+use crate::terminal::{self, COLUMN, ROW};
+
+fn rail_width(nav: Navigation) -> Points {
+    if terminal::active() && !nav.drawer() {
+        px(18.0 * COLUMN)
+    } else {
+        nav.width()
+    }
+}
+
+fn rail_button(button: nsh_base::ButtonElement, reference: ElementRef) -> nsh_base::ButtonElement {
+    button.when(terminal::active(), |row| {
+        let focused = signal(false);
+        reference.on_focus_in(move || focused.set(true));
+        reference.on_focus_out(move || focused.set(false));
+        row.element_ref(&reference)
+            .child(
+                text(">")
+                    .w(px(COLUMN))
+                    .style_when(move || !focused.get(), |s| s.invisible()),
+            )
+            .w_full()
+            .min_h(px(ROW))
+            .px(px(COLUMN))
+            .py_0()
+            .gap(px(COLUMN))
+            .focus(|s| s.bg(ui::fg_primary).text_color(ui::surface_rail))
+            .selected_style(|s| s.bg(ui::accent).text_color(ui::fg_on_accent))
+    })
+}
 
 pub(crate) fn screen(
     account: Arc<AccountClient>,
@@ -60,7 +90,8 @@ pub(crate) fn trigger(nav: Navigation) -> impl IntoElement {
                 ui::round_button()
                     .on_press(move || nav.open_drawer())
                     .accessibility_label(move || Some(i18n.t(Key::NshOpenNavigation).into()))
-                    .child(ui::icon(ui::Icon::Menu)),
+                    .child(ui::icon(ui::Icon::Menu).when(terminal::active(), |s| s.hidden()))
+                    .child(when(terminal::active, || text("F6"))),
             )
         },
     )
@@ -76,11 +107,15 @@ pub(super) struct Labels {
 impl Labels {
     fn new(nav: Navigation) -> Self {
         let labels = Self {
-            visible: signal(!nav.compact()),
-            opacity: animated_value(if nav.compact() { 0.0 } else { 1.0 }),
+            visible: signal(terminal::active() || !nav.compact()),
+            opacity: animated_value(if !terminal::active() && nav.compact() {
+                0.0
+            } else {
+                1.0
+            }),
         };
         let generation = stored(0_u64);
-        let compact = computed(move || nav.compact());
+        let compact = computed(move || !terminal::active() && nav.compact());
         let layout = computed(move || (nav.drawer(), nav.forced_compact()));
         let previous_layout = stored(layout.get());
         effect(move || {
@@ -164,7 +199,7 @@ impl Rail {
             }
         });
         view()
-            .w(move || nav.width())
+            .w(move || rail_width(nav))
             .flex_shrink_0()
             .child(
                 self.content_with_feedback(feedback)
@@ -195,7 +230,13 @@ impl Rail {
         let nav = self.nav;
         let presence = crate::motion::Presence::panel(move || nav.drawer_open());
         when(
-            move || presence.mounted(),
+            move || {
+                if terminal::active() {
+                    nav.drawer_open()
+                } else {
+                    presence.mounted()
+                }
+            },
             move || {
                 ui::modal(move || nav.close_drawer())
                     .animation(nsh_core::ModalAnimation::None)
@@ -207,7 +248,11 @@ impl Rail {
                             .flex_1()
                             .flex_row()
                             .child(
-                                presence.backdrop(ui::scrim().on_press(move || nav.close_drawer())),
+                                presence.backdrop(
+                                    ui::scrim()
+                                        .on_press(move || nav.close_drawer())
+                                        .when(terminal::active(), |v| v.focusable(false)),
+                                ),
                             )
                             .child(presence.surface(self.content())),
                     )
@@ -221,12 +266,12 @@ impl Rail {
 
     pub(crate) fn content_with_feedback(self, feedback: impl IntoElement) -> View {
         let nav = self.nav;
-        view()
+        let content = view()
             .w(move || {
                 if nav.drawer() {
                     ui::navigation_width()
                 } else {
-                    nav.width()
+                    rail_width(nav)
                 }
             })
             .h_full()
@@ -236,9 +281,12 @@ impl Rail {
             .px_3()
             .pb_2()
             .gap_1()
-            .child(ui::title_bar())
+            .when(terminal::active(), |v| {
+                v.flex_1().px(px(COLUMN)).py(px(ROW)).gap_0()
+            })
+            .child(ui::title_bar().when(terminal::active(), |v| v.hidden()))
             .child(self.account_item())
-            .child(view().h_2())
+            .child(view().h_2().when(terminal::active(), |v| v.h(px(ROW))))
             .child(self.category(ui::Icon::Chat, Key::NshAllChats, "chats"))
             .child(ui::divider())
             .child(self.category(ui::Icon::Contacts, Key::ContactTitle, "contacts"))
@@ -252,13 +300,33 @@ impl Rail {
                     .into_element(),
                 None => view().flex_1().min_h_0().into_element(),
             })
+            .child(when(terminal::active, move || {
+                text(move || {
+                    if nav.drawer() {
+                        "↑↓  Enter  Esc"
+                    } else {
+                        "F6  ↑↓  Enter"
+                    }
+                })
+                .px(px(COLUMN))
+                .number_of_lines(1)
+                .text_color(ui::fg_secondary)
+            }))
             .child(self.collapse_item())
             .child(self.services.map(|services| {
                 view()
                     .child(services.preference.feedback())
                     .child(services.circles.feedback())
             }))
-            .child(feedback)
+            .child(feedback);
+        if terminal::active() {
+            // The PTY moves focus spatially, including into virtual circle rows.
+            view()
+                .h_full()
+                .child(content.basis(move || window().height - px(ROW)))
+        } else {
+            content
+        }
     }
 
     fn account_item(self) -> impl IntoElement {
@@ -269,42 +337,70 @@ impl Rail {
             labels,
             ..
         } = self;
+        let entry = element_ref();
+        if terminal::active() {
+            on_key("ctrl+b", move |_| {
+                if nav.drawer() {
+                    nav.open_drawer();
+                } else {
+                    entry.focus();
+                }
+            });
+            if nav.drawer_open() {
+                after_answer(move || entry.focus());
+            }
+        }
         // Inset so its avatar centers on the rows' icon column, also when collapsed.
         ui::card().child(
-            ui::card_row()
-                .min_h_11()
-                .px(ui::space_xs())
-                .py(ui::space_xs())
-                .selected(nav.settings)
-                .on_press(move || {
-                    batch(|| {
-                        nav.settings.set(true);
-                        nav.close_drawer();
-                    })
+            rail_button(
+                ui::card_row()
+                    .min_h_11()
+                    .px(ui::space_xs())
+                    .py(ui::space_xs()),
+                entry,
+            )
+            .selected(nav.settings)
+            .on_press(move || {
+                batch(|| {
+                    nav.settings.set(true);
+                    nav.close_drawer();
                 })
-                .accessibility_label(move || Some(i18n.t(Key::NshSettings).into()))
-                .child(ui::avatar_view(
-                    move || profile.with(|p| p.user_id.clone()),
-                    move || profile.with(|p| p.full_name.clone().into()),
-                    move || profile.with(|p| p.avatar_url.clone()),
-                    ui::AvatarSize::Compact,
-                ))
-                .child(
-                    labels
-                        .bind(view().flex_1().min_w_0())
-                        .child(
-                            text(move || profile.with(|p| p.full_name.clone()))
-                                .text_role(ui::TextRole::Body)
-                                .text_emphasis()
-                                .number_of_lines(1),
-                        )
-                        .child(
-                            text(move || profile.with(|p| p.identity_number.clone()))
-                                .text_role(ui::TextRole::Caption)
-                                .number_of_lines(1)
-                                .text_color(ui::fg_secondary),
-                        ),
-                ),
+            })
+            .accessibility_label(move || Some(i18n.t(Key::NshSettings).into()))
+            .child(when(
+                || !terminal::active(),
+                move || {
+                    ui::avatar_view(
+                        move || profile.with(|p| p.user_id.clone()),
+                        move || profile.with(|p| p.full_name.clone().into()),
+                        move || profile.with(|p| p.avatar_url.clone()),
+                        ui::AvatarSize::Compact,
+                    )
+                },
+            ))
+            .child(
+                labels
+                    .bind(view().flex_1().min_w_0())
+                    .child(
+                        text(move || {
+                            if terminal::active() {
+                                i18n.t(Key::NshSettings).into()
+                            } else {
+                                profile.with(|p| p.full_name.clone())
+                            }
+                        })
+                        .text_role(ui::TextRole::Body)
+                        .text_emphasis()
+                        .number_of_lines(1),
+                    )
+                    .child(
+                        text(move || profile.with(|p| p.identity_number.clone()))
+                            .when(terminal::active(), |s| s.hidden())
+                            .text_role(ui::TextRole::Caption)
+                            .number_of_lines(1)
+                            .text_color(ui::fg_secondary),
+                    ),
+            ),
         )
     }
 
@@ -326,14 +422,14 @@ impl Rail {
         });
         let count = move || unseen.get().0;
         let muted = move || unseen.get().1;
-        let item = ui::nav_row()
+        let item = rail_button(ui::nav_row(), element_ref())
             .accessibility_label(move || Some(i18n.t(label).into()))
             .selected(move || !nav.settings.get() && nav.category.get() == value)
             .on_press(move || nav.select(value, None))
             .child(navigation_icon(ui::icon(icon), nav, count, muted))
             .child(labels.bind_text(text(move || i18n.t(label))))
             .child(when(
-                move || count() > 0 && !nav.compact(),
+                move || count() > 0 && (terminal::active() || !nav.compact()),
                 move || ui::count_pill(move || count().to_string(), || false),
             ));
         view()
@@ -361,6 +457,7 @@ impl Rail {
         } = self;
         let preference = services.map(|services| services.preference);
         ui::nav_row()
+            .disabled(move || terminal::active() || preference.is_some_and(|p| p.disabled()))
             .accessibility_label(move || {
                 Some(
                     i18n.t(if nav.compact() {
@@ -371,7 +468,6 @@ impl Rail {
                     .into(),
                 )
             })
-            .disabled(move || preference.is_some_and(|preference| preference.disabled()))
             .style_when(move || nav.forced_compact(), |style| style.hidden())
             .on_press(move || {
                 if let Some(preference) = preference {
@@ -401,6 +497,7 @@ fn navigation_icon(
     view()
         .relative()
         .size_6()
+        .when(terminal::active(), |v| v.hidden())
         .flex_shrink_0()
         .items_center()
         .justify_center()

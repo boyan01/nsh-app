@@ -1,5 +1,6 @@
 //! Shared sender, delivery and surface presentation for timeline rows.
 use crate::i18n::Key;
+use crate::terminal;
 use mixin_desktop_api::MessageListView;
 use nsh_core::{
     element::{AdaptiveColor, ImageSrc},
@@ -192,6 +193,12 @@ impl Frame {
             .as_ref()
             .is_some_and(|id| !id.is_empty());
         Self {
+            // A terminal cannot reserve a fraction of a text line for an overlay.
+            stamp: if terminal::active() && frame.stamp == Stamp::Inline {
+                Stamp::Below
+            } else {
+                frame.stamp
+            },
             surface: frame.surface || quoted,
             own_bubble: frame.own_bubble && !quoted,
             ..frame
@@ -300,7 +307,9 @@ fn secret(row: &MessageListView) -> bool {
 /// message shows none, and follows status changes without rebuilding the row.
 pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_media: bool) -> View {
     let tone = move || {
-        if on_media {
+        if terminal::active() {
+            ui::fg_secondary()
+        } else if on_media {
             ui::media_overlay_foreground()
         } else {
             ui::message_status()
@@ -333,7 +342,17 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
         line = line.child(view().ml(ui::space_sm()).child(dynamic(move || {
             let status = status.get();
             untracked(|| {
-                if on_media {
+                if terminal::active() {
+                    let label = match status.as_str() {
+                        "READ" => Key::NshRead,
+                        "DELIVERED" => Key::NshDelivered,
+                        "SENT" => Key::NshSent,
+                        "FAILED" => Key::Failed,
+                        _ => Key::NshSending,
+                    };
+                    let i18n = crate::i18n::current();
+                    text(move || i18n.t(label)).text_color(tone).into_element()
+                } else if on_media {
                     appearance::delivery_icon_on_media(&status)
                 } else {
                     appearance::delivery_icon(&status)
@@ -405,6 +424,10 @@ pub(super) fn sender_label(
     text(name)
         .text_size(move || appearance.secondary_size())
         .text_color(move || ui::name_color(&id()))
+        .style_when(terminal::active, |s| {
+            s.font_weight(FontWeight::SEMIBOLD)
+                .text_color(ui::fg_primary)
+        })
         .number_of_lines(1)
 }
 

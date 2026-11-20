@@ -233,6 +233,9 @@ fn contact_list(
                         },
                         form.kind == Action::Group,
                     )
+                    .when(crate::terminal::active(), |row| {
+                        row.focus(|s| s.bg(ui::fg_primary).text_color(ui::surface_popover))
+                    })
                     .disabled(form.busy)
                     .on_press(move || {
                         let Some(user) = user() else {
@@ -377,6 +380,12 @@ fn content(
     let group = form.kind == Action::Group;
     let unavailable = move || form.busy.get() || form.composing.get();
     ui::picker::dialog()
+        .when(crate::terminal::active(), |v| {
+            v.basis(move || {
+                px((window().height.0 - 6.0 * crate::terminal::ROW)
+                    .clamp(crate::terminal::ROW, ui::picker_height().0))
+            })
+        })
         .h(move || {
             if form.naming.get() {
                 ui::picker_form_height()

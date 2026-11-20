@@ -1,5 +1,6 @@
 //! One timeline row: day and unread separators, then a notice or a bubble.
 use crate::i18n::Key;
+use crate::terminal;
 use mixin_desktop_api::{MessageListView, TranscriptSummaryItem};
 use nsh_core::{element::ImageSrc, prelude::*};
 
@@ -147,7 +148,18 @@ impl Rows {
         view()
             .element_ref(&row_ref)
             .rounded(ui::radius_md())
-            .style_when(move || !follows_sender(), |style| style.pt_2())
+            .style_when(
+                move || !follows_sender(),
+                |style| {
+                    if terminal::active() {
+                        // Terminal vertical padding starts at 24pt, rounded to a single row.
+                        style.pt(px(2.0 * terminal::ROW))
+                    } else {
+                        style.pt_2()
+                    }
+                },
+            )
+            .style_when(terminal::active, |s| s.px(px(3.0 * terminal::COLUMN)))
             .style_when(selected, |style| style.bg(ui::state_selected))
             .children(unread.map(|unread| unread.divider(i18n, id)))
             .child(when(
@@ -199,7 +211,8 @@ impl Rows {
         let avatar = move || others() && appearance.show_avatar();
         // Flutter leaves the nip to own bubbles where incoming ones have avatars.
         let nip = move || {
-            surface()
+            !terminal::active()
+                && surface()
                 && last_of_sender()
                 && (mine() || !(sender_names.get() && appearance.show_avatar()))
         };
@@ -652,6 +665,7 @@ fn day_separator(day: Memo<Option<String>>) -> impl IntoElement {
         .items_center()
         .pt(ui::space_lg())
         .pb(ui::chip_inset())
+        .style_when(terminal::active, |s| s.py_0())
         .child(
             view()
                 .px(ui::chip_inset())
@@ -660,10 +674,12 @@ fn day_separator(day: Memo<Option<String>>) -> impl IntoElement {
                 .items_center()
                 .rounded(ui::radius_chip())
                 .bg(ui::day_background)
+                .style_when(terminal::active, |s| s.bg(ui::surface_chat))
                 .child(
                     text(move || day.get().unwrap_or_default())
                         .text_size(move || appearance.secondary_size())
-                        .text_color(ui::day_foreground),
+                        .text_color(ui::day_foreground)
+                        .style_when(terminal::active, |s| s.text_color(ui::fg_secondary)),
                 ),
         )
 }

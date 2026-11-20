@@ -34,7 +34,11 @@ impl Voice {
                 .disabled(move || disabled.get() || self.busy.get() || self.open.get())
                 .accessibility_label(move || Some(i18n.t(Key::NshRecordAVoiceMessage).into()))
                 .rounded_full()
-                .child(ui::icon(ui::Icon::Microphone))
+                .child(if crate::terminal::active() {
+                    text("●").into_element()
+                } else {
+                    ui::icon(ui::Icon::Microphone).into_element()
+                })
                 .on_press(move || self.start()),
             move || i18n.t(Key::NshRecordVoiceMessage).to_owned(),
         )

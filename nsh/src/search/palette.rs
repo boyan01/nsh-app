@@ -29,7 +29,13 @@ pub(crate) fn surface(account: Arc<AccountClient>, open: Signal<bool>) -> impl I
     });
     let presence = crate::motion::Presence::modal(move || open.get());
     when(
-        move || presence.mounted(),
+        move || {
+            if crate::terminal::active() {
+                open.get()
+            } else {
+                presence.mounted()
+            }
+        },
         move || content(account.clone(), open, failed, presence),
     )
 }
@@ -75,6 +81,13 @@ fn content(
     palette.load();
     palette.bind_keys(control);
     let close = move || palette.close();
+    let terminal = crate::terminal::active();
+    let card = palette.card(control, true);
+    let card = if terminal {
+        card
+    } else {
+        presence.surface(card)
+    };
     ui::modal(close)
         .animation(nsh_core::ModalAnimation::None)
         .close_on_escape(false)
@@ -86,8 +99,8 @@ fn content(
                 .p_6()
                 .items_center()
                 .justify_center()
-                .child(presence.backdrop(ui::scrim().on_press(close)))
-                .child(presence.surface(palette.card(control, true))),
+                .children((!terminal).then(|| presence.backdrop(ui::scrim().on_press(close))))
+                .child(card),
         )
 }
 
@@ -264,14 +277,13 @@ impl Palette {
                     self.navigation.select(*row);
                 }
                 Some(Row::User(user)) => {
+                    let account = self
+                        .account
+                        .get()
+                        .expect("live quick search has an account");
                     self.close();
-                    self.navigation.open_user(
-                        self.account.with(|account| {
-                            account.clone().expect("live quick search has an account")
-                        }),
-                        user.user_id,
-                        self.open_failed,
-                    );
+                    self.navigation
+                        .open_user(account, user.user_id, self.open_failed);
                 }
                 _ => {}
             },

@@ -18,6 +18,7 @@ pub(super) fn list(
     open: impl Fn(Row) + Copy + 'static,
 ) -> nsh_core::element::VirtualList {
     let rows = state.rows;
+    let highlighted = state.highlighted;
     let account = use_context::<Stored<Option<Arc<AccountClient>>>>()
         .and_then(|account| account.with(|account| account.clone()));
     let account_id = stored(
@@ -85,10 +86,12 @@ pub(super) fn list(
                             Some(Row::Conversation(value)) => Some(*value),
                             _ => None,
                         },
-                        item(row, pending, open, account_id, previews),
+                        item(row, highlighted, pending, open, account_id, previews),
                     )
                     .into_element(),
-                    Shape::Item => item(row, pending, open, account_id, previews).into_element(),
+                    Shape::Item => {
+                        item(row, highlighted, pending, open, account_id, previews).into_element()
+                    }
                     Shape::Missing => view().hidden().into_element(),
                 })
             })
@@ -127,6 +130,7 @@ fn header(
 
 fn item(
     row: impl Fn() -> Option<Row> + Copy + 'static,
+    highlighted: Signal<Option<String>>,
     pending: Signal<bool>,
     open: impl Fn(Row) + Copy + 'static,
     account_id: Stored<String>,
@@ -149,6 +153,7 @@ fn item(
             .unwrap_or_default()
     });
     ui::list_row()
+        .selected(move || highlighted.with(|id| id.is_some() && row().map(|row| row.key()) == *id))
         .disabled(pending)
         .on_press(move || {
             if let Some(value) = row() {

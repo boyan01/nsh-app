@@ -29,7 +29,7 @@ struct Cells {
     navigation: ChatNavigation,
     /// Row menus; a detached preview has no account to run them.
     commands: Option<Commands>,
-    terminal_focus: Option<Signal<Option<String>>>,
+    terminal_focus: Option<Window>,
 }
 
 pub(crate) fn screen(
@@ -50,7 +50,7 @@ pub(crate) fn screen(
         previews: signal(HashMap::new()),
         navigation: use_context().expect("Home provides chat navigation"),
         commands: Some(use_context().expect("Home provides conversation commands")),
-        terminal_focus: crate::terminal::active().then_some(window.terminal_focus),
+        terminal_focus: crate::terminal::active().then_some(window),
     };
     resolve_mentions(account, rows, cells);
     view().flex_1().min_h_0().child(
@@ -160,7 +160,7 @@ impl Cells {
         })
         .element_ref(&list)
         .estimated_item_size(if crate::terminal::active() {
-            px(2.0 * crate::terminal::ROW)
+            px(3.0 * crate::terminal::ROW)
         } else {
             ui::list_row_height()
         })
@@ -181,16 +181,21 @@ impl Cells {
         let terminal = crate::terminal::active();
         let frame = if terminal {
             ui::list_row()
-                .h(px(2.0 * crate::terminal::ROW))
-                .min_h(px(2.0 * crate::terminal::ROW))
+                .h(px(3.0 * crate::terminal::ROW))
+                .min_h(px(3.0 * crate::terminal::ROW))
                 .my(Points::ZERO)
-                .mx(Points::ZERO)
-                .px(px(crate::terminal::COLUMN))
+                .mx(px(crate::terminal::COLUMN))
+                .items_start()
+                .relative()
+                .pl(px(3.0 * crate::terminal::COLUMN))
+                .pr(px(crate::terminal::COLUMN))
                 .gap(px(crate::terminal::COLUMN))
         } else {
             ui::list_row()
         };
-        let frame = if let Some(focus) = self.terminal_focus {
+        let focused = signal(false);
+        let frame = if let Some(window) = self.terminal_focus {
+            let focus = window.terminal_focus;
             let reference = element_ref();
             let wanted = move || {
                 row.with(|row| {
@@ -211,6 +216,15 @@ impl Cells {
                     });
                 }
             });
+            reference.on_focus_out(move || focused.set(false));
+            reference.on_focus_in(move || {
+                focused.set(true);
+                if let Some(id) =
+                    row.with_untracked(|row| row.as_ref().map(|row| row.conversation_id.clone()))
+                {
+                    window.last_focused.replace(Some(id));
+                }
+            });
             frame.element_ref(&reference)
         } else {
             frame
@@ -225,6 +239,22 @@ impl Cells {
                     self.navigation.select(row);
                 }
             })
+            .children(terminal.then(|| {
+                text(move || {
+                    if focused.get() {
+                        "›"
+                    } else if selected.get() {
+                        "│"
+                    } else {
+                        " "
+                    }
+                })
+                .absolute()
+                .left_0()
+                .top_0()
+                .w(px(crate::terminal::COLUMN))
+                .text_color(ui::fg_primary)
+            }))
             .child(ui::conversation_avatar(
                 move || row.get(),
                 if terminal {
@@ -240,7 +270,8 @@ impl Cells {
                     .gap_1()
                     .style_when(move || terminal, |s| s.gap_0())
                     .child(self.title_line(row))
-                    .child(self.preview_line(row)),
+                    .child(self.preview_line(row))
+                    .children(terminal.then(crate::terminal::spacer)),
             );
         match self.commands {
             Some(commands) => {

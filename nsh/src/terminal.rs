@@ -11,9 +11,27 @@ pub(crate) fn active() -> bool {
     idiom() == Idiom::Terminal
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct Shortcuts {
+    pub available: Memo<bool>,
+    pub palette_open: Signal<bool>,
+}
+
+pub(crate) fn key_options() -> KeyOptions {
+    KeyOptions {
+        when: nsh_core::keymap::When::Always,
+        for_focus: true,
+        ..Default::default()
+    }
+}
+
 // The NSH development host uses the same default cell dimensions.
 pub(crate) const COLUMN: f32 = 8.0;
 pub(crate) const ROW: f32 = 16.0;
+
+pub(crate) fn spacer() -> View {
+    view().h(px(ROW)).flex_shrink_0()
+}
 
 pub(crate) fn columns() -> f32 {
     window().width.0 / COLUMN

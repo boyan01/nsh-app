@@ -218,7 +218,7 @@ fn detail(
     account: Arc<AccountClient>,
     id: String,
     name: String,
-    on_back: impl Fn() + 'static,
+    on_back: impl Fn() + Copy + 'static,
 ) -> impl IntoElement {
     let i18n = i18n::current();
     let rows = signal_with(Vec::<StorageCategoryUsage>::new(), SignalEquals::Never);
@@ -227,6 +227,13 @@ fn detail(
     let loading = signal(true);
     let load_failed = signal(false);
     let feedback = Feedback::new();
+    if crate::terminal::active() {
+        on_key("escape", move |_| {
+            if !feedback.busy.get_untracked() {
+                on_back();
+            }
+        });
+    }
     let confirming = signal(false);
     let presence = crate::motion::Presence::modal(move || confirming.get());
     let clear_disabled = move || {

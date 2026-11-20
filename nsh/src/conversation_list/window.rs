@@ -54,6 +54,7 @@ pub(crate) struct Window {
     pub failed: Signal<bool>,
     pub list: ElementRef,
     pub terminal_focus: Signal<Option<String>>,
+    pub last_focused: Stored<Option<String>>,
     offset: Signal<i64>,
     count: Signal<i64>,
     more: Signal<bool>,
@@ -86,6 +87,7 @@ impl Window {
             failed: signal(false),
             list: element_ref(),
             terminal_focus: signal(None),
+            last_focused: stored(None),
             offset: signal(0),
             count: signal(PAGE_SIZE),
             more: signal(false),
@@ -150,7 +152,8 @@ impl Window {
     }
 
     pub(crate) fn follow_terminal_focus(self, available: impl Fn() -> bool + 'static) {
-        let restore = stored(None::<String>);
+        let restore = self.last_focused;
+        let scope = stored(None);
         let pending = stored(true);
         effect(move || {
             if let Some(selected) = self.navigation.selected_id.get() {
@@ -160,10 +163,18 @@ impl Window {
                 return;
             }
             if !available() {
+                pending.replace(true);
                 self.terminal_focus.set(None);
                 return;
             }
-            if !pending.get() || self.loading.get() {
+            if self.loading.get() {
+                return;
+            }
+            let current = self.scope.get();
+            if scope.replace(current.clone()) != current {
+                pending.replace(true);
+            }
+            if !pending.get() {
                 return;
             }
 

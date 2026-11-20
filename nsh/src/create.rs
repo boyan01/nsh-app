@@ -48,6 +48,15 @@ fn panel() -> View {
 fn modal(close: impl Fn() + 'static, card: View) -> nsh_core::element::Modal {
     let presence =
         use_context::<crate::motion::Presence>().expect("Creation surface provides motion");
+    let card = card.when(crate::terminal::active(), |v| {
+        v.px(px(crate::terminal::COLUMN))
+            .py(px(crate::terminal::ROW))
+            .child(
+                text(move || format!("Tab   Shift+Tab   Esc {}", t(Key::Close)))
+                    .number_of_lines(1)
+                    .text_color(ui::fg_secondary),
+            )
+    });
     ui::held_dialog(presence, close, card)
 }
 

@@ -1,6 +1,7 @@
 //! The chat's title bar: glass capsules for identity, the latest pin when the
 //! chat is wide enough, the app entry and the panel toggles, floating over the
 //! timeline.
+use crate::terminal;
 use mixin_desktop_api::ConversationListData;
 use nsh_core::prelude::*;
 
@@ -41,10 +42,15 @@ pub(super) fn bar(
     let rail = use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
     let return_width = move || px((width.get() * 0.45).min(ui::card_width().0));
     let layout = computed(move || {
-        let leading = if narrow() {
-            ui::title_bar_leading(rail.width()).0
+        let horizontal_insets = if terminal::active() {
+            6.0 * terminal::COLUMN
         } else {
-            ui::space_lg().0
+            let leading = if narrow() {
+                ui::title_bar_leading(rail.width())
+            } else {
+                ui::space_lg()
+            };
+            leading.0 + ui::space_md().0
         };
         let bot = row.with(|row| !group && row.is_bot && !row.owner_id.is_empty());
         // Reserve fixed controls and their gaps before sharing the remaining
@@ -53,15 +59,16 @@ pub(super) fn bar(
         let controls = if returning { 0.0 } else { 2.0 + f32::from(bot) } + f32::from(narrow());
         let gaps = 3.0 + f32::from(!returning && bot) + f32::from(narrow());
         let available = (width.get()
-            - leading
-            - ui::space_md().0
+            - horizontal_insets
             - if returning { return_width().0 } else { 0.0 }
             - controls * ui::glass_bar_height().0
             - gaps * ui::space_sm().0)
             .max(0.0);
         let identity = (available * 0.36).min(ui::card_width().0);
         let inline = available - identity >= ui::glass_inline_pin_width().0;
-        let identity = if inline {
+        let identity = if terminal::active() && !pinned.visible() {
+            available.min(ui::card_width().0)
+        } else if inline {
             identity
         } else if returning {
             available.min(ui::card_width().0)
@@ -88,6 +95,13 @@ pub(super) fn bar(
         })
         .pr_3()
         .py_2()
+        .style_when(terminal::active, |s| {
+            s.px(px(3.0 * terminal::COLUMN))
+                .py_0()
+                .border_b(px(terminal::ROW))
+                .border_color(ui::hairline)
+                .bg(ui::surface_chat)
+        })
         .child(
             ui::glass_button(
                 ui::round_button()

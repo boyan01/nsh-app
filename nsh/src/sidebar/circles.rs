@@ -9,7 +9,11 @@ use crate::{i18n::t, runtime};
 
 /// A rail row and the rail's row gap, so circles keep the category rhythm.
 fn circle_row_height() -> Points {
-    ui::nav_row_height() + ui::space_xs()
+    if terminal::active() {
+        px(ROW)
+    } else {
+        ui::nav_row_height() + ui::space_xs()
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -161,6 +165,14 @@ impl Circles {
             .flex_1()
             .min_h_0()
             .child(when(move || !self.rows.with(Vec::is_empty), ui::divider))
+            .child(when(
+                move || terminal::active() && !self.rows.with(Vec::is_empty),
+                || {
+                    text(move || t(Key::Circles))
+                        .text_color(ui::fg_secondary)
+                        .px(px(COLUMN))
+                },
+            ))
             .child(
                 view()
                     .flex_1()
@@ -480,7 +492,7 @@ impl Reorder {
         let count = move || unseen.get().0;
         let muted = move || unseen.get().1;
         let color = move || ui::circle_color(&id().unwrap_or_default());
-        let item = ui::nav_row()
+        let item = super::rail_button(ui::nav_row(), element_ref())
             .accessibility_label(move || Some(name().into()))
             .selected(move || {
                 !nav.settings.get() && nav.category.get() == "circle" && nav.circle.get() == id()
@@ -498,7 +510,7 @@ impl Reorder {
             ))
             .child(labels.bind_text(text(name)))
             .child(when(
-                move || !nav.compact() && count() > 0,
+                move || (terminal::active() || !nav.compact()) && count() > 0,
                 move || ui::count_pill(move || count().to_string(), || false),
             ));
         let dragged = move || {

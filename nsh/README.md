@@ -74,13 +74,27 @@ account to keep an existing desktop link active. To reopen the existing
 desktop profile, launch `mixin --tui` without the override after granting
 access. Keep the existing profile in its original location.
 
-The terminal uses the same conversation list, message history, and editor as
-the desktop. Use Up and Down to move between conversation rows and Enter to
-open the focused conversation. The editor accepts typing and paste. Enter
-queues a message and Shift+Enter inserts a line break. Page Up and Page Down
-page through history, Ctrl+End returns to the latest messages, and Escape
-returns to the conversation row after closing any open overlay. F10 opens the
-application menu and Ctrl+C exits. At 100 columns or more both panes are visible.
+The terminal uses the desktop conversation list, message history and editor.
+Below 100 columns it shows one pane at a time. Wider terminals keep the list
+beside the open chat. In the list, `›` marks keyboard focus and `│` marks the
+open conversation when focus is elsewhere.
+
+| Where | Keys | Action |
+| --- | --- | --- |
+| Conversation list | ↑ / ↓, Enter | Focus a row and open it. |
+| Conversation list | F2 | Focus list search. Type a query, use ↑ / ↓ to select a result and Enter to open it. Esc clears the search and returns to the list. |
+| Conversation list | F3, F4 | Toggle unread only, or cycle through All chats, Contacts, Groups, Bots and Strangers. The bottom line shows the current filters. |
+| List or chat | Ctrl+K | Open Quick search. Type to find a conversation or contact, use ↑ / ↓ and Enter to open it. Esc clears the query, then closes the palette. |
+| List or chat | Ctrl+B | Open the navigation drawer (narrow) or focus the sidebar (wide) for categories, circles and Settings. Esc closes the drawer or leaves Settings. |
+| Application | Ctrl+N | Open the New conversation dialog (Tab / Shift+Tab to move focus, Esc to close). |
+| Chat | F5 / F6 | Open the previous / next conversation in the current list. |
+| Chat | Page Up / Page Down, Ctrl+End | Page through history or return to the latest messages while editing. |
+| Chat | F7 / F8, F9 | Select a visible message, move toward older / newer messages, then quote the selected message if replies are available. |
+| Selected messages | Alt+C, Alt+D | Copy to the terminal session clipboard, or open the existing delete-for-me confirmation. Esc cancels the confirmation. |
+| Chat | F1, Esc | Open chat info. Esc closes the panel, cancels a selection or reply, then returns to the conversation row. |
+| Editor | Enter, Shift+Enter | Queue the message or insert a line break when the terminal sends a distinct Shift+Enter. Typing and bracketed paste also work. |
+| Application | F10, Ctrl+C | Open the application menu or exit the terminal. |
+
 Images use half-blocks in 256-color and true-color terminals. Lower color
 depths show avatar initials and a text label for image messages.
 For first-time sign-in, use a 256-color terminal and enlarge it to the size

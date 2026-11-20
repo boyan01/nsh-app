@@ -6,7 +6,7 @@ use crate::{
     ui::{self, Typography},
 };
 use mixin_desktop_api::MessageListView;
-use nsh_core::prelude::*;
+use nsh_core::{element::AdaptiveColor, prelude::*};
 
 pub(super) fn centered(category: &str) -> bool {
     matches!(
@@ -95,6 +95,14 @@ fn help(actions: Actions, encryption: bool) {
     });
 }
 
+fn notice_foreground() -> AdaptiveColor {
+    if crate::terminal::active() {
+        ui::fg_secondary()
+    } else {
+        ui::notice_foreground()
+    }
+}
+
 pub(super) fn notice(
     row: &MessageListView,
     actions: Actions,
@@ -109,7 +117,8 @@ pub(super) fn notice(
         .py(ui::notice_inset_y())
         .rounded(ui::radius_chip())
         .bg(ui::notice_background)
-        .text_color(ui::notice_foreground)
+        .style_when(crate::terminal::active, |s| s.bg(ui::surface_chat))
+        .text_color(notice_foreground)
         .text_size(move || appearance.secondary_size());
     match row.category.as_str() {
         "SYSTEM_CONVERSATION" => {
@@ -152,7 +161,7 @@ pub(super) fn notice(
                 .min_w_0()
                 .max_w(relative(1.0))
                 .number_of_lines(1)
-                .text_color(ui::notice_foreground);
+                .text_color(notice_foreground);
             if let Some((target, id)) = target.zip(id).filter(|(_, id)| !id.is_empty()) {
                 content = content.child(
                     ui::command()
@@ -162,7 +171,7 @@ pub(super) fn notice(
                         .min_w_0()
                         .max_w(relative(1.0))
                         .text_size(move || appearance.secondary_size())
-                        .text_color(ui::notice_foreground)
+                        .text_color(notice_foreground)
                         .on_press(move || target.set(Some(id.clone())))
                         .child(line.flex_1()),
                 );
@@ -192,6 +201,7 @@ pub(super) fn encryption_notice(actions: Actions) -> impl IntoElement {
             .min_w_0()
             .rounded(ui::radius_chip())
             .bg(ui::encrypt_background)
+            .style_when(crate::terminal::active, |s| s.bg(ui::surface_chat))
             .child(
                 ui::command()
                     .min_h_0()
@@ -203,7 +213,7 @@ pub(super) fn encryption_notice(actions: Actions) -> impl IntoElement {
                         text(move || i18n.t(Key::MessageE2ee))
                             .text_center()
                             .text_size(move || appearance.secondary_size())
-                            .text_color(ui::notice_foreground),
+                            .text_color(notice_foreground),
                     ),
             ),
     )

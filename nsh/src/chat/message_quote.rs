@@ -1,4 +1,5 @@
 //! Shared presentation for persisted reply quotations and the pending reply bar.
+use crate::terminal;
 use mixin_desktop_api::MessageListView;
 use nsh_base::text_view::Parser;
 use nsh_core::{LineHeight, element::ImageSrc, prelude::*};
@@ -356,7 +357,11 @@ fn card(quote: Quote, actions: Actions) -> View {
     let names = use_context::<MentionNames>();
     let quote = stored(quote);
     let color = move || quote.with(|quote| ui::name_color(&quote.author_id));
-    let inset = ui::quote_bar_width();
+    let inset = if terminal::active() {
+        px(terminal::COLUMN)
+    } else {
+        ui::quote_bar_width()
+    };
     view()
         .min_h(ui::quote_min_height())
         .min_w_0()
@@ -366,7 +371,17 @@ fn card(quote: Quote, actions: Actions) -> View {
         .rounded(ui::radius_md())
         .bg(ui::quote_background)
         .overflow_hidden()
-        .child(view().w(ui::quote_bar_width()).flex_shrink_0().bg(color))
+        .style_when(terminal::active, |s| {
+            s.border_l(px(terminal::COLUMN))
+                .border_color(ui::fg_secondary)
+        })
+        .child(
+            view()
+                .w(inset)
+                .flex_shrink_0()
+                .bg(color)
+                .style_when(terminal::active, |s| s.hidden()),
+        )
         .child(
             view()
                 .flex_1()

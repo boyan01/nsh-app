@@ -106,10 +106,18 @@ async fn authorize(
 fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
     let i18n = i18n::current();
     let terminal = crate::terminal::active();
+    let status = move || {
+        view()
+            .gap_3()
+            .when(!terminal, |v| v.size_40())
+            .when(terminal, |v| v.w_full().gap(px(crate::terminal::ROW)))
+            .items_center()
+            .justify_center()
+    };
     view()
         .flex_1()
         .bg(ui::surface_landing)
-        .child(ui::title_bar())
+        .child(ui::title_bar().when(terminal, |v| v.hidden()))
         .child(
             view().flex_1().items_center().justify_center().p_4()
                 .style_when(move || terminal, |s| s.p_0())
@@ -125,7 +133,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                     .justify_center()
                     .gap_4()
                     .p_8()
-                    .style_when(move || terminal, |s| s.w_full().h_full().p_1().gap_0())
+                    .style_when(move || terminal, |s| s.w_full().h_full().px(px(crate::terminal::COLUMN)).py_0().gap(px(crate::terminal::ROW)))
                     .child(
                         view()
                             .style_when(move || !terminal, |s| s.size_40())
@@ -135,11 +143,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                             .justify_center()
                             .style_when(move || terminal, |s| s.w_full())
                             .child(dynamic(move || match state.get() {
-                                LoginPhase::Creating => view()
-                                    .size_40()
-                                    .gap_3()
-                                    .items_center()
-                                    .justify_center()
+                                LoginPhase::Creating => status()
                                     .child(ui::busy_indicator(
                                         || true,
                                         move || i18n.t(Key::NshPreparingYourCode).into(),
@@ -160,7 +164,8 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                         text("Use a 256-color terminal to scan the code, or sign in from the desktop app.")
                                             .text_center().into_element()
                                     } else if rows < required_rows as f32 || crate::terminal::columns() < required_columns as f32 {
-                                        text(format!("Enlarge to {required_columns} columns × {required_rows} rows to scan the code."))
+                                        // The terminal menu bar occupies one row outside the NSH window.
+                                        text(format!("Enlarge to {required_columns} columns × {} rows to scan the code.", required_rows + 1))
                                             .text_center().into_element()
                                     } else {
                                         image(source).size(px(width)).flex_shrink_0()
@@ -177,11 +182,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                         );
                                     })
                                     .into_element(),
-                                LoginPhase::Failed => view()
-                                    .size_40()
-                                    .gap_3()
-                                    .items_center()
-                                    .justify_center()
+                                LoginPhase::Failed => status()
                                     .child(
                                         ui::error_text(move || {
                                             i18n.t(Key::NshCouldnTCreateASignInCode)
@@ -227,6 +228,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                 .items_center()
                 .px_4()
                 .py_3()
+                .when(terminal, |v| v.px(px(crate::terminal::COLUMN)).py_0())
                 .child(i18n.picker())
                 .child(
                     text(env!("CARGO_PKG_VERSION"))

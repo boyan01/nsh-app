@@ -92,7 +92,7 @@ pub(crate) fn overlay(
             move || {
                 destination.get().is_some()
                     || navigation.inspector_return().is_some()
-                    || progress.get() > 0.0
+                    || (!crate::terminal::active() && progress.get() > 0.0)
             },
             move || {
                 let panel = element_ref();
@@ -121,6 +121,7 @@ pub(crate) fn overlay(
                     .label("Chat panel")
                     .on_press(|| {})
                     .w(ui::sidebar_width)
+                    .style_when(crate::terminal::active, |s| s.w_full().bg(ui::surface_list))
                     .max_w(relative(1.0))
                     .flex_1()
                     .min_h_0()
@@ -132,7 +133,10 @@ pub(crate) fn overlay(
                     // Visibility keeps the list's measured layout while excluding every
                     // descendant from native keyboard focus after the exit finishes.
                     .style_when(
-                        move || destination.get().is_none() && progress.get() == 0.0,
+                        move || {
+                            destination.get().is_none()
+                                && (crate::terminal::active() || progress.get() == 0.0)
+                        },
                         |style| style.invisible(),
                     )
                     .accessibility_elements_hidden(move || destination.get().is_none())

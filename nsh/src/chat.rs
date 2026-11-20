@@ -187,6 +187,86 @@ pub(crate) fn screen(
         }
         std::rc::Rc::new(navigate) as composer::NavigateHistory
     });
+    let shortcuts = use_context::<crate::terminal::Shortcuts>();
+    if let Some(shortcuts) = shortcuts {
+        let copy =
+            use_context::<message_selection::CopyFallback>().expect("message copy is mounted");
+        effect(move || {
+            if !shortcuts.available.get()
+                || !unobstructed.get()
+                || side.get().is_some()
+                || pane.is_some_and(|pane| !pane.0.get())
+                || !chat_navigation
+                    .selected_id
+                    .with(|id| id.as_ref() == Some(&detail_id.get()))
+                || actions.busy.get()
+            {
+                return;
+            }
+            on_key("f1", move |_| {
+                chat_navigation.toggle_panel(crate::navigation::Panel::Info)
+            });
+            for (key, older) in [("f7", true), ("f8", false)] {
+                on_key(key, move |_| {
+                    messages.with_untracked(|rows| {
+                        if rows.is_empty() {
+                            return;
+                        }
+                        let selected = actions.selected.with_untracked(|ids| {
+                            ids.first()
+                                .and_then(|id| rows.iter().position(|row| &row.message_id == id))
+                        });
+                        let index = match selected {
+                            Some(at) if older => at.saturating_add(1),
+                            Some(at) => at.saturating_sub(1),
+                            None => viewable.get_untracked().map_or(0, |(first, _)| first),
+                        }
+                        .min(rows.len() - 1);
+                        actions.selected.set(vec![rows[index].message_id.clone()]);
+                        history.scroll_to_index(index as u32, percentage(0.5), Points::ZERO, false);
+                        if older && index + 1 == rows.len() {
+                            timeline.older();
+                        }
+                        if !older && index == 0 {
+                            timeline.newer();
+                        }
+                    });
+                });
+            }
+            if actions.selected.with(Vec::is_empty) {
+                return;
+            }
+            let copy = copy.clone();
+            on_key_with("alt+c", crate::terminal::key_options(), move |_| (copy.0)());
+            on_key_with("alt+d", crate::terminal::key_options(), move |_| {
+                message_actions::remove(
+                    actions,
+                    detail_id.get(),
+                    actions.selected.get_untracked(),
+                    false,
+                );
+            });
+            on_key("f9", move |_| {
+                let ids = actions.selected.get_untracked();
+                let [id] = ids.as_slice() else {
+                    return;
+                };
+                if actions.can_send.get_untracked()
+                    && actions
+                        .policies
+                        .with_untracked(|p| p.get(id).is_some_and(|p| p.can_reply))
+                    && let Some(row) = messages.with_untracked(|rows| {
+                        rows.iter().find(|row| &row.message_id == id).cloned()
+                    })
+                {
+                    batch(|| {
+                        actions.selected.set(Vec::new());
+                        actions.quote.set(Some(row));
+                    });
+                }
+            });
+        });
+    }
     let loading = timeline.loading;
     let failed = timeline.failed;
     // Once: the pane holding the previous chat gives way to this one.
@@ -230,6 +310,10 @@ pub(crate) fn screen(
             {
                 return;
             }
+            if terminal && side.get_untracked().is_some() {
+                chat_navigation.back_panel();
+                return;
+            }
             // A reply is the nearest layer: Escape cancels it first. The
             // composer's own binding does the same while the input has focus.
             if !navigation.settings.get_untracked() && actions.quote.with_untracked(Option::is_some)
@@ -254,7 +338,15 @@ pub(crate) fn screen(
             }
         },
     );
-    let focus_layout = computed(move || (narrow(), covered.get(), side.get().is_none()));
+    let focus_layout = computed(move || {
+        (
+            narrow(),
+            covered.get()
+                || shortcuts
+                    .is_some_and(|s| !s.available.get() || pane.is_some_and(|pane| !pane.0.get())),
+            side.get().is_none(),
+        )
+    });
     let dragging = signal(false);
     let incoming_files = signal(Vec::<composer::AttachmentSource>::new());
     let no_rows = move || !loading.get() && !failed.get() && messages.with(Vec::is_empty);
@@ -293,6 +385,7 @@ pub(crate) fn screen(
                 .min_w_0()
                 .min_h_0()
                 .relative()
+                .style_when(move || terminal && side.get().is_some(), |s| s.invisible())
                 .overflow_hidden()
                 // Match Flutter BoxFit.cover within the chat bounds.
                 .child(
@@ -403,6 +496,13 @@ pub(crate) fn screen(
                                 timeline.reveal.measure_bottom(value);
                             }
                         })
+                        .style_when(
+                            move || terminal,
+                            |s| {
+                                s.px(px(crate::terminal::COLUMN))
+                                    .pb(px(crate::terminal::ROW))
+                            },
+                        )
                         .child(ui::edge_fade(false, ui::surface_chat))
                         .child(compose::bar(compose::Props {
                             account: account.clone(),
@@ -419,7 +519,8 @@ pub(crate) fn screen(
                             session_owner,
                             incoming_files,
                             focus_layout,
-                        })),
+                        }))
+                        .children(terminal.then(crate::terminal::spacer)),
                 )
                 .child(chrome(
                     chrome_height,

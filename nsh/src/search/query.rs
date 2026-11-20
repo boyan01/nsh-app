@@ -18,6 +18,7 @@ pub(super) struct State {
     pub(super) failed: Signal<bool>,
     pub(super) revision: Signal<u64>,
     pub(super) list: ElementRef,
+    pub(super) highlighted: Signal<Option<String>>,
 }
 
 impl State {
@@ -125,6 +126,7 @@ pub(super) fn new(
         failed: signal(false),
         revision: signal(0_u64),
         list: element_ref(),
+        highlighted: signal(None),
     };
     effect(move || {
         let _query = query.get();
@@ -267,5 +269,6 @@ pub(super) fn detached(
         failed,
         revision: signal(0),
         list: element_ref(),
+        highlighted: signal(None),
     }
 }

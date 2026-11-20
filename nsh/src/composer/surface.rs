@@ -1,4 +1,5 @@
 //! Presentation shared by the live composer and account-free previews.
+use crate::terminal;
 use crate::ui;
 use nsh_base::ButtonElement;
 use nsh_core::prelude::*;
@@ -8,6 +9,12 @@ pub(crate) fn frame() -> View {
         .rounded(ui::radius_composer())
         .border_1()
         .border_color(ui::input_border)
+        .style_when(terminal::active, |s| {
+            s.border(px(0.0))
+                .border_t(px(terminal::ROW))
+                .rounded(px(0.0))
+                .bg(ui::surface_chat)
+        })
 }
 
 pub(crate) fn editor(
@@ -24,6 +31,9 @@ pub(crate) fn editor(
             .items_end()
             .p_2()
             .gap_2()
+            .style_when(terminal::active, |s| {
+                s.items_center().px(px(3.0 * terminal::COLUMN)).py_0()
+            })
             .child(tools)
             // Tools disappear for file captions. Align their text with the
             // attachment strip's 12pt inset instead of the toolbar's 8pt inset.

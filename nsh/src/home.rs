@@ -631,14 +631,35 @@ pub(crate) fn health_banner(health: Signal<String>) -> impl IntoElement {
     when(
         move || health.get() != "ready",
         move || {
-            list_notice().child(
-                ui::error_text(move || match health.get().as_str() {
-                    "time_inaccurate" => i18n.t(Key::NshCheckYourSystemClockAndTryAgain),
-                    "update_required" => i18n.t(Key::NshUpdateMixinMessengerToContinue),
-                    _ => i18n.t(Key::NshTheAccountIsTemporarilyUnavailable),
-                })
-                .text_role(ui::TextRole::Caption),
-            )
+            list_notice()
+                .gap_2()
+                .flex_row()
+                .items_center()
+                .child(
+                    ui::error_text(move || match health.get().as_str() {
+                        "time_inaccurate" => i18n.t(Key::NshCheckYourSystemClockAndTryAgain),
+                        "update_required" => i18n.t(Key::NshUpdateMixinMessengerToContinue),
+                        _ => i18n.t(Key::NshTheAccountIsTemporarilyUnavailable),
+                    })
+                    .text_role(ui::TextRole::Caption)
+                    .flex_1(),
+                )
+                .child(when(
+                    move || health.get() == "update_required",
+                    move || {
+                        ui::button(ui::ButtonTone::Ghost, ui::ButtonSize::Small)
+                            .on_press(|| {
+                                spawn(async {
+                                    if !open_url("https://mixin.one/messenger").await {
+                                        log::warn!("Could not open the download page");
+                                    }
+                                });
+                            })
+                            .child(
+                                text(move || i18n.t(Key::Upgrade)).text_role(ui::TextRole::Caption),
+                            )
+                    },
+                ))
         },
     )
 }

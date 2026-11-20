@@ -65,6 +65,7 @@ impl AccountRuntime {
         let identity_number = self.account().identity_number;
         let mut events = messages
             .into_iter()
+            .filter(|message| !self.silent_messages.take(&message.message_id))
             .filter_map(|message| {
                 model::NotificationEvent::from_message(message, &self.account_id, &identity_number)
             })

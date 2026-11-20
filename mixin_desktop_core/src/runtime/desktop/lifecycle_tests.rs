@@ -217,6 +217,7 @@ impl Fixture {
             conversation_changes: changes,
             shutdown: receiver,
             notification_changes: watch::channel(0).0,
+            silent_messages: Default::default(),
             blaze,
             device_transfer: transfer,
             screen_lock: tokio::sync::OnceCell::new(),

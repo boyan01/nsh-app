@@ -56,6 +56,7 @@ pub struct ServiceDecryptMessage {
     pending_message_statuses: PendingMessageStatusStore,
     conversation_changes: Option<ConversationChangeNotifier>,
     notification_changes: Option<watch::Sender<u64>>,
+    silent_messages: Option<super::silent::SilentMessages>,
     device_transfer_controls: Option<broadcast::Sender<DeviceTransferControlEvent>>,
     attachment_transfer_requests: Option<mpsc::UnboundedSender<AttachmentTransferRequest>>,
     settings: Option<SettingDao>,
@@ -101,6 +102,7 @@ impl ServiceDecryptMessage {
             pending_message_statuses,
             conversation_changes: None,
             notification_changes: None,
+            silent_messages: None,
             device_transfer_controls: None,
             attachment_transfer_requests: None,
             settings: None,
@@ -117,8 +119,13 @@ impl ServiceDecryptMessage {
         self
     }
 
-    pub fn with_notification_changes(mut self, sender: watch::Sender<u64>) -> Self {
+    pub(crate) fn with_notification_changes(
+        mut self,
+        sender: watch::Sender<u64>,
+        silent: super::silent::SilentMessages,
+    ) -> Self {
         self.notification_changes = Some(sender);
+        self.silent_messages = Some(silent);
         self
     }
 
@@ -1921,6 +1928,11 @@ impl ServiceDecryptMessage {
             "insert message: {:?} {:?}",
             message.message_id, message.content
         );
+        if data.silent == Some(true) {
+            if let Some(silent) = &self.silent_messages {
+                silent.record(&message.message_id);
+            }
+        }
         self.pending_message_statuses
             .insert_message(&self.database, message)
             .await?;
@@ -2438,6 +2450,29 @@ mod tests {
             .is_message_exits(&"system-event".to_owned())
             .await
             .unwrap());
+    }
+
+    #[tokio::test]
+    async fn a_silent_message_is_marked_for_the_notification_batch_to_skip() {
+        let (_directory, _database, _signal, service) = decrypt_service_fixture().await;
+        let silent = crate::core::message::silent::SilentMessages::default();
+        let service = service.with_notification_changes(watch::channel(0).0, silent.clone());
+        let payload = serde_json::json!({"app_id": "app", "title": "title", "description": "card"})
+            .to_string();
+        for (message_id, flag) in [
+            ("quiet", Some(true)),
+            ("loud", Some(false)),
+            ("plain", None),
+        ] {
+            let mut card = blaze_data("APP_CARD", &Base64::encode_string(payload.as_bytes()));
+            card.message_id = message_id.into();
+            card.silent = flag;
+            service.process_app_card(&card).await.unwrap();
+        }
+        assert!(silent.take("quiet"));
+        assert!(!silent.take("quiet"));
+        assert!(!silent.take("loud"));
+        assert!(!silent.take("plain"));
     }
 
     #[tokio::test]

@@ -26,6 +26,7 @@ use crate::core::device_transfer::DeviceTransferService;
 use crate::core::message::blaze::Blaze;
 use crate::core::message::decrypt::{AttachmentTransferRequest, ServiceDecryptMessage};
 use crate::core::message::sender::MessageSender;
+use crate::core::message::silent::SilentMessages;
 use crate::core::model::auth::AuthService;
 use crate::core::model::signal::SignalService;
 use crate::core::model::{AppService, AttachmentExtra, ConversationService};
@@ -115,6 +116,7 @@ pub struct AccountState {
     conversation_changes: ConversationChangeNotifier,
     shutdown: watch::Receiver<bool>,
     notification_changes: watch::Sender<u64>,
+    silent_messages: SilentMessages,
     blaze: Arc<Blaze>,
     /// Desktop-to-desktop pairing is a native-only service.
     #[cfg(not(target_arch = "wasm32"))]
@@ -282,6 +284,7 @@ impl AccountRuntime {
         let (attachment_transfer_sender, attachment_transfer_requests) = mpsc::unbounded_channel();
         let account_conversation_changes = conversation_changes.clone();
         let account_notification_changes = notification_changes.clone();
+        let silent_messages = SilentMessages::default();
         let (ready_sender, ready_receiver) = oneshot::channel();
         let runner = runner::Runner::start(
             format!("mixin-account-{account_id}"),
@@ -291,6 +294,7 @@ impl AccountRuntime {
                 shutdown_receiver,
                 conversation_changes: account_conversation_changes,
                 notification_changes: account_notification_changes,
+                silent_messages: silent_messages.clone(),
                 initial_account_health,
                 attachment_transfer_requests: attachment_transfer_sender,
                 settings: setting_dao.clone(),
@@ -324,6 +328,7 @@ impl AccountRuntime {
             conversation_changes,
             shutdown: shutdown.subscribe(),
             notification_changes,
+            silent_messages,
             blaze,
             #[cfg(not(target_arch = "wasm32"))]
             device_transfer,
@@ -900,6 +905,7 @@ struct AccountRunContext {
     shutdown_receiver: watch::Receiver<bool>,
     conversation_changes: ConversationChangeNotifier,
     notification_changes: watch::Sender<u64>,
+    silent_messages: SilentMessages,
     initial_account_health: String,
     attachment_transfer_requests: mpsc::UnboundedSender<AttachmentTransferRequest>,
     ready_sender: oneshot::Sender<AccountStartupResult>,
@@ -1022,6 +1028,7 @@ async fn prepare_account(context: &AccountRunContext) -> Result<AccountServices>
         client,
         conversation_changes,
         notification_changes,
+        silent_messages,
         initial_account_health: account_health,
         attachment_transfer_requests,
         settings,
@@ -1122,7 +1129,7 @@ async fn prepare_account(context: &AccountRunContext) -> Result<AccountServices>
             auth,
         )
         .with_conversation_changes(conversation_changes.clone())
-        .with_notification_changes(notification_changes.clone())
+        .with_notification_changes(notification_changes.clone(), silent_messages.clone())
         .with_device_transfer_controls(device_transfer_control_sender)
         .with_attachment_transfer_requests(attachment_transfer_requests.clone())
         .with_settings(settings.clone()),

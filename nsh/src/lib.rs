@@ -183,7 +183,12 @@ pub fn App() -> impl IntoElement {
         .content(|| {
             #[cfg(target_os = "macos")]
             {
-                bootstrap::surface(|| app_surface().into_element()).into_element()
+                let render = || app_surface().into_element();
+                if idiom() == nsh_core::platform::Idiom::Terminal {
+                    bootstrap::terminal_surface(render)
+                } else {
+                    bootstrap::surface(render).into_element()
+                }
             }
             #[cfg(not(target_os = "macos"))]
             {

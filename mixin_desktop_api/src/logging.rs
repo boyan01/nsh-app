@@ -20,6 +20,17 @@ pub fn init_logging(
         .map_err(|error| ClientError::Internal(error.to_string()))
 }
 
+/// Initializes process logging without writing to the host's console.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn init_file_logging(
+    app_name: String,
+    app_version: String,
+    build_number: String,
+) -> ClientResult<()> {
+    logging::init_with_console(app_name, app_version, build_number, false)
+        .map_err(|error| ClientError::Internal(error.to_string()))
+}
+
 pub fn log_directory() -> ClientResult<String> {
     logging::directory().map_err(Into::into)
 }

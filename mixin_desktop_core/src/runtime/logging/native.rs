@@ -160,6 +160,15 @@ impl Append for IndexedFileAppender {
 }
 
 pub fn init(app_name: String, app_version: String, build_number: String) -> Result<()> {
+    init_with_console(app_name, app_version, build_number, true)
+}
+
+pub fn init_with_console(
+    app_name: String,
+    app_version: String,
+    build_number: String,
+    console: bool,
+) -> Result<()> {
     install_deferred()?;
     let mut logger = LOGGER
         .lock()
@@ -176,21 +185,20 @@ pub fn init(app_name: String, app_version: String, build_number: String) -> Resu
         MAX_LOG_FILE_SIZE,
         MAX_LOG_FILES,
     )?;
-    let stdout = ConsoleAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(LOG_PATTERN)))
-        .build();
-    let config = Config::builder()
+    let mut config = Config::builder()
         .appender(Appender::builder().build("file", Box::new(file)))
-        .appender(Appender::builder().build("stdout", Box::new(stdout)))
         .logger(Logger::builder().build("flutter", LevelFilter::Trace))
         .logger(Logger::builder().build("swift", LevelFilter::Trace))
-        .logger(Logger::builder().build("typescript", LevelFilter::Trace))
-        .build(
-            Root::builder()
-                .appender("file")
-                .appender("stdout")
-                .build(LevelFilter::Info),
-        )?;
+        .logger(Logger::builder().build("typescript", LevelFilter::Trace));
+    let mut root = Root::builder().appender("file");
+    if console {
+        let stdout = ConsoleAppender::builder()
+            .encoder(Box::new(PatternEncoder::new(LOG_PATTERN)))
+            .build();
+        config = config.appender(Appender::builder().build("stdout", Box::new(stdout)));
+        root = root.appender("stdout");
+    }
+    let config = config.build(root.build(LevelFilter::Info))?;
     let backend = log4rs::Logger::new(config);
     let handle = backend.handle();
     BACKEND

@@ -136,6 +136,12 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                 LoginPhase::Waiting(source) => image(source)
                                     .size_40()
                                     .label(move || i18n.t(Key::NshScanToSignIn))
+                                    .on_load(|_: &Size<DevicePixels>| {
+                                        log::info!(
+                                            target: "nsh::mixin",
+                                            "Sign-in QR image loaded"
+                                        );
+                                    })
                                     .into_element(),
                                 LoginPhase::Failed => view()
                                     .size_40()

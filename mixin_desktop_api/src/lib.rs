@@ -46,4 +46,4 @@ pub use model::{
 pub use mixin_desktop_core::runtime::active_membership_plan;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use logging::install_deferred_logging;
+pub use logging::{init_file_logging, install_deferred_logging};

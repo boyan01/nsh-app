@@ -49,11 +49,7 @@ pub enum Launch {
     Forwarded,
 }
 
-pub(super) fn acquire(
-    directory: &Path,
-    intents: Vec<Event>,
-    events: mpsc::Sender<Event>,
-) -> io::Result<Launch> {
+fn open_lock(directory: &Path) -> io::Result<(std::path::PathBuf, File)> {
     std::fs::create_dir_all(directory)?;
     let directory = std::fs::canonicalize(directory)?;
     let mut options = OpenOptions::new();
@@ -64,6 +60,23 @@ pub(super) fn acquire(
         options.mode(0o600);
     }
     let lock = options.open(directory.join("nsh-instance.lock"))?;
+    Ok((directory, lock))
+}
+
+/// The terminal owns the same data directory lock as the native app.
+#[cfg(target_os = "macos")]
+pub(crate) fn acquire_terminal(directory: &Path) -> io::Result<File> {
+    let (_, lock) = open_lock(directory)?;
+    lock.try_lock()?;
+    Ok(lock)
+}
+
+pub(super) fn acquire(
+    directory: &Path,
+    intents: Vec<Event>,
+    events: mpsc::Sender<Event>,
+) -> io::Result<Launch> {
+    let (directory, lock) = open_lock(directory)?;
     match lock.try_lock() {
         Ok(()) => {}
         Err(TryLockError::WouldBlock) => {

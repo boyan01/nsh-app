@@ -41,7 +41,7 @@ pub(crate) fn prepare() {
     });
 }
 
-pub(crate) fn release() {
+fn release() {
     INSTANCE.with(|slot| {
         slot.replace(None);
     });
@@ -132,6 +132,46 @@ pub(crate) fn surface(render: impl Fn() -> AnyElement + 'static) -> impl IntoEle
         }))
 }
 
+/// The terminal host has its own logger and signal handlers.
+pub(crate) fn terminal_surface(render: impl FnOnce() -> AnyElement) -> AnyElement {
+    let lock = mixin_desktop_api::data_directory()
+        .map_err(|error| error.to_string())
+        .and_then(|directory| {
+            let lock =
+                shell::instance::acquire_terminal(&directory).map_err(|error| error.to_string())?;
+            mixin_desktop_api::init_file_logging(
+                "Mixin".into(),
+                env!("CARGO_PKG_VERSION").into(),
+                "2".into(),
+            )
+            .map_err(|error| error.to_string())?;
+            Ok(lock)
+        });
+    let lock = match lock {
+        Ok(lock) => lock,
+        Err(error) => {
+            eprintln!("Mixin startup failed: {error}");
+            desktop::quit();
+            return view().into_element();
+        }
+    };
+    cleanup(move || {
+        finish_shutdown();
+        drop(lock);
+        log::info!(target: "nsh::mixin", "Terminal application shutdown drained");
+    });
+    render()
+}
+
+fn finish_shutdown() {
+    std::thread::scope(|scope| {
+        scope
+            .spawn(runtime::finish_shutdown)
+            .join()
+            .expect("shutdown worker");
+    });
+}
+
 pub(crate) fn register(components: &nsh_platform_macos::Components) {
     use nsh_platform_macos::{NativeComponent, objc2_app_kit::NSView};
     use objc2::{MainThreadMarker, rc::Retained};
@@ -147,12 +187,7 @@ pub(crate) fn register(components: &nsh_platform_macos::Components) {
     impl Drop for Host {
         fn drop(&mut self) {
             if matches!(PREPARED.get(), Some(Ok(true))) {
-                std::thread::scope(|scope| {
-                    scope
-                        .spawn(runtime::finish_shutdown)
-                        .join()
-                        .expect("shutdown worker");
-                });
+                finish_shutdown();
                 release();
             }
         }

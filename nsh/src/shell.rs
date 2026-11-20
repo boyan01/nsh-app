@@ -300,6 +300,10 @@ pub(crate) fn attach(
     let links = use_context::<crate::links::LinkNavigation>().expect("Home provides link routing");
     effect(move || {
         if blocked() {
+            // A page can open a link without a click; none waits behind the lock screen.
+            if handle.pending.with(Option::is_some) {
+                handle.pending.set(None);
+            }
             return;
         }
         if let Some(url) = handle.pending.get() {

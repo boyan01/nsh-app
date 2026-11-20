@@ -49,7 +49,9 @@ pub(super) fn screen(router: LinkNavigation, request: Send) -> impl IntoElement 
                         .user()
                         .refresh_user_profile(id)
                         .await?
-                        .map(|user| user.full_name)
+                        // The page that opened the link chose the recipient, so
+                        // the real Mixin ID stays visible next to any name.
+                        .map(|user| format!("{} ({})", user.full_name, user.identity_number))
                         .ok_or(ClientError::NotFound),
                     Recipient::Conversation(id) => client
                         .conversation()

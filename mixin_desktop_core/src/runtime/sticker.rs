@@ -145,6 +145,23 @@ impl StickerAccess {
         Ok(has_new_album)
     }
 
+    /// Syncs the sticker store when a day has passed since the last sync,
+    /// which the Flutter app shares.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn refresh_stickers_if_due(&self) -> Result<bool> {
+        let identity_number = self.profile.borrow().identity_number.clone();
+        let auth = self.auth_service.auth_dao();
+        let now = chrono::Utc::now().timestamp_millis();
+        let last = auth.refresh_sticker_last_time(&identity_number).await?;
+        if !sticker_refresh_due(last, now) {
+            return Ok(false);
+        }
+        let has_new_album = self.refresh_stickers().await?;
+        auth.set_refresh_sticker_last_time(&identity_number, now)
+            .await?;
+        Ok(has_new_album)
+    }
+
     pub async fn refresh_sticker(&self, sticker_id: String) -> Result<()> {
         let sticker_id = sticker_id.as_str();
         self.ensure_active()?;
@@ -412,5 +429,28 @@ impl StickerAccess {
                 .await?;
         }
         Ok(())
+    }
+}
+
+/// A day after the last sync; a last sync in the future (a changed clock) is due too.
+fn sticker_refresh_due(last_millis: i64, now_millis: i64) -> bool {
+    const DAY_MILLIS: i64 = 24 * 60 * 60 * 1000;
+    !(0..DAY_MILLIS).contains(&now_millis.saturating_sub(last_millis))
+}
+
+#[cfg(test)]
+mod refresh_tests {
+    #[test]
+    fn sticker_store_syncs_a_day_after_its_last_sync() {
+        const DAY: i64 = 24 * 60 * 60 * 1000;
+        for (last, now, due) in [
+            (0, DAY, true),
+            (1000, 1000 + DAY - 1, false),
+            (1000, 1000 + DAY, true),
+            (1000, 1000, false),
+            (2000, 1000, true),
+        ] {
+            assert_eq!(super::sticker_refresh_due(last, now), due, "{last} {now}");
+        }
     }
 }

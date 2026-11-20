@@ -17,6 +17,7 @@ const MULTI_AUTH_KEY: &str = "MultiAuthCubit";
 const PRIMARY_SESSION_ID_KEY: &str = "primarySessionId";
 #[cfg(not(target_arch = "wasm32"))]
 const DEVICE_ID_KEY: &str = "deviceId";
+const REFRESH_STICKER_LAST_TIME_KEY: &str = "refreshStickerLastTime";
 
 /// Saved sessions, most recently active first.
 ///
@@ -272,6 +273,35 @@ impl AuthDao {
             crate::db::hive::ACCOUNT_BOX,
         )?
         .put(DEVICE_ID_KEY, &device_id.into())
+    }
+
+    /// When the sticker store last synced, in milliseconds
+    /// (`account_box.refreshStickerLastTime`, shared with the Flutter app).
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) async fn refresh_sticker_last_time(
+        &self,
+        identity_number: &str,
+    ) -> anyhow::Result<i64> {
+        Ok(crate::db::hive::read_account_value(
+            &self.account_directory(identity_number)?,
+            crate::db::hive::ACCOUNT_BOX,
+            REFRESH_STICKER_LAST_TIME_KEY,
+        )?
+        .and_then(|value| value.as_f64())
+        .map_or(0, |value| value as i64))
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) async fn set_refresh_sticker_last_time(
+        &self,
+        identity_number: &str,
+        millis: i64,
+    ) -> anyhow::Result<()> {
+        crate::db::hive::account_box(
+            &self.account_directory(identity_number)?,
+            crate::db::hive::ACCOUNT_BOX,
+        )?
+        .put(REFRESH_STICKER_LAST_TIME_KEY, &millis.into())
     }
 
     /// Deletes the account's Hive boxes like the Flutter sign-out, keeping

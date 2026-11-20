@@ -197,6 +197,20 @@ pub(crate) fn stickers(
     let state = State::new(account, id, false, failed);
     let insert = stored(insert);
     let store_open = signal(false);
+    effect(move || {
+        if state.open.get() {
+            let client = state.client();
+            // The store syncs at most once a day; a sync reloads the panel.
+            spawn(async move {
+                if let Err(error) =
+                    runtime::run(async move { client.sticker().refresh_stickers_if_due().await })
+                        .await
+                {
+                    log::warn!("Could not sync the sticker store: {error}");
+                }
+            });
+        }
+    });
     // The panel opens while the pointer rests on the button or the panel, and closes a
     // moment after it leaves both, so crossing the gap between them keeps it open.
     let over_button = signal(false);

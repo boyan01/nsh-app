@@ -22,6 +22,15 @@ pub(super) fn dialog(picker: State, open: Signal<bool>) -> impl IntoElement {
         move || {
             let state = State::new(picker.client(), String::new(), true, signal(false));
             state.observe_updates();
+            // Opening the store syncs it now, as the Flutter store does.
+            let client = state.client();
+            spawn(async move {
+                if let Err(error) =
+                    runtime::run(async move { client.sticker().refresh_stickers().await }).await
+                {
+                    log::warn!("Could not sync the sticker store: {error}");
+                }
+            });
             let store = signal_with(Vec::<StickerAlbumItem>::new(), SignalEquals::Never);
             let loading = signal(true);
             let managing = signal(false);

@@ -25,6 +25,11 @@ impl StickerAccess {
         Ok(self.inner.refresh_stickers().await?)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn refresh_stickers_if_due(&self) -> Result<bool, ClientError> {
+        Ok(self.inner.refresh_stickers_if_due().await?)
+    }
+
     pub async fn refresh_sticker(&self, sticker_id: String) -> Result<(), ClientError> {
         Ok(self.inner.refresh_sticker(sticker_id).await?)
     }

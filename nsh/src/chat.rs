@@ -389,7 +389,17 @@ pub(crate) fn screen(
                         .child(announcement::banner(
                             account.clone(),
                             conversation.conversation_id.clone(),
-                        )),
+                        ))
+                        .children(
+                            (conversation.is_scam && conversation.category == "CONTACT").then(
+                                || {
+                                    announcement::scam_banner(
+                                        account.clone(),
+                                        conversation.owner_id.clone(),
+                                    )
+                                },
+                            ),
+                        ),
                 )),
         )
         .child(when(

@@ -72,6 +72,20 @@ impl SettingDao {
         format!("dismissed_announcement_{account_id}_{conversation_id}")
     }
 
+    pub fn scam_warning_key(account_id: &str, user_id: &str) -> String {
+        format!("scam_warning_{account_id}_{user_id}")
+    }
+
+    /// A scam account's warning shows again a day after it was dismissed, as
+    /// the Flutter app does. `dismissed` is the dismissal time in milliseconds.
+    pub fn shows_scam_warning(is_scam: bool, dismissed: Option<&str>, now_millis: i64) -> bool {
+        const DAY_MILLIS: i64 = 24 * 60 * 60 * 1000;
+        is_scam
+            && dismissed
+                .and_then(|value| value.parse::<i64>().ok())
+                .is_none_or(|dismissed| now_millis >= dismissed.saturating_add(DAY_MILLIS))
+    }
+
     /// The announcement to show, unless this exact text was already dismissed;
     /// editing an announcement makes it unread again.
     pub fn unread_announcement<'a>(
@@ -387,6 +401,24 @@ mod announcement_tests {
                 SettingDao::unread_announcement(announcement, dismissed),
                 expected,
                 "{announcement:?} {dismissed:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn scam_warning_returns_a_day_after_its_dismissal() {
+        const DAY: i64 = 24 * 60 * 60 * 1000;
+        for (is_scam, dismissed, now, expected) in [
+            (true, None, 0, true),
+            (false, None, 0, false),
+            (true, Some("1000"), 1000 + DAY - 1, false),
+            (true, Some("1000"), 1000 + DAY, true),
+            (true, Some("invalid"), 0, true),
+        ] {
+            assert_eq!(
+                SettingDao::shows_scam_warning(is_scam, dismissed, now),
+                expected,
+                "{is_scam} {dismissed:?} {now}"
             );
         }
     }

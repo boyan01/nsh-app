@@ -128,6 +128,14 @@ impl SettingsClient {
         )
     }
 
+    pub fn scam_warning_key(account_id: &str, user_id: &str) -> String {
+        mixin_desktop_core::db::app::SettingDao::scam_warning_key(account_id, user_id)
+    }
+
+    pub fn shows_scam_warning(is_scam: bool, dismissed: Option<&str>, now_millis: i64) -> bool {
+        mixin_desktop_core::db::app::SettingDao::shows_scam_warning(is_scam, dismissed, now_millis)
+    }
+
     pub fn unread_announcement<'a>(
         announcement: &'a str,
         dismissed: Option<&str>,

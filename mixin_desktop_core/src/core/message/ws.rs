@@ -30,6 +30,9 @@ pub(crate) struct Handshake {
     /// `X-Request-Id`, the `jti` of the token in `authorization`.
     #[cfg(not(target_arch = "wasm32"))]
     pub request_id: String,
+    /// `Mixin-Device-Id`, when the account has a network service.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub device_id: Option<String>,
     #[cfg(not(target_arch = "wasm32"))]
     pub proxy: Option<crate::network::ProxyConfig>,
 }

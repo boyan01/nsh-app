@@ -12,7 +12,7 @@ fn header(request: &Request, name: &str) -> Option<String> {
 }
 
 #[tokio::test]
-async fn blaze_handshake_sends_the_token_jti_as_its_request_id() {
+async fn blaze_handshake_sends_the_token_jti_as_its_request_id_and_the_device_id() {
     tokio::time::timeout(Duration::from_secs(10), async {
         let directory = tempfile::tempdir().unwrap();
         let app = AppDatabase::connect_at(directory.path().join("app.db"))
@@ -54,7 +54,8 @@ async fn blaze_handshake_sends_the_token_jti_as_its_request_id() {
             // Tungstenite's callback fixes its unboxed HTTP error response type.
             #[allow(clippy::result_large_err)]
             let callback = |request: &Request, mut response: Response| {
-                let observed = ["Authorization", "X-Request-Id"].map(|name| header(request, name));
+                let observed = ["Authorization", "X-Request-Id", "Mixin-Device-Id"]
+                    .map(|name| header(request, name));
                 headers.take().unwrap().send(observed).unwrap();
                 response
                     .headers_mut()
@@ -67,7 +68,8 @@ async fn blaze_handshake_sends_the_token_jti_as_its_request_id() {
         });
         let client = blaze.clone();
         let run = tokio::spawn(async move { client.connect_hosts(&[&target]).await });
-        let [authorization, request_id] = received.await.unwrap();
+        let [authorization, request_id, device_id] = received.await.unwrap();
+        assert_eq!(device_id.as_deref(), Some("fixture-device"));
         let token = authorization.unwrap();
         let claims = token
             .strip_prefix("Bearer ")

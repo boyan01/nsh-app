@@ -55,7 +55,7 @@ async fn websocket_frames_follow_authenticated_http_and_remote_dns_socks_proxy_t
                 assert_eq!(socket.next().await.unwrap().unwrap().into_data(),b"through selected proxy".as_slice());
                 socket.send(Message::Text("received".into())).await.unwrap();
             });
-            let(mut sink,mut incoming)=connect(&Handshake {url:"ws://unreachable.invalid:8765/socket".into(),authorization:"Bearer fixture".into(),protocol:"Mixin-Blaze-1".into(),request_id:"fixture".into(),proxy:Some(proxy)}).await.unwrap();
+            let(mut sink,mut incoming)=connect(&Handshake {url:"ws://unreachable.invalid:8765/socket".into(),authorization:"Bearer fixture".into(),protocol:"Mixin-Blaze-1".into(),request_id:"fixture".into(),device_id:None,proxy:Some(proxy)}).await.unwrap();
             sink.send(Message::Text("through selected proxy".into())).await.unwrap();
             assert_eq!(incoming.next().await.unwrap().unwrap().into_text().unwrap(),"received");
             server.await.unwrap();
@@ -94,6 +94,7 @@ async fn proxy_rejection_never_revokes_the_mixin_session_and_headers_remain_boun
                 authorization: "Bearer fixture".into(),
                 protocol: "Mixin-Blaze-1".into(),
                 request_id: "fixture".into(),
+                device_id: None,
                 proxy: Some(proxy),
             })
             .await

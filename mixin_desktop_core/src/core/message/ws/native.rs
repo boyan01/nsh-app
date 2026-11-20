@@ -27,6 +27,12 @@ pub(crate) async fn connect(handshake: &Handshake) -> Result<(WsSink, WsStream),
             HeaderValue::try_from(value).map_err(|e| WsConnectError::failed(e.to_string()))?,
         );
     }
+    if let Some(device_id) = &handshake.device_id {
+        request.headers_mut().insert(
+            "Mixin-Device-Id",
+            HeaderValue::try_from(device_id).map_err(|e| WsConnectError::failed(e.to_string()))?,
+        );
+    }
     let (socket, _) = if let Some(config) = &handshake.proxy {
         let stream = proxy::connect(&handshake.url, config)
             .await

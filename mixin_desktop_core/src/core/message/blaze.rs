@@ -349,6 +349,11 @@ impl Blaze {
             #[cfg(not(target_arch = "wasm32"))]
             request_id,
             #[cfg(not(target_arch = "wasm32"))]
+            device_id: self
+                .network
+                .as_ref()
+                .map(|network| network.device_id().to_owned()),
+            #[cfg(not(target_arch = "wasm32"))]
             proxy,
         };
         let connection = crate::time::timeout(CONNECT_TIMEOUT, ws::connect(&handshake))

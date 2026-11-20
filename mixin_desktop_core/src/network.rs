@@ -33,13 +33,14 @@ pub struct NetworkService {
     client: watch::Receiver<reqwest::Client>,
     api_client: watch::Receiver<reqwest::Client>,
     proxy: watch::Receiver<Option<ProxyConfig>>,
+    device_id: String,
     settings_task: JoinHandle<()>,
 }
 
 impl NetworkService {
     /// `device_id` must be resolved and persisted by the owning AuthService.
     pub async fn new(setting_dao: SettingDao, device_id: String) -> Result<Self> {
-        let device_id = HeaderValue::from_str(&device_id).context("invalid Mixin device id")?;
+        let header = HeaderValue::from_str(&device_id).context("invalid Mixin device id")?;
         let mut settings = Box::pin(setting_dao.subscribe_proxy_settings());
         let initial = settings
             .next()
@@ -48,7 +49,7 @@ impl NetworkService {
             .ok_or_else(|| anyhow!("proxy settings subscription closed"))?;
         initial.validate()?;
         let client = build_client(initial.active_proxy(), None)?;
-        let api_client = build_client(initial.active_proxy(), Some(&device_id))?;
+        let api_client = build_client(initial.active_proxy(), Some(&header))?;
         let (client_sender, client) = watch::channel(client);
         let (api_client_sender, api_client) = watch::channel(api_client);
         let (proxy_sender, proxy) = watch::channel(initial.active_proxy().cloned());
@@ -70,7 +71,7 @@ impl NetworkService {
                     continue;
                 }
                 match build_client(next.active_proxy(), None).and_then(|client| {
-                    Ok((client, build_client(next.active_proxy(), Some(&device_id))?))
+                    Ok((client, build_client(next.active_proxy(), Some(&header))?))
                 }) {
                     Ok((client, api_client)) => {
                         api_client_sender.send_replace(api_client);
@@ -85,6 +86,7 @@ impl NetworkService {
             client,
             api_client,
             proxy,
+            device_id,
             settings_task,
         })
     }
@@ -100,6 +102,11 @@ impl NetworkService {
     /// Transport for arbitrary URLs and attachment bytes, without API identity.
     pub(crate) fn http_clients(&self) -> watch::Receiver<reqwest::Client> {
         self.client.clone()
+    }
+
+    /// The `Mixin-Device-Id` the API client sends.
+    pub(crate) fn device_id(&self) -> &str {
+        &self.device_id
     }
 
     pub(crate) fn proxy_changes(&self) -> watch::Receiver<Option<ProxyConfig>> {

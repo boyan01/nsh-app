@@ -611,6 +611,22 @@ impl PluginSpec for Behavior {
             let _ = self.commands.send(Command::Picker(key.key.clone()));
             return true;
         }
+        // macOS text fields move the selection with Control-N and Control-P.
+        #[cfg(target_os = "macos")]
+        if key.ctrl
+            && !(key.shift || key.alt || key.meta)
+            && self.picker_open.load(Ordering::Relaxed)
+        {
+            let direction = match key.key.to_ascii_lowercase().as_str() {
+                "n" => Some("ArrowDown"),
+                "p" => Some("ArrowUp"),
+                _ => None,
+            };
+            if let Some(direction) = direction {
+                let _ = self.commands.send(Command::Picker(direction.into()));
+                return true;
+            }
+        }
         if key.key == "Escape" && plain {
             let _ = self.commands.send(Command::Escape);
             return false;
@@ -739,6 +755,46 @@ mod copy_tests {
             );
             assert!(matches!(receive.try_recv(), Ok(Command::Changed)));
             assert!(receive.try_recv().is_err());
+        }
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod picker_tests {
+    use super::*;
+
+    #[test]
+    fn control_n_and_p_move_an_open_picker_and_otherwise_reach_the_editor() {
+        for (open, letter, expected) in [
+            (true, "n", Some("ArrowDown")),
+            (true, "p", Some("ArrowUp")),
+            (false, "n", None),
+            (true, "k", None),
+        ] {
+            let (commands, mut receive) = mpsc::unbounded_channel();
+            let picker_open = Arc::new(AtomicBool::new(open));
+            let session = editor_session("draft", (5, 5), commands.clone(), picker_open.clone());
+            let behavior = Behavior {
+                commands,
+                picker_open,
+            };
+            let mut key = KeyEvent::new(letter);
+            key.ctrl = true;
+            assert_eq!(
+                behavior.handle_key_down(&session.state(), &key, &mut |_| {
+                    panic!("Picker navigation must not edit the draft")
+                }),
+                expected.is_some()
+            );
+            assert!(matches!(receive.try_recv(), Ok(Command::Changed)));
+            match expected {
+                Some(direction) => {
+                    assert!(
+                        matches!(receive.try_recv(), Ok(Command::Picker(key)) if key == direction)
+                    )
+                }
+                None => assert!(receive.try_recv().is_err()),
+            }
         }
     }
 }

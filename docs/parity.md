@@ -158,7 +158,7 @@ Remaining work and priorities live in [nsh/ROADMAP.md](../nsh/ROADMAP.md).
 | P06 | Notification preview and permission guidance | Partial | physical/OS check pending |
 | P07 | Media auto-download photos/videos/files | Done |  |
 | P08 | Storage totals/per-chat/category/delete | Done |  |
-| P09 | HTTP proxy enable/select/add/remove/auth | Done |  |
+| P09 | HTTP and SOCKS5 proxy enable/select/add/remove/auth | Done |  |
 | P10 | About/version/help/legal/social/update/log directory | Done |  |
 | P11 | Screen security settings | Partial | physical/OS check pending |
 | P12 | Account phone/PIN/account deletion | Deferred | unreachable/unsupported in Flutter reference |
@@ -177,6 +177,6 @@ Remaining work and priorities live in [nsh/ROADMAP.md](../nsh/ROADMAP.md).
 | D07 | Send links and card actions | Done |  |
 | D08 | Transfer/payment/multisig code display and unsupported links | Done |  |
 | D09 | Embedded bot webview/popups/bridge/signing | Partial | physical/OS check pending |
-| D10 | Device transfer/backup/restore | Partial | peer-device transfer pending |
+| D10 | Device transfer/backup/restore | Partial | entry in release builds; peer-device transfer pending |
 | D11 | MCP/service integration | Deferred | unreachable/unsupported in Flutter reference |
 | D12 | Calls/VoIP | Deferred | unreachable/unsupported in Flutter reference |

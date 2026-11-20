@@ -1,4 +1,5 @@
 use mixin_desktop_api::{ProxyItem, ProxySettingsItem};
+use nsh_base::SelectItem;
 use nsh_core::prelude::*;
 
 use super::{Feedback, client};
@@ -157,6 +158,7 @@ fn form(
     adding: Signal<bool>,
     presence: crate::motion::Presence,
 ) -> impl IntoElement {
+    let kind = signal("http");
     let host = signal(String::new());
     let port = signal(String::new());
     let username = signal(String::new());
@@ -179,7 +181,7 @@ fn form(
         );
         next.proxies.push(ProxyItem {
             id,
-            kind: "http".into(),
+            kind: kind.get_untracked().into(),
             host: host.get_untracked().trim().into(),
             port,
             username: (!username.with(|s| s.is_empty())).then(|| username.get_untracked()),
@@ -203,13 +205,14 @@ fn form(
         presence,
         cancel,
         form_view(
-            host, port, username, password, composing, feedback, cancel, add, true,
+            kind, host, port, username, password, composing, feedback, cancel, add, true,
         ),
     )
 }
 
 #[allow(clippy::too_many_arguments)]
 fn form_view(
+    kind: Signal<&'static str>,
     host: Signal<String>,
     port: Signal<String>,
     username: Signal<String>,
@@ -229,6 +232,26 @@ fn form_view(
     let composition = move |event: &Composition| composing.set(event.composing);
     let fields = view()
         .gap(ui::space_lg())
+        .child(
+            parts::labeled(move || i18n.t(Key::ProxyType)).child(
+                ui::select()
+                    .items(|| {
+                        ["http", "socks5"]
+                            .into_iter()
+                            .map(|value| SelectItem::new(value, value.to_uppercase()))
+                            .collect::<Vec<_>>()
+                    })
+                    .value(move || Some(SharedString::from(kind.get())))
+                    .disabled(feedback.busy)
+                    .accessibility_label(move || Some(i18n.t(Key::ProxyType).into()))
+                    .trigger(ui::select_trigger(move || kind.get().to_uppercase()))
+                    .on_change(move |next: &Option<SharedString>| match next.as_deref() {
+                        Some("http") => kind.set("http"),
+                        Some("socks5") => kind.set("socks5"),
+                        _ => {}
+                    }),
+            ),
+        )
         .child(
             parts::labeled(move || i18n.t(Key::Host)).child(
                 ui::field()
@@ -277,7 +300,7 @@ fn form_view(
         );
     ui::dialog_card(ui::DialogWidth::Regular)
         .overflow_hidden()
-        .child(ui::dialog_title(move || i18n.t(Key::NshAddHTTPProxy)))
+        .child(ui::dialog_title(move || i18n.t(Key::AddProxy)))
         .child(scroll().min_h_0().flex_shrink(1.0).child(fields))
         .child(when(feedback.failed, move || {
             ui::error_text(move || i18n.t(Key::NshCouldnTCompleteThisActionTryAgain))
@@ -304,6 +327,7 @@ pub(crate) fn preview(failed: Signal<bool>) -> impl IntoElement {
     feedback.failed.set(failed.get_untracked());
     effect(move || feedback.failed.set(failed.get()));
     form_view(
+        signal("http"),
         signal(String::new()),
         signal(String::new()),
         signal(String::new()),

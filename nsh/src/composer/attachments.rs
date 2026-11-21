@@ -2,7 +2,7 @@ use mixin_desktop_api::{AccountClient, MessageListView};
 use nsh_core::prelude::*;
 use std::sync::Arc;
 
-use super::{Tray, forms};
+use super::{Input, Tray, forms};
 use crate::{
     i18n::{self, Key},
     motion::Presence,
@@ -51,6 +51,7 @@ pub(crate) fn attachments(
     id: String,
     quote: Signal<Option<MessageListView>>,
     tray: Tray,
+    input: Input,
 ) -> impl IntoElement {
     let action = signal(None::<Action>);
     let shown = signal(None::<Action>);
@@ -72,11 +73,12 @@ pub(crate) fn attachments(
         .style_when(crate::terminal::active, |s| {
             s.mr(px(crate::terminal::COLUMN))
         })
-        .child(attachment_menu(
+        .child(attachment_menu_with_input(
             move || tray.pick(true),
             move || tray.pick(false),
             move || action.set(Some(Action::Contact)),
             move || action.set(Some(Action::Post)),
+            crate::terminal::active().then_some(input),
         ))
         .child(when(
             move || host.presence.mounted(),
@@ -97,19 +99,36 @@ pub(crate) fn attachments(
 }
 
 /// The same menu in the live composer and in preview scenes.
+#[cfg(debug_assertions)]
 pub(crate) fn attachment_menu(
     media: impl Fn() + 'static,
     files: impl Fn() + 'static,
     contact: impl Fn() + 'static,
     post: impl Fn() + 'static,
 ) -> impl IntoElement {
+    attachment_menu_with_input(media, files, contact, post, None)
+}
+
+fn attachment_menu_with_input(
+    media: impl Fn() + 'static,
+    files: impl Fn() + 'static,
+    contact: impl Fn() + 'static,
+    post: impl Fn() + 'static,
+    input: Option<Input>,
+) -> impl IntoElement {
     let i18n = i18n::current();
     let open = signal(false);
     ui::menu()
         .open(move || Some(open.get()))
         .on_open_change(move |event: &nsh_base::MenuEvent| {
-            if let nsh_base::MenuEvent::OpenChange(value, _) = event {
+            if let nsh_base::MenuEvent::OpenChange(value, reason) = event {
                 open.set(*value);
+                if !value
+                    && *reason == nsh_base::OpenChangeReason::Cancel
+                    && let Some(input) = input
+                {
+                    input.focus_after_popup();
+                }
             }
         })
         .offset(ui::space_sm())
@@ -121,7 +140,11 @@ pub(crate) fn attachment_menu(
                     s.bg(ui::state_selected).text_color(ui::fg_primary)
                 })
                 .optional_label(move || Some(i18n.t(Key::NshSendFile).into()))
-                .child(ui::icon(ui::Icon::Attachment)),
+                .child(if crate::terminal::active() {
+                    text("+").into_element()
+                } else {
+                    ui::icon(ui::Icon::Attachment).into_element()
+                }),
         )
         .child(
             ui::menu_row_symbol(ui::Icon::Image, move || {

@@ -1,5 +1,5 @@
 mod reader;
-pub(super) use reader::{Selection, read, summary};
+pub(super) use reader::{Selection, read, read_with_attachment, summary};
 
 use nsh_base::text_view::{Block, Document, Inline};
 use regex::Regex;

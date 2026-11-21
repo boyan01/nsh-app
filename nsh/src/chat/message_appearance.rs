@@ -33,12 +33,15 @@ pub(super) fn bubble<S: Styled>(
         .flex_shrink(1.0)
         .min_w_0()
         .rounded(ui::radius_md())
-        .style_when(filled, move |style| {
-            style
-                .bg(move || bubble_surface(mine()))
-                .shadow_xs()
-                .shadow_color(ui::bubble_shadow())
-        })
+        .style_when(
+            move || !terminal::active() && filled(),
+            move |style| {
+                style
+                    .bg(move || bubble_surface(mine()))
+                    .shadow_xs()
+                    .shadow_color(ui::bubble_shadow())
+            },
+        )
 }
 
 /// How far a body stands off its bubble: Flutter's `MessageBubble.padding`.
@@ -57,6 +60,8 @@ pub(super) enum Inset {
 pub(super) enum Stamp {
     /// At the end of the text's last line, or on a line of its own.
     Inline,
+    /// A measured attachment after the last run of terminal text.
+    TerminalInline,
     /// Under the bubble, at its end.
     Below,
     /// Drawn by the body over its own content.
@@ -193,9 +198,12 @@ impl Frame {
             .as_ref()
             .is_some_and(|id| !id.is_empty());
         Self {
-            // A terminal cannot reserve a fraction of a text line for an overlay.
             stamp: if terminal::active() && frame.stamp == Stamp::Inline {
-                Stamp::Below
+                if category.ends_with("_TEXT") && message_system::readable(row) {
+                    Stamp::TerminalInline
+                } else {
+                    Stamp::Below
+                }
             } else {
                 frame.stamp
             },
@@ -306,9 +314,10 @@ fn secret(row: &MessageListView) -> bool {
 /// A message's marks, time and delivery on one line. `delivery` is `None` where the
 /// message shows none, and follows status changes without rebuilding the row.
 pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_media: bool) -> View {
+    let terminal = terminal::active();
     let tone = move || {
-        if terminal::active() {
-            ui::fg_secondary()
+        if terminal {
+            ui::fg_tertiary()
         } else if on_media {
             ui::media_overlay_foreground()
         } else {
@@ -321,12 +330,25 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
             .flex_shrink_0()
             .mr(ui::space_xs())
             .text_color(tone)
+            .style_when(
+                move || terminal,
+                |style| {
+                    style
+                        .w(px(terminal::COLUMN))
+                        .h(px(terminal::ROW))
+                        .mr(px(terminal::COLUMN))
+                },
+            )
     };
     let mut line = view()
         .flex_row()
         .flex_shrink_0()
         .items_center()
-        .h(ui::message_status_height());
+        .h(if terminal {
+            px(terminal::ROW)
+        } else {
+            ui::message_status_height()
+        });
     if row.pinned {
         line = line.child(mark(crate::assets::svg::MESSAGE_PIN));
     }
@@ -336,22 +358,23 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
     line = line.child(
         text(presentation::clock(row.created_at_micros / 1000))
             .text_role(ui::TextRole::Micro)
-            .text_color(tone),
+            .text_color(tone)
+            .style_when(move || terminal, |style| style.flex_shrink_0()),
     );
     if let Some(status) = delivery {
-        line = line.child(view().ml(ui::space_sm()).child(dynamic(move || {
+        let slot = if terminal {
+            view()
+                .ml(px(terminal::COLUMN))
+                .w(px(2.0 * terminal::COLUMN))
+                .flex_shrink_0()
+        } else {
+            view().ml(ui::space_sm())
+        };
+        line = line.child(slot.child(dynamic(move || {
             let status = status.get();
             untracked(|| {
-                if terminal::active() {
-                    let label = match status.as_str() {
-                        "READ" => Key::NshRead,
-                        "DELIVERED" => Key::NshDelivered,
-                        "SENT" => Key::NshSent,
-                        "FAILED" => Key::Failed,
-                        _ => Key::NshSending,
-                    };
-                    let i18n = crate::i18n::current();
-                    text(move || i18n.t(label)).text_color(tone).into_element()
+                if terminal {
+                    terminal_delivery(&status)
                 } else if on_media {
                     appearance::delivery_icon_on_media(&status)
                 } else {
@@ -361,6 +384,37 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
         })));
     }
     line
+}
+
+fn terminal_delivery(status: &str) -> AnyElement {
+    let (glyph, label, color) = match status {
+        "READ" => ("✓✓", Key::NshRead, ui::accent()),
+        "DELIVERED" => ("✓✓", Key::NshDelivered, ui::fg_secondary()),
+        "SENT" => ("✓", Key::NshSent, ui::fg_secondary()),
+        "FAILED" => ("!", Key::Failed, ui::danger()),
+        _ => ("·", Key::NshSending, ui::fg_secondary()),
+    };
+    let i18n = crate::i18n::current();
+    text(glyph)
+        .text_color(color)
+        .label(move || i18n.t(label))
+        .style_when(matches!(status, "READ" | "FAILED"), |style| {
+            style.font_weight(FontWeight::SEMIBOLD)
+        })
+        .into_element()
+}
+
+/// The text engine wraps this single attachment as a unit. The fixed delivery
+/// slot also keeps status changes from reflowing the last line.
+pub(super) fn terminal_inline_stamp(row: &MessageListView, delivery: Option<Memo<String>>) -> View {
+    let marks = usize::from(row.pinned) + usize::from(secret(row));
+    let clock = presentation::clock(row.created_at_micros / 1000);
+    let columns = 1 + clock.len() + 2 * marks + 3 * usize::from(delivery.is_some());
+    stamp(row, delivery, false)
+        .w(px(columns as f32 * terminal::COLUMN))
+        .pl(px(terminal::COLUMN))
+        .select_none()
+        .pointer_events(PointerEvents::None)
 }
 
 /// A status over a picture or a transcript card.
@@ -423,11 +477,21 @@ pub(super) fn sender_label(
     let appearance = use_context::<Appearance>().expect("Home provides chat appearance");
     text(name)
         .text_size(move || appearance.secondary_size())
-        .text_color(move || ui::name_color(&id()))
-        .style_when(terminal::active, |s| {
-            s.font_weight(FontWeight::SEMIBOLD)
-                .text_color(ui::fg_primary)
+        .text_color(move || {
+            let color = ui::name_color(&id());
+            if terminal::active() {
+                // NSH classifies quiet hues as neutral ink. Keep the sender's
+                // hue in the ANSI palette before that classification.
+                color.map(|mut hue| {
+                    hue.s = 1.0;
+                    hue.l = 0.5;
+                    hue
+                })
+            } else {
+                color
+            }
         })
+        .style_when(terminal::active, |s| s.font_weight(FontWeight::SEMIBOLD))
         .number_of_lines(1)
 }
 
@@ -436,26 +500,29 @@ pub(super) fn sender(
     actions: Actions,
 ) -> impl IntoElement {
     let appearance = use_context::<Appearance>().expect("Home provides chat appearance");
-    ui::command()
-        .justify_start()
-        .items_end()
-        .min_w_0()
-        .min_h_0()
-        .px_0()
-        .py_0()
-        .ml(ui::message_name_inset() - ui::bubble_nip_width())
-        .mb(ui::space_2xs())
-        .gap(ui::space_2xs())
-        .on_press(move || {
-            if let Some(row) = message() {
-                actions.show_user(row.sender_id);
-            }
-        })
-        .child(sender_label(
-            move || message().map(|row| row.sender_name).unwrap_or_default(),
-            move || message().map(|row| row.sender_id).unwrap_or_default(),
-        ))
-        .child(when(
+    let terminal = terminal::active();
+    let open = move || {
+        if let Some(row) = message() {
+            actions.show_user(row.sender_id);
+        }
+    };
+    let name = sender_label(
+        move || message().map(|row| row.sender_name).unwrap_or_default(),
+        move || message().map(|row| row.sender_id).unwrap_or_default(),
+    );
+    let name = if terminal {
+        // An inline action keeps keyboard focus and mouse input without
+        // the terminal's hover band behind a whole button.
+        text("")
+            .min_w_0()
+            .number_of_lines(1)
+            .child(name.role(AccessibilityRole::Link).on_press(open))
+    } else {
+        name
+    };
+    let children = [
+        name.into_element(),
+        when(
             move || appearance.show_identity(),
             move || {
                 text(move || {
@@ -465,29 +532,67 @@ pub(super) fn sender(
                         .map(|id| format!("@{id}"))
                         .unwrap_or_default()
                 })
-                .mb(ui::space_2xs())
                 .text_role(ui::TextRole::Micro)
-                .text_color(ui::message_identity)
+                .text_color(move || {
+                    if terminal {
+                        ui::fg_tertiary()
+                    } else {
+                        ui::message_identity()
+                    }
+                })
+                .style_when(move || terminal, |s| s.flex_shrink_0())
+                .style_when(move || !terminal, |s| s.mb(ui::space_2xs()))
             },
-        ))
-        .child(view().mb(ui::stamp_inset_y()).child(dynamic(move || {
-            let row = message();
-            untracked(|| match row {
-                Some(row) => identity_badge(
-                    false,
-                    row.sender_is_verified,
-                    row.sender_is_bot,
-                    row.sender_membership.as_deref(),
-                ),
-                None => view().hidden().into_element(),
-            })
-        })))
-        .child(when(
+        )
+        .into_element(),
+        view()
+            .mb(ui::stamp_inset_y())
+            .child(dynamic(move || {
+                let row = message();
+                untracked(|| match row {
+                    Some(row) => identity_badge(
+                        false,
+                        row.sender_is_verified,
+                        row.sender_is_bot,
+                        row.sender_membership.as_deref(),
+                    ),
+                    None => view().hidden().into_element(),
+                })
+            }))
+            .into_element(),
+        when(
             move || message().is_some_and(|row| row.sender_is_scam),
             move || {
                 text(move || actions.i18n.t(Key::NshSCAM))
                     .text_role(ui::TextRole::Caption)
                     .text_color(ui::danger)
             },
-        ))
+        )
+        .into_element(),
+    ];
+    let inset = ui::message_name_inset() - ui::bubble_nip_width();
+    if terminal {
+        view()
+            .flex_row()
+            .items_center()
+            .min_w_0()
+            .ml(inset)
+            .gap(px(terminal::COLUMN))
+            .children(children)
+            .into_element()
+    } else {
+        ui::command()
+            .justify_start()
+            .items_end()
+            .min_w_0()
+            .min_h_0()
+            .px_0()
+            .py_0()
+            .ml(inset)
+            .mb(ui::space_2xs())
+            .gap(ui::space_2xs())
+            .on_press(open)
+            .children(children)
+            .into_element()
+    }
 }

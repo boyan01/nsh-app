@@ -75,7 +75,7 @@ pub(super) fn body(row: MessageListView, actions: Actions, placement: Placement)
     let mut main = view()
         .min_w_0()
         .text_size(move || appearance.primary_size())
-        .child(kind_body(&row, actions, placement.clone(), room));
+        .child(kind_body(&row, actions, placement.clone(), frame, room));
     if !framed {
         main = main.gap_2();
     }
@@ -125,6 +125,7 @@ fn kind_body(
     row: &MessageListView,
     actions: Actions,
     placement: Placement,
+    frame: Frame,
     room: Option<f32>,
 ) -> AnyElement {
     let category = row.category.as_str();
@@ -137,7 +138,13 @@ fn kind_body(
     let mine = row.sender_id == actions.account.id();
     let delivery = status.filter(|_| mine);
     if category.ends_with("_TEXT") {
-        message_text::read(row, &row.content, actions, transcript, room).into_element()
+        if framed && frame.stamp == Stamp::TerminalInline {
+            let stamp = message_appearance::terminal_inline_stamp(row, delivery);
+            message_text::read_with_attachment(row, &row.content, actions, transcript, Some(stamp))
+                .into_element()
+        } else {
+            message_text::read(row, &row.content, actions, transcript, room).into_element()
+        }
     } else if category == "MESSAGE_RECALL" {
         recalled(row, actions)
     } else if category.ends_with("_POST") {

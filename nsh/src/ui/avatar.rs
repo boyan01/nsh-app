@@ -2,7 +2,11 @@
 
 use mixin_desktop_api::GroupAvatar;
 use nsh_base::{AvatarElement, avatar};
-use nsh_core::{element::ImageSrc, prelude::*};
+use nsh_core::{
+    canvas::{CanvasTextAlign, CanvasTextBaseline},
+    element::ImageSrc,
+    prelude::*,
+};
 use unicode_segmentation::UnicodeSegmentation;
 
 use super::tokens::{
@@ -119,7 +123,26 @@ pub(crate) fn avatar_view(
     let has_images = !terminal || crate::terminal::image_supported();
     let name = computed(name);
     let id = computed(id);
-    let color = computed(move || palette_color(&id.get(), &AVATAR_COLORS, avatar_empty));
+    let empty: fn() -> AdaptiveColor = if terminal {
+        || avatar_empty().light.into()
+    } else {
+        avatar_empty
+    };
+    let color = computed(move || palette_color(&id.get(), &AVATAR_COLORS, empty));
+    let fallback = if terminal {
+        terminal_initial(color, name).into_element()
+    } else {
+        text(move || placeholder_letter(&name.get()))
+            .text_role(TextRole::Headline)
+            .text_color(move || {
+                if uuid_hash(&id.get()).is_some() {
+                    fg_on_accent()
+                } else {
+                    fg_primary()
+                }
+            })
+            .into_element()
+    };
     avatar()
         .name(move || Some(name.get()))
         .src(move || {
@@ -134,23 +157,51 @@ pub(crate) fn avatar_view(
         .rounded_full()
         .overflow_hidden()
         .image_class("rounded-full object-cover")
-        .fallback(
-            text(move || placeholder_letter(&name.get()))
-                .text_role(TextRole::Headline)
-                .text_color(move || {
-                    if !terminal && uuid_hash(&id.get()).is_some() {
-                        fg_on_accent()
-                    } else {
-                        fg_primary()
-                    }
-                }),
-        )
+        .fallback(fallback)
         .fallback_style(move |s| {
             let s = s.items_center().justify_center();
-            // A terminal draws selection over the whole subtree. Initials in
-            // the native foreground retain their contrast on either row state.
             if terminal { s } else { s.bg(color) }
         })
+}
+
+fn terminal_initial(color: Memo<AdaptiveColor>, name: Memo<SharedString>) -> View {
+    use crate::terminal::{COLUMN, ROW};
+
+    let bounds = signal(Size::<Points>::default());
+    view()
+        .size_full()
+        // The terminal's image role keeps the actual fill at its color depth.
+        // The avatar already supplies the accessible name for this fallback.
+        .role(AccessibilityRole::Image)
+        .bg(color)
+        .child(
+            canvas(move || {
+                let size = bounds.get();
+                let columns = (size.width.0 / COLUMN).round() as usize;
+                let rows = (size.height.0 / ROW).round() as usize;
+                // Give the spaces ink too, so a selected row reverses the
+                // whole tile into a dark shade of its color.
+                let blank = " ".repeat(columns);
+                let mut painter = Painter::new()
+                    .font("bold 14px sans-serif")
+                    .fill_color(color.get().light.darken(0.8))
+                    .text_baseline(CanvasTextBaseline::Top);
+                for row in 0..rows {
+                    painter = painter.fill_text(&blank, 0.0, row as f32 * ROW);
+                }
+                painter
+                    .text_align(CanvasTextAlign::Center)
+                    .fill_text_max_width(
+                        &placeholder_letter(&name.get()),
+                        columns as f32 * COLUMN / 2.0,
+                        (rows.saturating_sub(1) / 2) as f32 * ROW,
+                        px(columns as f32 * COLUMN),
+                    )
+            })
+            .absolute()
+            .inset_0()
+            .on_layout(move |frame: &Bounds<Points>| bounds.set(frame.size)),
+        )
 }
 
 /// Use the same one-to-four participant puzzle as the Flutter conversation list.

@@ -402,6 +402,10 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
         .pt_2()
         .pb_3()
         .gap_2()
+        .style_when(
+            move || terminal,
+            |style| style.p_0().gap(px(crate::terminal::ROW)),
+        )
         .style_when(move || !can_send.get(), |style| style.hidden())
         .child(when(
             move || {
@@ -475,6 +479,7 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
                     conversation_id.clone(),
                     quote,
                     tray,
+                    input,
                 ))
                 .child(composer::stickers(
                     account,
@@ -482,6 +487,7 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
                     operation_failed,
                     insert,
                     quote,
+                    input,
                 )),
             composer::surface::primary_action(
                 computed(move || {

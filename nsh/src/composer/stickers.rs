@@ -192,6 +192,7 @@ pub(crate) fn stickers(
     insert: Rc<dyn Fn(String)>,
     // Stickers carry no quote, so a pending reply stays in the composer.
     _quote: Signal<Option<MessageListView>>,
+    input: super::Input,
 ) -> impl IntoElement {
     let i18n = i18n::current();
     let state = State::new(account, id, false, failed);
@@ -237,11 +238,17 @@ pub(crate) fn stickers(
                 .popup_style(|style| ui::glass(style).rounded(ui::radius_lg()).overflow_hidden())
                 .open(move || Some(state.open.get()))
                 .on_open_change(move |event: &PopoverEvent| {
-                    if let PopoverEvent::OpenChange(value, _) = event
+                    if let PopoverEvent::OpenChange(value, reason) = event
                         && !state.busy.get_untracked()
                         && !store_open.get_untracked()
                     {
                         state.open.set(*value);
+                        if crate::terminal::active()
+                            && !value
+                            && *reason == nsh_base::OpenChangeReason::Cancel
+                        {
+                            input.focus_after_popup();
+                        }
                     }
                 })
                 .offset(ui::space_sm())

@@ -25,15 +25,24 @@ pub(crate) fn editor(
     tools: impl IntoElement,
     submit: impl IntoElement,
 ) -> View {
-    frame().child(reply).child(files).child(
+    let frame = frame().child(reply).child(files);
+    if terminal::active() {
+        return frame.child(
+            view().px(px(2.0 * terminal::COLUMN)).child(input).child(
+                view()
+                    .flex_row()
+                    .items_center()
+                    .child(view().flex_1().min_w_0().child(tools))
+                    .child(submit),
+            ),
+        );
+    }
+    frame.child(
         view()
             .flex_row()
             .items_end()
             .p_2()
             .gap_2()
-            .style_when(terminal::active, |s| {
-                s.items_center().px(px(3.0 * terminal::COLUMN)).py_0()
-            })
             .child(tools)
             // Tools disappear for file captions. Align their text with the
             // attachment strip's 12pt inset instead of the toolbar's 8pt inset.

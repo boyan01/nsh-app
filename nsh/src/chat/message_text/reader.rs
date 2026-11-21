@@ -121,6 +121,22 @@ pub(in crate::chat) fn read(
     root: Option<String>,
     room: Option<f32>,
 ) -> View {
+    read_with_attachment(
+        row,
+        source,
+        actions,
+        root,
+        room.map(|width| view().app_class(SharedString::from(format!("w-[{width}px] h-px")))),
+    )
+}
+
+pub(in crate::chat) fn read_with_attachment(
+    row: &MessageListView,
+    source: &str,
+    actions: Actions,
+    root: Option<String>,
+    attachment: Option<View>,
+) -> View {
     let navigation = use_context::<crate::navigation::ChatNavigation>();
     // A secondary click on selectable text reaches the text before the bubble
     // around it, so the text opens the message's menu itself; its Copy takes
@@ -138,7 +154,6 @@ pub(in crate::chat) fn read(
             None => super::document(source, &Default::default(), &query),
         })
     });
-    let room = stored(room.map(|width| SharedString::from(format!("w-[{width}px] h-px"))));
     let selection = actions.text_selection;
     let changed_id = row.message_id.clone();
     let changed_root = root.clone();
@@ -159,19 +174,19 @@ pub(in crate::chat) fn read(
         .on_text_selection_change(move |event: &TextSelectionEvent| {
             id.with(|id| root.with(|root| selection.report(id, root.as_deref(), &event.text)));
         })
-        .child(text_frame().child(dynamic(move || {
-            let mut out = Vec::new();
-            mapped.with(|document| spans(document, open, &mut out));
-            if out.is_empty() {
-                // An empty message keeps its line.
-                out.push(text("\u{200B}").into_element());
-            }
-            out.extend(
-                room.get()
-                    .map(|class| view().app_class(class).into_element()),
-            );
-            out
-        })));
+        .child(
+            text_frame()
+                .child(dynamic(move || {
+                    let mut out = Vec::new();
+                    mapped.with(|document| spans(document, open, &mut out));
+                    if out.is_empty() {
+                        // An empty message keeps its line.
+                        out.push(text("\u{200B}").into_element());
+                    }
+                    out
+                }))
+                .children(attachment),
+        );
     match menu_row {
         Some(row) => crate::chat::message_actions::menu(
             move || Some(row.with(|row| row.clone())),
@@ -190,7 +205,15 @@ fn text_frame() -> Text {
         .min_w_0()
         .text_size(move || appearance.primary_size())
         .line_height(MESSAGE_LINE_HEIGHT)
-        .text_color(move || nsh_base::theme().foreground)
+        .text_color(move || {
+            if crate::terminal::active() {
+                // NSH maps black ink to the terminal's default foreground in
+                // either color scheme. Preserve contrast with dim metadata.
+                nsh_core::Color::BLACK.into()
+            } else {
+                nsh_base::theme().foreground
+            }
+        })
 }
 
 /// Summary text uses the same selectable, linked spans as chat messages, without

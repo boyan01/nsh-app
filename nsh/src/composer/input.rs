@@ -257,6 +257,14 @@ impl Input {
     pub fn focus(self) {
         self.session.with(|session| session.focus());
     }
+
+    pub(super) fn focus_after_popup(self) {
+        // The popup restores its trigger first. Move focus after that commit.
+        after_answer(move || {
+            request_animation_frame(move |_| self.focus());
+        });
+    }
+
     pub fn blur(self) {
         self.session.with(|session| session.blur());
     }
@@ -392,7 +400,15 @@ impl Input {
         // document height. The bounded application scroll below is the only
         // region with a vertical range, as in the readonly message reader.
         classes.root = Some("grid".into());
-        classes.content = Some("px-0 py-1.5 text-sm text-foreground".into());
+        let terminal = crate::terminal::active();
+        classes.content = Some(
+            if terminal {
+                "p-0 text-sm text-foreground"
+            } else {
+                "px-0 py-1.5 text-sm text-foreground"
+            }
+            .into(),
+        );
         classes.caret = Some("bg-primary".into());
         classes.nodes = Some(BTreeMap::from([("mention".into(), "text-primary".into())]));
         let placeholder = stored(placeholder);
@@ -400,7 +416,12 @@ impl Input {
         let viewport = stored(Size::<Points>::default());
         let scroll_top = stored(Points::ZERO);
         let reveal_queued = stored(false);
-        let editor_height = signal(crate::ui::button_height_small());
+        let min_height = if terminal {
+            px(2.0 * crate::terminal::ROW)
+        } else {
+            crate::ui::button_height_small()
+        };
+        let editor_height = signal(min_height);
         let measured = stored(false);
         let reveal = move || {
             if reveal_queued.replace(true) {
@@ -467,6 +488,10 @@ impl Input {
             scroll()
                 .element_ref(&scroll_ref)
                 .h(move || editor_height.get())
+                .style_when(
+                    move || terminal,
+                    |s| s.min_h(min_height).max_h(move || editor_height.get()),
+                )
                 .on_layout(move |bounds: &Bounds<Points>| {
                     if viewport.with(|size| *size != bounds.size) {
                         viewport.replace(bounds.size);
@@ -482,15 +507,17 @@ impl Input {
                         .flex_none()
                         .on_layout(move |bounds: &Bounds<Points>| {
                             let first = !measured.replace(true);
-                            let height = bounds.size.height.clamp(
-                                crate::ui::button_height_small(),
-                                px(crate::ui::composer_text_max_height().0 * font_scale()),
-                            );
+                            let max_height = if terminal {
+                                px(4.0 * crate::terminal::ROW)
+                            } else {
+                                px(crate::ui::composer_text_max_height().0 * font_scale())
+                            };
+                            let height = bounds.size.height.clamp(min_height, max_height);
                             if height != editor_height.get_untracked() {
                                 // Resize the viewport after the document's own layout
                                 // commits. Animating both in one commit can clip native
                                 // text at its old one-line bounds on macOS.
-                                if !first && !reduce_motion() {
+                                if !terminal && !first && !reduce_motion() {
                                     scroll_ref.animate_layout(crate::motion::COMPOSER_RESIZE);
                                 }
                                 editor_height.set(height);

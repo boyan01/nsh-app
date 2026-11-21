@@ -320,7 +320,11 @@ pub(crate) fn attach(
     });
 }
 
-pub(crate) fn surface(handle: Handle) -> impl IntoElement {
+pub(crate) fn surface(handle: Handle) -> AnyElement {
+    if crate::terminal::active() {
+        let _ = handle;
+        return view().w_0().h_0().into_element();
+    }
     #[cfg(target_os = "macos")]
     {
         native("MixinShell")
@@ -340,7 +344,7 @@ pub(crate) fn surface(handle: Handle) -> impl IntoElement {
     }
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     {
-        window_state::surface(handle)
+        window_state::surface(handle).into_element()
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     {

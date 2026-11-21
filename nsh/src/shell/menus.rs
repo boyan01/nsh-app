@@ -9,20 +9,18 @@ use nsh_core::{
 
 fn quit_item(shell: Handle) -> MenuItem {
     #[cfg(any(target_os = "windows", target_os = "linux"))]
-    {
-        MenuItem::new(t(Key::QuitMixin))
+    if !crate::terminal::active() {
+        return MenuItem::new(t(Key::QuitMixin))
             .shortcut("mod+q")
-            .on_select(move || shell.quit())
+            .on_select(move || shell.quit());
     }
-    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
-    {
-        let _ = shell;
-        MenuItem::role(MenuRole::Quit).label(t(Key::QuitMixin))
-    }
+    let _ = shell;
+    MenuItem::role(MenuRole::Quit).label(t(Key::QuitMixin))
 }
 
 pub(super) fn mount(shell: Handle) {
     effect(move || {
+        let terminal = crate::terminal::active();
         let signed = shell.signed_in.get() && !shell.blocked.get();
         let chat = signed && shell.has_chat.get();
         let action = move |key: Key, command: Command, enabled: bool| {
@@ -37,41 +35,67 @@ pub(super) fn mount(shell: Handle) {
                 });
             })
         };
+        let mut app = vec![
+            MenuItem::role(MenuRole::About).label(t(Key::NshAboutMixinMessenger)),
+            MenuItem::separator(),
+            action(Key::NshSettingsMessage, Command::Preferences, signed).shortcut("mod+,"),
+            action(
+                Key::Lock,
+                Command::Lock,
+                shell.signed_in.get() && shell.can_lock.get(),
+            )
+            .shortcut("mod+shift+l"),
+            MenuItem::separator(),
+            action(Key::NshQuickSearchMessage, Command::QuickSearch, signed).shortcut("mod+k"),
+        ];
+        if !terminal {
+            app.extend([
+                MenuItem::new(t(Key::HideMixin))
+                    .shortcut("mod+h")
+                    .on_select(move || shell.hide()),
+                MenuItem::new(t(Key::ShowMixin)).on_select(move || shell.show()),
+            ]);
+        }
+        app.extend([MenuItem::separator(), quit_item(shell)]);
         let mut file = vec![
             action(Key::NshNewConversation, Command::NewChat, signed).shortcut("mod+n"),
             action(Key::NshNewGroup, Command::NewGroup, signed).shortcut("mod+shift+n"),
             action(Key::NshNewCircleMessage, Command::NewCircle, signed),
-        ];
-        file.push(action(
-            Key::NshChatBackupAndRestoreMessage,
-            Command::Transfer,
-            signed,
-        ));
-        file.extend([MenuItem::separator(), close_item(shell)]);
-        set_application_menu(vec![
-            MenuItem::submenu(
-                "Mixin",
-                [
-                    MenuItem::role(MenuRole::About).label(t(Key::NshAboutMixinMessenger)),
-                    MenuItem::separator(),
-                    action(Key::NshSettingsMessage, Command::Preferences, signed).shortcut("mod+,"),
-                    action(
-                        Key::Lock,
-                        Command::Lock,
-                        shell.signed_in.get() && shell.can_lock.get(),
-                    )
-                    .shortcut("mod+shift+l"),
-                    MenuItem::separator(),
-                    action(Key::NshQuickSearchMessage, Command::QuickSearch, signed)
-                        .shortcut("mod+k"),
-                    MenuItem::new(t(Key::HideMixin))
-                        .shortcut("mod+h")
-                        .on_select(move || shell.hide()),
-                    MenuItem::new(t(Key::ShowMixin)).on_select(move || shell.show()),
-                    MenuItem::separator(),
-                    quit_item(shell),
-                ],
+            action(
+                Key::NshChatBackupAndRestoreMessage,
+                Command::Transfer,
+                signed,
             ),
+        ];
+        if !terminal {
+            file.extend([MenuItem::separator(), close_item(shell)]);
+        }
+        let mut window_items = Vec::new();
+        if !terminal {
+            window_items.extend([
+                MenuItem::role(MenuRole::Minimize),
+                MenuItem::role(MenuRole::Zoom),
+                MenuItem::separator(),
+            ]);
+        }
+        window_items.extend([
+            action(Key::PreviousConversation, Command::PreviousChat, signed)
+                .shortcut("mod+up")
+                .shortcut_when(nsh_core::keymap::When::NotEditing),
+            action(Key::NextConversation, Command::NextChat, signed)
+                .shortcut("mod+down")
+                .shortcut_when(nsh_core::keymap::When::NotEditing),
+        ]);
+        if !terminal {
+            window_items.extend([
+                MenuItem::separator(),
+                MenuItem::new(t(Key::ShowMixin))
+                    .shortcut("mod+o")
+                    .on_select(move || shell.show()),
+            ]);
+        }
+        set_application_menu(vec![
+            MenuItem::submenu("Mixin", app),
             MenuItem::submenu(t(Key::File), file),
             MenuItem::submenu(
                 t(Key::Edit),
@@ -111,24 +135,7 @@ pub(super) fn mount(shell: Handle) {
                     action(Key::ToggleChatInfo, Command::ToggleInfo, chat),
                 ],
             ),
-            MenuItem::submenu(
-                t(Key::Window),
-                [
-                    MenuItem::role(MenuRole::Minimize),
-                    MenuItem::role(MenuRole::Zoom),
-                    MenuItem::separator(),
-                    action(Key::PreviousConversation, Command::PreviousChat, signed)
-                        .shortcut("mod+up")
-                        .shortcut_when(nsh_core::keymap::When::NotEditing),
-                    action(Key::NextConversation, Command::NextChat, signed)
-                        .shortcut("mod+down")
-                        .shortcut_when(nsh_core::keymap::When::NotEditing),
-                    MenuItem::separator(),
-                    MenuItem::new(t(Key::ShowMixin))
-                        .shortcut("mod+o")
-                        .on_select(move || shell.show()),
-                ],
-            ),
+            MenuItem::submenu(t(Key::Window), window_items),
             MenuItem::submenu(
                 t(Key::Help),
                 [

@@ -16,11 +16,11 @@ mod preference;
 pub(crate) use circles::{Circles, add_to_circle_item, remove_from_circle_item};
 
 use crate::navigation::Navigation;
-use crate::terminal::{self, COLUMN, ROW};
+use crate::terminal;
 
 fn rail_width(nav: Navigation) -> Points {
     if terminal::active() && !nav.drawer() {
-        px(18.0 * COLUMN)
+        terminal::cols(18.0)
     } else {
         nav.width()
     }
@@ -34,14 +34,14 @@ fn rail_button(button: nsh_base::ButtonElement, reference: ElementRef) -> nsh_ba
         row.element_ref(&reference)
             .child(
                 text(">")
-                    .w(px(COLUMN))
+                    .w(terminal::cols(1.0))
                     .style_when(move || !focused.get(), |s| s.invisible()),
             )
             .w_full()
-            .min_h(px(ROW))
-            .px(px(COLUMN))
+            .min_h(terminal::rows(1.0))
+            .px(terminal::cols(1.0))
             .py_0()
-            .gap(px(COLUMN))
+            .gap(terminal::cols(1.0))
             .focus(|s| s.bg(ui::fg_primary).text_color(ui::surface_rail))
             .selected_style(|s| s.bg(ui::accent).text_color(ui::fg_on_accent))
     })
@@ -91,7 +91,7 @@ pub(crate) fn trigger(nav: Navigation) -> impl IntoElement {
                     .on_press(move || nav.open_drawer())
                     .accessibility_label(move || Some(i18n.t(Key::NshOpenNavigation).into()))
                     .child(ui::icon(ui::Icon::Menu).when(terminal::active(), |s| s.hidden()))
-                    .child(when(terminal::active, || text("F6"))),
+                    .child(when(terminal::active, || text("^B"))),
             )
         },
     )
@@ -193,16 +193,32 @@ pub(crate) struct Rail {
 impl Rail {
     pub(crate) fn surface_with_feedback(self, feedback: impl IntoElement) -> View {
         let nav = self.nav;
+        let rail_entry = element_ref();
         effect(move || {
             if !nav.drawer() {
                 nav.close_drawer();
             }
         });
+        if terminal::active() {
+            let shortcuts = use_context::<crate::terminal::Shortcuts>();
+            effect(move || {
+                if shortcuts.is_some_and(|s| !s.available.get()) {
+                    return;
+                }
+                on_key("ctrl+b", move |_| {
+                    if nav.drawer() {
+                        nav.open_drawer();
+                    } else {
+                        rail_entry.focus();
+                    }
+                });
+            });
+        }
         view()
             .w(move || rail_width(nav))
             .flex_shrink_0()
             .child(
-                self.content_with_feedback(feedback)
+                self.content_with_entry(feedback, rail_entry, false)
                     .style_when(move || nav.drawer(), |s| s.hidden())
                     .accessibility_elements_hidden(move || nav.drawer()),
             )
@@ -254,17 +270,26 @@ impl Rail {
                                         .when(terminal::active(), |v| v.focusable(false)),
                                 ),
                             )
-                            .child(presence.surface(self.content())),
+                            .child(presence.surface(self.content_with_entry(
+                                view().hidden(),
+                                element_ref(),
+                                terminal::active(),
+                            ))),
                     )
             },
         )
     }
 
     pub(crate) fn content(self) -> View {
-        self.content_with_feedback(view().hidden())
+        self.content_with_entry(view().hidden(), element_ref(), false)
     }
 
-    pub(crate) fn content_with_feedback(self, feedback: impl IntoElement) -> View {
+    fn content_with_entry(
+        self,
+        feedback: impl IntoElement,
+        entry: ElementRef,
+        focus_on_mount: bool,
+    ) -> View {
         let nav = self.nav;
         let content = view()
             .w(move || {
@@ -282,11 +307,18 @@ impl Rail {
             .pb_2()
             .gap_1()
             .when(terminal::active(), |v| {
-                v.flex_1().px(px(COLUMN)).py(px(ROW)).gap_0()
+                v.flex_1()
+                    .px(terminal::cols(1.0))
+                    .py(terminal::rows(1.0))
+                    .gap_0()
             })
             .child(ui::title_bar().when(terminal::active(), |v| v.hidden()))
-            .child(self.account_item())
-            .child(view().h_2().when(terminal::active(), |v| v.h(px(ROW))))
+            .child(self.account_item(entry, focus_on_mount))
+            .child(
+                view()
+                    .h_2()
+                    .when(terminal::active(), |v| v.h(terminal::rows(1.0))),
+            )
             .child(self.category(ui::Icon::Chat, Key::NshAllChats, "chats"))
             .child(ui::divider())
             .child(self.category(ui::Icon::Contacts, Key::ContactTitle, "contacts"))
@@ -305,10 +337,10 @@ impl Rail {
                     if nav.drawer() {
                         "↑↓  Enter  Esc"
                     } else {
-                        "F6  ↑↓  Enter"
+                        "^B  ↑↓  Enter"
                     }
                 })
-                .px(px(COLUMN))
+                .px(terminal::cols(1.0))
                 .number_of_lines(1)
                 .text_color(ui::fg_secondary)
             }))
@@ -323,13 +355,13 @@ impl Rail {
             // The PTY moves focus spatially, including into virtual circle rows.
             view()
                 .h_full()
-                .child(content.basis(move || window().height - px(ROW)))
+                .child(content.basis(move || window().height - terminal::rows(1.0)))
         } else {
             content
         }
     }
 
-    fn account_item(self) -> impl IntoElement {
+    fn account_item(self, entry: ElementRef, focus_on_mount: bool) -> impl IntoElement {
         let i18n = i18n::current();
         let Self {
             nav,
@@ -337,18 +369,8 @@ impl Rail {
             labels,
             ..
         } = self;
-        let entry = element_ref();
-        if terminal::active() {
-            on_key("ctrl+b", move |_| {
-                if nav.drawer() {
-                    nav.open_drawer();
-                } else {
-                    entry.focus();
-                }
-            });
-            if nav.drawer_open() {
-                after_answer(move || entry.focus());
-            }
+        if focus_on_mount {
+            after_answer(move || entry.focus());
         }
         // Inset so its avatar centers on the rows' icon column, also when collapsed.
         ui::card().child(

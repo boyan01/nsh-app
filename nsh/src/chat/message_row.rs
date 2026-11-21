@@ -153,13 +153,13 @@ impl Rows {
                 |style| {
                     if terminal::active() {
                         // Terminal vertical padding starts at 24pt, rounded to a single row.
-                        style.pt(px(2.0 * terminal::ROW))
+                        style.pt(terminal::rows(2.0))
                     } else {
                         style.pt_2()
                     }
                 },
             )
-            .style_when(terminal::active, |s| s.px(px(3.0 * terminal::COLUMN)))
+            .style_when(terminal::active, |s| s.px(terminal::cols(3.0)))
             .style_when(selected, |style| style.bg(ui::state_selected))
             .children(unread.map(|unread| unread.divider(i18n, id)))
             .child(when(

@@ -49,8 +49,8 @@ fn modal(close: impl Fn() + 'static, card: View) -> nsh_core::element::Modal {
     let presence =
         use_context::<crate::motion::Presence>().expect("Creation surface provides motion");
     let card = card.when(crate::terminal::active(), |v| {
-        v.px(px(crate::terminal::COLUMN))
-            .py(px(crate::terminal::ROW))
+        v.px(crate::terminal::cols(1.0))
+            .py(crate::terminal::rows(1.0))
             .child(
                 text(move || format!("Tab   Shift+Tab   Esc {}", t(Key::Close)))
                     .number_of_lines(1)

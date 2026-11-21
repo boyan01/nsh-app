@@ -96,9 +96,9 @@ pub(super) fn bar(
         .pr_3()
         .py_2()
         .style_when(terminal::active, |s| {
-            s.px(px(3.0 * terminal::COLUMN))
+            s.px(terminal::cols(3.0))
                 .py_0()
-                .border_b(px(terminal::ROW))
+                .border_b(terminal::rows(1.0))
                 .border_color(ui::hairline)
                 .bg(ui::surface_chat)
         })

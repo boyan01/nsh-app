@@ -295,8 +295,8 @@ pub(crate) fn screen(
         unobstructed,
         transcript: None,
     };
-    // Escape steps back one layer: the reply, the selection, then the side panel.
-    // Inputs keep theirs.
+    // Escape steps back one layer: side panel, reply, selection, then close (TUI).
+    // Inputs handle Escape through the same transition function.
     on_key_with(
         "escape",
         KeyOptions {
@@ -304,38 +304,16 @@ pub(crate) fn screen(
             ..KeyOptions::default()
         },
         move |_| {
-            if terminal
-                && chat_navigation.selected_id.get_untracked().as_deref()
-                    != Some(detail_id.get().as_str())
-            {
-                return;
-            }
-            if terminal && side.get_untracked().is_some() {
-                chat_navigation.back_panel();
-                return;
-            }
-            // A reply is the nearest layer: Escape cancels it first. The
-            // composer's own binding does the same while the input has focus.
-            if !navigation.settings.get_untracked() && actions.quote.with_untracked(Option::is_some)
-            {
-                actions.quote.set(None);
-                return;
-            }
-            if navigation.settings.get_untracked()
-                || actions.preview.with_untracked(Option::is_some)
-                || actions.forwarding.with_untracked(|ids| !ids.is_empty())
-            {
-                return;
-            }
-            if actions.selected.with_untracked(|ids| !ids.is_empty()) {
-                if !actions.busy.get_untracked() {
-                    actions.selected.set(Vec::new());
-                }
-            } else if side.get_untracked().is_some() {
-                chat_navigation.back_panel();
-            } else if terminal {
-                chat_navigation.close_conversation();
-            }
+            step_back_escape(
+                terminal,
+                navigation,
+                chat_navigation,
+                security,
+                shortcuts,
+                actions,
+                pane,
+                &detail_id.get(),
+            );
         },
     );
     let focus_layout = computed(move || {
@@ -499,8 +477,8 @@ pub(crate) fn screen(
                         .style_when(
                             move || terminal,
                             |s| {
-                                s.px(px(crate::terminal::COLUMN))
-                                    .pb(px(crate::terminal::ROW))
+                                s.px(crate::terminal::cols(1.0))
+                                    .pb(crate::terminal::rows(1.0))
                             },
                         )
                         .child(ui::edge_fade(false, ui::surface_chat))
@@ -605,6 +583,45 @@ pub(crate) fn screen(
             )
             .into_element()
         }))
+}
+
+/// Unified layered Escape transition shared by non-editing keymap and composer input.
+#[allow(clippy::too_many_arguments)]
+fn step_back_escape(
+    terminal: bool,
+    navigation: crate::navigation::Navigation,
+    chat_navigation: crate::navigation::ChatNavigation,
+    security: crate::security::Handle,
+    shortcuts: Option<crate::terminal::Shortcuts>,
+    actions: message_actions::Actions,
+    pane: Option<panes::Visibility>,
+    conversation_id: &str,
+) {
+    if pane.is_some_and(|pane| !pane.0.get_untracked())
+        || chat_navigation.selected_id.get_untracked().as_deref() != Some(conversation_id)
+    {
+        return;
+    }
+    if navigation.settings.get_untracked()
+        || navigation.drawer_open()
+        || security.blocked()
+        || shortcuts.is_some_and(|s| !s.available.get_untracked())
+        || actions.preview.with_untracked(Option::is_some)
+        || actions.forwarding.with_untracked(|ids| !ids.is_empty())
+    {
+        return;
+    }
+    if chat_navigation.panel.get_untracked().is_some() {
+        chat_navigation.back_panel();
+    } else if actions.quote.with_untracked(Option::is_some) {
+        actions.quote.set(None);
+    } else if actions.selected.with_untracked(|ids| !ids.is_empty()) {
+        if !actions.busy.get_untracked() {
+            actions.selected.set(Vec::new());
+        }
+    } else if terminal {
+        chat_navigation.close_conversation();
+    }
 }
 
 /// The chrome floating over the top of the timeline: the title bar, then the

@@ -205,8 +205,7 @@ impl Palette {
             ..Default::default()
         };
         on_key_with("tab", always(), move |_| move_highlight(true));
-        #[cfg(target_os = "macos")]
-        {
+        if cfg!(target_os = "macos") || crate::terminal::active() {
             on_key_with("ctrl+n", always(), move |_| move_highlight(true));
             on_key_with("ctrl+p", always(), move |_| move_highlight(false));
         }

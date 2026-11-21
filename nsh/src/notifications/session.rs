@@ -16,6 +16,9 @@ pub(crate) fn attach(
     selected: Signal<Option<ConversationListData>>,
     navigation: ChatNavigation,
 ) {
+    if crate::terminal::active() {
+        return;
+    }
     let handle = use_context::<Handle>().expect("App provides native notifications");
     if handle.native.with(|native| native.is_none()) {
         return;

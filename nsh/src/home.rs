@@ -124,8 +124,7 @@ pub(crate) fn screen(
     };
     let terminal = crate::terminal::active();
     let search_hidden = computed(move || {
-        nav.settings.get()
-            || ((terminal || home.narrow()) && home.selected_id.with(Option::is_some))
+        nav.settings.get() || (home.narrow() && home.selected_id.with(Option::is_some))
     });
     effect(move || {
         if search_hidden.get() {
@@ -151,6 +150,23 @@ pub(crate) fn screen(
         home.search
             .on_focus_out(move || home.search_mode.set(false));
         effect(move || {
+            if !nav.settings.get()
+                || nav.drawer_open()
+                || palette_open.get()
+                || security.blocked()
+                || bots.ending()
+            {
+                return;
+            }
+            on_key("escape", move |_| {
+                if home.narrow() && home.settings_detail.get_untracked() {
+                    home.settings_detail.set(false);
+                } else {
+                    nav.settings.set(false);
+                }
+            });
+        });
+        effect(move || {
             if !available.get() {
                 return;
             }
@@ -163,7 +179,7 @@ pub(crate) fn screen(
             for (key, forward) in [("f5", false), ("f6", true)] {
                 on_key(key, move |_| home.window.step(forward));
             }
-            if home.selected_id.with(Option::is_some) {
+            if home.narrow() && home.selected_id.with(Option::is_some) {
                 home.search_mode.set(false);
                 return;
             }
@@ -188,14 +204,7 @@ pub(crate) fn screen(
             }
         });
         home.window.follow_terminal_focus(move || {
-            !nav.settings.get()
-                && !nav.drawer_open()
-                && !home.search_mode.get()
-                && !home.searching()
-                && !composing.get()
-                && !palette_open.get()
-                && !security.blocked()
-                && !bots.ending()
+            available.get() && !home.search_mode.get() && !home.searching() && !composing.get()
         });
     }
     on_key("mod+k", move |_| {
@@ -303,9 +312,9 @@ pub(crate) fn screen(
                         )
                     }
                 })
-                .h(px(crate::terminal::ROW))
-                .line_height(px(crate::terminal::ROW))
-                .px(px(2.0 * crate::terminal::COLUMN))
+                .h(crate::terminal::rows(1.0))
+                .line_height(crate::terminal::rows(1.0))
+                .px(crate::terminal::cols(2.0))
                 .number_of_lines(1)
                 .text_color(ui::fg_secondary)
             },
@@ -695,7 +704,7 @@ pub(crate) fn list_header(
         .py_2()
         .gap_2()
         .style_when(crate::terminal::active, |s| {
-            s.px(px(2.0 * crate::terminal::COLUMN))
+            s.px(crate::terminal::cols(2.0))
         })
         .child(sidebar::trigger(nav))
         .child(search_field(query, composing, unread, search))

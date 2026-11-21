@@ -177,16 +177,11 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
         input.on_copy_fallback(move || (copy.0)());
     }
     let terminal = crate::terminal::active();
-    if let Some(shortcuts) = use_context::<crate::terminal::Shortcuts>() {
-        effect(move || {
-            if input_focused.get() && shortcuts.available.get() {
-                // RichEditor installs its text bindings as focus enters. Own
-                // the terminal palette chord for this same focus lifetime.
-                after_answer(move || {
-                    on_key_with("ctrl+k", crate::terminal::key_options(), move |_| {
-                        shortcuts.palette_open.set(true);
-                    });
-                });
+    let shortcuts = use_context::<crate::terminal::Shortcuts>();
+    if let Some(shortcuts) = shortcuts {
+        input.on_quick_search(move || {
+            if shortcuts.available.get_untracked() {
+                shortcuts.palette_open.set(true);
             }
         });
     }
@@ -220,38 +215,28 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
             input.focus();
         }
     });
-    // Escape in the input cancels a reply. The editor keeps Escape and closes
-    // an open mention picker with it first; the reply waits for the next one.
-    let navigation =
+    // Escape in the input uses the same layered transition as non-editing chat.
+    // The editor closes an open mention picker first before emitting an escape.
+    let chat_navigation =
         use_context::<crate::navigation::ChatNavigation>().expect("Home provides chat navigation");
-    let shell = use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
+    let navigation =
+        use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
+    let security = use_context::<crate::security::Handle>().expect("Home provides security");
+    let pane = use_context::<super::panes::Visibility>();
     let escapes = stored(input.escapes.get_untracked());
     effect(move || {
         let count = input.escapes.get();
         if escapes.replace(count) != count {
-            if terminal && navigation.panel.get_untracked().is_some() {
-                navigation.back_panel();
-            } else if terminal && actions.selected.with_untracked(|ids| !ids.is_empty()) {
-                if !actions.busy.get_untracked() {
-                    actions.selected.set(Vec::new());
-                }
-            } else if quote.with_untracked(Option::is_some) {
-                quote.set(None);
-            } else if !shell.settings.get_untracked()
-                && !actions.preview.with_untracked(Option::is_some)
-                && actions.forwarding.with_untracked(Vec::is_empty)
-                && actions.selected.with_untracked(Vec::is_empty)
-            {
-                if terminal
-                    && navigation.panel.get_untracked().is_none()
-                    && navigation.selected_id.get_untracked().as_deref()
-                        == Some(draft_id.get().as_str())
-                {
-                    navigation.close_conversation();
-                } else {
-                    navigation.back_panel();
-                }
-            }
+            super::step_back_escape(
+                terminal,
+                navigation,
+                chat_navigation,
+                security,
+                shortcuts,
+                actions,
+                pane,
+                &draft_id.get(),
+            );
         }
     });
     let send = send_command(SendContext {
@@ -359,13 +344,17 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
     // the key goes to the input, as in Telegram and the mobile apps. Only
     // letters and digits, with Shift for capitals; other keys keep their jobs.
     let typed = insert.clone();
-    let navigation =
-        use_context::<crate::navigation::Navigation>().expect("Home provides navigation");
     let type_to_input = Rc::new(move |text: String| {
         let (_, covered, _) = focus_layout.get_untracked();
         if can_send.get_untracked()
             && !covered
             && !navigation.settings.get_untracked()
+            && !navigation.drawer_open()
+            && !security.blocked()
+            && shortcuts.is_none_or(|s| s.available.get_untracked())
+            && pane.is_none_or(|pane| pane.0.get_untracked())
+            && chat_navigation.selected_id.get_untracked().as_deref()
+                == Some(draft_id.get().as_str())
             && actions.preview.with_untracked(Option::is_none)
             && actions.forwarding.with_untracked(Vec::is_empty)
             && actions.selected.with_untracked(Vec::is_empty)
@@ -404,7 +393,7 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
         .gap_2()
         .style_when(
             move || terminal,
-            |style| style.p_0().gap(px(crate::terminal::ROW)),
+            |style| style.p_0().gap(crate::terminal::rows(1.0)),
         )
         .style_when(move || !can_send.get(), |style| style.hidden())
         .child(when(

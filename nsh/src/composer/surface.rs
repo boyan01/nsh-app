@@ -11,7 +11,7 @@ pub(crate) fn frame() -> View {
         .border_color(ui::input_border)
         .style_when(terminal::active, |s| {
             s.border(px(0.0))
-                .border_t(px(terminal::ROW))
+                .border_t(terminal::rows(1.0))
                 .rounded(px(0.0))
                 .bg(ui::surface_chat)
         })
@@ -28,7 +28,7 @@ pub(crate) fn editor(
     let frame = frame().child(reply).child(files);
     if terminal::active() {
         return frame.child(
-            view().px(px(2.0 * terminal::COLUMN)).child(input).child(
+            view().px(terminal::cols(2.0)).child(input).child(
                 view()
                     .flex_row()
                     .items_center()

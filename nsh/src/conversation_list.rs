@@ -160,7 +160,7 @@ impl Cells {
         })
         .element_ref(&list)
         .estimated_item_size(if crate::terminal::active() {
-            px(3.0 * crate::terminal::ROW)
+            crate::terminal::rows(3.0)
         } else {
             ui::list_row_height()
         })
@@ -242,14 +242,14 @@ impl Cells {
             .child(self.preview_line(row));
         let content = if terminal {
             view()
-                .h(px(2.0 * crate::terminal::ROW))
-                .min_h(px(2.0 * crate::terminal::ROW))
-                .mx(px(crate::terminal::COLUMN))
+                .h(crate::terminal::rows(2.0))
+                .min_h(crate::terminal::rows(2.0))
+                .mx(crate::terminal::cols(1.0))
                 .flex_row()
                 .items_start()
-                .pl(px(3.0 * crate::terminal::COLUMN))
-                .pr(px(crate::terminal::COLUMN))
-                .gap(px(crate::terminal::COLUMN))
+                .pl(crate::terminal::cols(3.0))
+                .pr(crate::terminal::cols(1.0))
+                .gap(crate::terminal::cols(1.0))
                 .text_role(ui::TextRole::Body)
                 .text_color(ui::fg_primary)
                 .focusable(focus_ref.is_none())
@@ -277,9 +277,9 @@ impl Cells {
             // Paint focus on the marker before drawing the row text. The keyboard
             // target keeps the list item's bounds for directional focus and scrolling.
             let marker = view()
-                .mx(px(crate::terminal::COLUMN))
-                .h(px(3.0 * crate::terminal::ROW))
-                .min_h(px(3.0 * crate::terminal::ROW))
+                .mx(crate::terminal::cols(1.0))
+                .h(crate::terminal::rows(3.0))
+                .min_h(crate::terminal::rows(3.0))
                 .pointer_events(PointerEvents::None)
                 .child(
                     text(move || {
@@ -291,9 +291,9 @@ impl Cells {
                             " "
                         }
                     })
-                    .w(px(crate::terminal::COLUMN))
-                    .h(px(crate::terminal::ROW))
-                    .line_height(px(crate::terminal::ROW))
+                    .w(crate::terminal::cols(1.0))
+                    .h(crate::terminal::rows(1.0))
+                    .line_height(crate::terminal::rows(1.0))
                     .text_color(terminal_primary),
                 )
                 .child(crate::terminal::spacer())
@@ -351,7 +351,7 @@ impl Cells {
             .gap_1()
             .style_when(
                 move || terminal,
-                |s| s.h(px(crate::terminal::ROW)).flex_shrink_0(),
+                |s| s.h(crate::terminal::rows(1.0)).flex_shrink_0(),
             )
             .child(
                 text(move || read(row, |row| row.name.clone()))
@@ -362,7 +362,7 @@ impl Cells {
                     .style_when(
                         move || terminal,
                         |s| {
-                            s.line_height(px(crate::terminal::ROW))
+                            s.line_height(crate::terminal::rows(1.0))
                                 .font_weight(FontWeight::BOLD)
                                 .text_color(terminal_primary)
                         },
@@ -414,7 +414,7 @@ impl Cells {
             .gap_2()
             .style_when(
                 move || terminal,
-                |s| s.h(px(crate::terminal::ROW)).flex_shrink_0(),
+                |s| s.h(crate::terminal::rows(1.0)).flex_shrink_0(),
             )
             .child(
                 view()
@@ -453,7 +453,7 @@ impl Cells {
                             .text_role(ui::TextRole::Body)
                             .style_when(
                                 move || terminal,
-                                |s| s.line_height(px(crate::terminal::ROW)),
+                                |s| s.line_height(crate::terminal::rows(1.0)),
                             )
                             .text_color(ui::fg_secondary),
                     ),

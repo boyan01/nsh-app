@@ -40,6 +40,7 @@ pub(crate) type NavigateHistory = Rc<dyn Fn(HistoryNavigation)>;
 enum Command {
     Changed,
     History(HistoryNavigation),
+    QuickSearch,
     CopyFallback,
     #[cfg(target_os = "macos")]
     HideWindow,
@@ -67,6 +68,7 @@ pub(crate) struct Input {
     /// takes the key, so a shortcut bound to it never hears it.
     pub escapes: Signal<u64>,
     navigate_history: Stored<Option<NavigateHistory>>,
+    quick_search: Stored<Option<Rc<dyn Fn()>>>,
     submit: Stored<Option<Rc<dyn Fn()>>>,
     copy_fallback: Stored<Option<Rc<dyn Fn()>>>,
     submit_post: Stored<Option<Rc<dyn Fn()>>>,
@@ -121,6 +123,7 @@ impl Input {
             keys: signal((0, String::new())),
             escapes: signal(0),
             navigate_history: stored(None),
+            quick_search: stored(None),
             submit: stored(None),
             copy_fallback: stored(None),
             submit_post: stored(None),
@@ -158,6 +161,15 @@ impl Input {
                             self.navigate_history.with(|callback| {
                                 if let Some(callback) = callback {
                                     callback(direction);
+                                }
+                            });
+                        }
+                    }
+                    Command::QuickSearch => {
+                        if !self.composing() {
+                            self.quick_search.with(|callback| {
+                                if let Some(callback) = callback {
+                                    callback();
                                 }
                             });
                         }
@@ -240,6 +252,10 @@ impl Input {
 
     pub fn on_history_navigation(self, callback: Option<NavigateHistory>) {
         self.navigate_history.replace(callback);
+    }
+
+    pub fn on_quick_search(self, callback: impl Fn() + 'static) {
+        self.quick_search.replace(Some(Rc::new(callback)));
     }
 
     pub fn on_submit_post(self, send: Rc<dyn Fn()>) {
@@ -417,7 +433,7 @@ impl Input {
         let scroll_top = stored(Points::ZERO);
         let reveal_queued = stored(false);
         let min_height = if terminal {
-            px(2.0 * crate::terminal::ROW)
+            crate::terminal::rows(2.0)
         } else {
             crate::ui::button_height_small()
         };
@@ -508,7 +524,7 @@ impl Input {
                         .on_layout(move |bounds: &Bounds<Points>| {
                             let first = !measured.replace(true);
                             let max_height = if terminal {
-                                px(4.0 * crate::terminal::ROW)
+                                crate::terminal::rows(4.0)
                             } else {
                                 px(crate::ui::composer_text_max_height().0 * font_scale())
                             };
@@ -667,9 +683,9 @@ impl PluginSpec for Behavior {
             let _ = self.commands.send(Command::Picker(key.key.clone()));
             return true;
         }
-        // macOS text fields move the selection with Control-N and Control-P.
-        #[cfg(target_os = "macos")]
-        if key.ctrl
+        // macOS text fields and terminal mode move the picker selection with Ctrl-N / Ctrl-P.
+        if (cfg!(target_os = "macos") || self.terminal)
+            && key.ctrl
             && !(key.shift || key.alt || key.meta)
             && self.picker_open.load(Ordering::Relaxed)
         {
@@ -682,6 +698,14 @@ impl PluginSpec for Behavior {
                 let _ = self.commands.send(Command::Picker(direction.into()));
                 return true;
             }
+        }
+        if self.terminal
+            && key.ctrl
+            && !(key.shift || key.alt || key.meta)
+            && key.key.eq_ignore_ascii_case("k")
+        {
+            let _ = self.commands.send(Command::QuickSearch);
+            return true;
         }
         if self.terminal && !self.picker_open.load(Ordering::Relaxed) {
             // RichEditor owns these keystrokes while the sink has focus.
@@ -882,6 +906,39 @@ mod picker_tests {
                 }
                 None => assert!(receive.try_recv().is_err()),
             }
+        }
+    }
+
+    #[test]
+    fn terminal_ctrl_k_routes_to_quick_search_and_gui_leaves_it_to_editor() {
+        for terminal in [true, false] {
+            let (commands, mut receive) = mpsc::unbounded_channel();
+            let picker_open = Arc::new(AtomicBool::new(false));
+            let session = editor_session(
+                "draft",
+                (5, 5),
+                commands.clone(),
+                picker_open.clone(),
+                terminal,
+            );
+            let behavior = Behavior {
+                commands,
+                picker_open,
+                terminal,
+            };
+            let mut key = KeyEvent::new("k");
+            key.ctrl = true;
+            assert_eq!(
+                behavior.handle_key_down(&session.state(), &key, &mut |_| {
+                    panic!("Quick search must not edit the draft")
+                }),
+                terminal
+            );
+            assert!(matches!(receive.try_recv(), Ok(Command::Changed)));
+            assert_eq!(
+                matches!(receive.try_recv(), Ok(Command::QuickSearch)),
+                terminal
+            );
         }
     }
 }

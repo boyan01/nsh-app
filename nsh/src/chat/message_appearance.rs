@@ -334,9 +334,9 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
                 move || terminal,
                 |style| {
                     style
-                        .w(px(terminal::COLUMN))
-                        .h(px(terminal::ROW))
-                        .mr(px(terminal::COLUMN))
+                        .w(terminal::cols(1.0))
+                        .h(terminal::rows(1.0))
+                        .mr(terminal::cols(1.0))
                 },
             )
     };
@@ -345,7 +345,7 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
         .flex_shrink_0()
         .items_center()
         .h(if terminal {
-            px(terminal::ROW)
+            terminal::rows(1.0)
         } else {
             ui::message_status_height()
         });
@@ -364,8 +364,8 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
     if let Some(status) = delivery {
         let slot = if terminal {
             view()
-                .ml(px(terminal::COLUMN))
-                .w(px(2.0 * terminal::COLUMN))
+                .ml(terminal::cols(1.0))
+                .w(terminal::cols(2.0))
                 .flex_shrink_0()
         } else {
             view().ml(ui::space_sm())
@@ -411,8 +411,8 @@ pub(super) fn terminal_inline_stamp(row: &MessageListView, delivery: Option<Memo
     let clock = presentation::clock(row.created_at_micros / 1000);
     let columns = 1 + clock.len() + 2 * marks + 3 * usize::from(delivery.is_some());
     stamp(row, delivery, false)
-        .w(px(columns as f32 * terminal::COLUMN))
-        .pl(px(terminal::COLUMN))
+        .w(terminal::cols(columns as f32))
+        .pl(terminal::cols(1.0))
         .select_none()
         .pointer_events(PointerEvents::None)
 }
@@ -577,7 +577,7 @@ pub(super) fn sender(
             .items_center()
             .min_w_0()
             .ml(inset)
-            .gap(px(terminal::COLUMN))
+            .gap(terminal::cols(1.0))
             .children(children)
             .into_element()
     } else {

@@ -10,7 +10,7 @@ use crate::{i18n::t, runtime};
 /// A rail row and the rail's row gap, so circles keep the category rhythm.
 fn circle_row_height() -> Points {
     if terminal::active() {
-        px(ROW)
+        terminal::rows(1.0)
     } else {
         ui::nav_row_height() + ui::space_xs()
     }
@@ -170,7 +170,7 @@ impl Circles {
                 || {
                     text(move || t(Key::Circles))
                         .text_color(ui::fg_secondary)
-                        .px(px(COLUMN))
+                        .px(terminal::cols(1.0))
                 },
             ))
             .child(

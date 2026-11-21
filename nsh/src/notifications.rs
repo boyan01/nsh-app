@@ -35,6 +35,22 @@ pub(crate) struct Handle {
 }
 
 pub(crate) fn mount() -> Handle {
+    if crate::terminal::active() {
+        return Handle {
+            owner: Owner::current(),
+            native: stored(None),
+            clicks: signal(VecDeque::new()),
+            availability: Availability::UnsupportedPlatform,
+            permission: signal(None),
+            busy: signal(false),
+            failed: signal(false),
+            preview_retry: signal(0_u64),
+            preview: signal(false),
+            preview_ready: signal(false),
+            preview_busy: signal(false),
+            preview_failed: signal(false),
+        };
+    }
     let availability = native::availability();
     let initialized = NativeNotifications::new();
     let failed = initialized.is_err() && availability == Availability::Available;

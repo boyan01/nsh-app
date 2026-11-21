@@ -358,7 +358,7 @@ fn card(quote: Quote, actions: Actions) -> View {
     let quote = stored(quote);
     let color = move || quote.with(|quote| ui::name_color(&quote.author_id));
     let inset = if terminal::active() {
-        px(terminal::COLUMN)
+        terminal::cols(1.0)
     } else {
         ui::quote_bar_width()
     };
@@ -372,7 +372,7 @@ fn card(quote: Quote, actions: Actions) -> View {
         .bg(ui::quote_background)
         .overflow_hidden()
         .style_when(terminal::active, |s| {
-            s.border_l(px(terminal::COLUMN))
+            s.border_l(terminal::cols(1.0))
                 .border_color(ui::fg_secondary)
         })
         .child(

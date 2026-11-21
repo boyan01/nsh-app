@@ -110,7 +110,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
         view()
             .gap_3()
             .when(!terminal, |v| v.size_40())
-            .when(terminal, |v| v.w_full().gap(px(crate::terminal::ROW)))
+            .when(terminal, |v| v.w_full().gap(crate::terminal::rows(1.0)))
             .items_center()
             .justify_center()
     };
@@ -133,7 +133,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                     .justify_center()
                     .gap_4()
                     .p_8()
-                    .style_when(move || terminal, |s| s.w_full().h_full().px(px(crate::terminal::COLUMN)).py_0().gap(px(crate::terminal::ROW)))
+                    .style_when(move || terminal, |s| s.w_full().h_full().px(crate::terminal::cols(1.0)).py_0().gap(crate::terminal::rows(1.0)))
                     .child(
                         view()
                             .style_when(move || !terminal, |s| s.size_40())
@@ -156,9 +156,9 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                     )
                                     .into_element(),
                                 LoginPhase::Waiting(source, Some(side)) => {
-                                    let width = crate::terminal::COLUMN * side as f32;
+                                    let width = crate::terminal::cols(side as f32);
                                     let required_rows = side / 2 + 5;
-                                    let rows = window().height.0 / crate::terminal::ROW;
+                                    let rows = crate::terminal::viewport_rows();
                                     let required_columns = side + 2;
                                     if !crate::terminal::image_supported() {
                                         text("Use a 256-color terminal to scan the code, or sign in from the desktop app.")
@@ -168,7 +168,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                                         text(format!("Enlarge to {required_columns} columns × {} rows to scan the code.", required_rows + 1))
                                             .text_center().into_element()
                                     } else {
-                                        image(source).size(px(width)).flex_shrink_0()
+                                        image(source).size(width).flex_shrink_0()
                                             .label(move || i18n.t(Key::NshScanToSignIn)).into_element()
                                     }
                                 }
@@ -228,7 +228,7 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                 .items_center()
                 .px_4()
                 .py_3()
-                .when(terminal, |v| v.px(px(crate::terminal::COLUMN)).py_0())
+                .when(terminal, |v| v.px(crate::terminal::cols(1.0)).py_0())
                 .child(i18n.picker())
                 .child(
                     text(env!("CARGO_PKG_VERSION"))

@@ -29,12 +29,24 @@ pub(crate) fn key_options() -> KeyOptions {
 pub(crate) const COLUMN: f32 = 8.0;
 pub(crate) const ROW: f32 = 16.0;
 
+pub(crate) fn cols(n: f32) -> Points {
+    px(n * COLUMN)
+}
+
+pub(crate) fn rows(n: f32) -> Points {
+    px(n * ROW)
+}
+
 pub(crate) fn spacer() -> View {
-    view().h(px(ROW)).flex_shrink_0()
+    view().h(rows(1.0)).flex_shrink_0()
 }
 
 pub(crate) fn columns() -> f32 {
     window().width.0 / COLUMN
+}
+
+pub(crate) fn viewport_rows() -> f32 {
+    window().height.0 / ROW
 }
 
 pub(crate) fn image_supported() -> bool {

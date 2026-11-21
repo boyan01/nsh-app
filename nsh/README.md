@@ -95,8 +95,15 @@ open conversation when focus is elsewhere.
 | Editor | Enter, Shift+Enter | Queue the message or insert a line break when the terminal sends a distinct Shift+Enter. Typing and bracketed paste also work. |
 | Application | F10, Ctrl+C | Open the application menu or exit the terminal. |
 
-Images use half-blocks in 256-color and true-color terminals. Lower color
-depths show avatar initials and a text label for image messages.
+Click a conversation to open it. Use the mouse wheel over the conversation
+list or chat history to scroll that pane. Right-click a conversation or a
+message to open its context menu.
+
+The terminal loads remote avatars and images over HTTP and HTTPS. Kitty and
+Ghostty display pixel images when the Kitty Graphics probe succeeds in
+true-color mode. Without Kitty Graphics, true-color and 256-color terminals
+render images with half-block characters. Lower color depths show avatar
+initials and a text label for image messages.
 For first-time sign-in, use a 256-color terminal and enlarge it to the size
 shown by the sign-in prompt, or sign in from Mixin Desktop first.
 

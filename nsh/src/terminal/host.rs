@@ -16,12 +16,16 @@ use std::{
 use crossterm::{
     cursor::{MoveTo, Show},
     event::{
-        self, DisableBracketedPaste, EnableBracketedPaste, KeyCode, KeyEventKind, KeyModifiers,
+        self, DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture,
+        KeyCode, KeyEventKind, KeyModifiers,
     },
     execute,
     terminal::{self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use nsh_platform_tui::{AppOptions, AppView, ColorDepth, Input, Modifiers, Root, RunEvent};
+use nsh_platform_tui::{
+    AppOptions, AppView, ColorDepth, Input, Modifiers, MouseButton, MouseInput, MouseKind, Root,
+    RunEvent, TerminalCapabilities,
+};
 use ratatui_core::terminal::Terminal;
 use ratatui_crossterm::CrosstermBackend;
 
@@ -32,6 +36,7 @@ use nsh_platform_linux::CacheLocation;
 #[cfg(target_os = "macos")]
 use nsh_platform_macos::CacheLocation;
 
+mod graphics;
 #[cfg(target_os = "macos")]
 mod macos;
 
@@ -120,6 +125,7 @@ pub(super) fn color_depth() -> ColorDepth {
         {
             ColorDepth::TrueColor
         }
+        _ if graphics::placeholder_terminal() => ColorDepth::TrueColor,
         _ if std::env::var("TERM").is_ok_and(|value| value.contains("256color")) => {
             ColorDepth::Ansi256
         }
@@ -127,10 +133,14 @@ pub(super) fn color_depth() -> ColorDepth {
     }
 }
 
-fn fullscreen(root: Root, options: AppOptions) -> io::Result<()> {
-    let _session = Screen::enter()?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(BufWriter::new(stdout())))?;
+fn fullscreen(root: Root, mut options: AppOptions) -> io::Result<()> {
+    let _session = Screen::enter(&mut options.capabilities)?;
+    if QUIT.load(Ordering::Relaxed) {
+        return Ok(());
+    }
     let mut surface = AppView::new(options);
+    let mut terminal =
+        Terminal::new(surface.measure_backend(CrosstermBackend::new(BufWriter::new(stdout()))))?;
     let failure = Arc::new(Mutex::new(None));
     let reported = failure.clone();
     surface.on_app_error(move |error| {
@@ -151,16 +161,24 @@ fn fullscreen(root: Root, options: AppOptions) -> io::Result<()> {
     Ok(())
 }
 
-struct Screen;
+struct Screen {
+    fullscreen: bool,
+}
 
 impl Screen {
-    fn enter() -> io::Result<Self> {
+    fn enter(capabilities: &mut TerminalCapabilities) -> io::Result<Self> {
         terminal::enable_raw_mode()?;
-        let screen = Self;
+        let mut screen = Self { fullscreen: false };
+        graphics::detect(capabilities);
+        if QUIT.load(Ordering::Relaxed) {
+            return Ok(screen);
+        }
+        screen.fullscreen = true;
         execute!(
             stdout(),
             EnterAlternateScreen,
             EnableBracketedPaste,
+            EnableMouseCapture,
             Clear(ClearType::All),
             MoveTo(0, 0)
         )?;
@@ -170,7 +188,15 @@ impl Screen {
 
 impl Drop for Screen {
     fn drop(&mut self) {
-        let _ = execute!(stdout(), DisableBracketedPaste, LeaveAlternateScreen, Show);
+        if self.fullscreen {
+            let _ = execute!(
+                stdout(),
+                DisableMouseCapture,
+                DisableBracketedPaste,
+                LeaveAlternateScreen,
+                Show
+            );
+        }
         let _ = terminal::disable_raw_mode();
     }
 }
@@ -188,6 +214,7 @@ fn poll(wait: Duration) -> io::Result<RunEvent> {
     Ok(match event {
         Event::Resize(..) => RunEvent::Redraw,
         Event::Paste(text) => RunEvent::Input(Input::Paste(text)),
+        Event::Mouse(mouse) => RunEvent::Input(Input::Mouse(mouse_input(mouse))),
         Event::Key(key) if key.kind != KeyEventKind::Release => {
             if key.code == KeyCode::Char('c') && key.modifiers == KeyModifiers::CONTROL {
                 return Ok(RunEvent::Exit);
@@ -210,12 +237,8 @@ fn poll(wait: Duration) -> io::Result<RunEvent> {
                 KeyCode::F(number) => format!("F{number}"),
                 _ => return Ok(RunEvent::Idle),
             };
-            let modifiers = Modifiers {
-                ctrl: key.modifiers.contains(KeyModifiers::CONTROL),
-                alt: key.modifiers.contains(KeyModifiers::ALT),
-                shift: key.modifiers.contains(KeyModifiers::SHIFT) || key.code == KeyCode::BackTab,
-                cmd: key.modifiers.contains(KeyModifiers::SUPER),
-            };
+            let mut modifiers = modifiers(key.modifiers);
+            modifiers.shift |= key.code == KeyCode::BackTab;
             if key.kind == KeyEventKind::Repeat {
                 RunEvent::Input(Input::KeyRepeat {
                     key: name,
@@ -231,4 +254,37 @@ fn poll(wait: Duration) -> io::Result<RunEvent> {
         }
         _ => RunEvent::Idle,
     })
+}
+
+fn modifiers(keys: KeyModifiers) -> Modifiers {
+    Modifiers {
+        ctrl: keys.contains(KeyModifiers::CONTROL),
+        alt: keys.contains(KeyModifiers::ALT),
+        shift: keys.contains(KeyModifiers::SHIFT),
+        cmd: keys.contains(KeyModifiers::SUPER),
+    }
+}
+
+fn mouse_input(mouse: event::MouseEvent) -> MouseInput {
+    use event::MouseEventKind;
+
+    let button = |button| match button {
+        event::MouseButton::Left => MouseButton::Left,
+        event::MouseButton::Right => MouseButton::Right,
+        event::MouseButton::Middle => MouseButton::Middle,
+    };
+    let mut input = MouseInput::default();
+    input.column = mouse.column;
+    input.row = mouse.row;
+    input.modifiers = modifiers(mouse.modifiers);
+    input.kind = match mouse.kind {
+        MouseEventKind::Down(b) => MouseKind::Down(button(b)),
+        MouseEventKind::Up(b) => MouseKind::Up(button(b)),
+        MouseEventKind::Moved | MouseEventKind::Drag(_) => MouseKind::Move,
+        MouseEventKind::ScrollUp => MouseKind::Wheel { x: 0, y: -1 },
+        MouseEventKind::ScrollDown => MouseKind::Wheel { x: 0, y: 1 },
+        MouseEventKind::ScrollLeft => MouseKind::Wheel { x: -1, y: 0 },
+        MouseEventKind::ScrollRight => MouseKind::Wheel { x: 1, y: 0 },
+    };
+    input
 }

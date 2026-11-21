@@ -255,6 +255,15 @@ impl Window {
             self.rows
                 .with_untracked(|rows| rows.get(first).map(|row| row.conversation_id.clone())),
         );
+        // Search can cancel a page read and return to the same rows, leaving
+        // NSH's end event spent for that window.
+        if crate::terminal::active()
+            && !self.loading.get_untracked()
+            && !self.failed.get_untracked()
+            && self.rows.with_untracked(|rows| last + 1 == rows.len())
+        {
+            self.next();
+        }
     }
 
     fn load(self, load: Load) {

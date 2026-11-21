@@ -32,7 +32,8 @@ tokio = { version = "1", features = ["rt-multi-thread", "signal", "net", "io-uti
 
 [target.'cfg(any(target_os = "macos", target_os = "linux"))'.dependencies]
 crossterm = { version = "0.29", features = ["use-dev-tty"] }
-nsh-platform-tui = { git = "https://github.com/longbridge/nsh", branch = "main", default-features = false, features = ["run-app", "svg"] }
+libc = "0.2"
+nsh-platform-tui = { git = "https://github.com/longbridge/nsh", branch = "main", default-features = false, features = ["run-app", "net", "svg"] }
 ratatui-core = "0.1.2"
 ratatui-crossterm = "0.1.2"
 
@@ -45,7 +46,6 @@ webkit6 = "0.6"
 zbus = { version = "5", default-features = false, features = ["tokio"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-libc = "0.2"
 objc2 = "0.6"
 objc2-foundation = "0.3"
 objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "libc", "NSAlert", "NSApplication", "NSImageView", "NSOpenPanel", "NSPanel", "NSRunningApplication", "NSSavePanel", "NSWorkspace"] }

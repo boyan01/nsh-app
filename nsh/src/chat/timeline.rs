@@ -243,6 +243,7 @@ pub(crate) fn blink(
 struct Replacement {
     ticket: u64,
     tail: bool,
+    newer: bool,
     /// The position revision to scroll to the latest row under.
     scroll_latest: Option<u64>,
     /// The reader asked for the latest rows: move there as a jump does.
@@ -274,6 +275,7 @@ pub(super) struct Timeline {
     pub has_older: Signal<bool>,
     visible_anchor: Signal<Option<String>>,
     following_tail: Signal<bool>,
+    terminal_at_tail: Stored<bool>,
     show_latest: Signal<bool>,
     /// The reader asked for the latest rows: the jump button stays hidden
     /// while the list scrolls there, instead of flickering at its threshold.
@@ -317,6 +319,7 @@ impl Timeline {
             has_older: signal(false),
             visible_anchor: signal(None),
             following_tail: signal(true),
+            terminal_at_tail: stored(false),
             show_latest: signal(false),
             settling: stored(false),
             reveal: Reveal::new(),
@@ -337,6 +340,7 @@ impl Timeline {
             let client = actions.account.with(|account| account.clone());
             let id = state.conversation.with(|id| id.clone());
             let highlight = matches!(request, Load::Jump(_));
+            let newer = matches!(request, Load::Newer);
             let explicit = matches!(
                 request,
                 Load::Latest | Load::Jump(_) | Load::InitialUnread(_)
@@ -358,7 +362,7 @@ impl Timeline {
                 }
                 match result {
                     Ok((window, permissions)) => {
-                        if state.apply(window, permissions, highlight, explicit, ticket) {
+                        if state.apply(window, permissions, highlight, explicit, newer, ticket) {
                             return;
                         }
                     }
@@ -475,6 +479,7 @@ impl Timeline {
         permissions: Vec<MessageActions>,
         highlight: bool,
         explicit: bool,
+        newer: bool,
         ticket: u64,
     ) -> bool {
         let tail = window.tail && (explicit || self.following_tail.get_untracked());
@@ -574,6 +579,7 @@ impl Timeline {
             Replacement {
                 ticket,
                 tail,
+                newer,
                 scroll_latest: (tail && moved).then_some(position_revision),
                 animate: explicit && !self.loading.get_untracked(),
             },
@@ -622,7 +628,26 @@ impl Timeline {
                     .position(|row| Some(&row.message_id) == anchor.as_ref())
             })
         });
+        // At its physical bottom the inverted list follows item 0. A newer
+        // page moves that item away from 0, but the reader is still in history.
+        let terminal_anchor = if replacement.newer && self.terminal_at_tail.get() {
+            previous.first().and_then(|first| {
+                rows.iter()
+                    .position(|row| row.message_id == first.message_id)
+                    .filter(|index| *index > 0)
+            })
+        } else {
+            None
+        };
         self.messages.set(rows);
+        if let Some(index) = terminal_anchor {
+            self.history.scroll_to_index(
+                index as u32,
+                percentage(0.0),
+                px(self.reveal.bottom.get()),
+                false,
+            );
+        }
         if let Some(revision) = replacement.scroll_latest {
             let current = move || self.position_revision.get_untracked() == revision;
             match distance.map(|distance| Motion::for_jump(distance, true)) {
@@ -691,11 +716,25 @@ impl Timeline {
         if anchor.is_some() {
             self.visible_anchor.set(anchor);
         }
+        // NSH's end event does not re-arm when a jump cancels an older read
+        // but keeps the same rows. Reaching the oldest row can retry that edge.
+        if crate::terminal::active()
+            && !self.busy.get_untracked()
+            && !self.failed.get_untracked()
+            && event.viewable.is_some_and(|(_, last)| {
+                self.messages.with_untracked(|rows| last + 1 == rows.len())
+            })
+        {
+            self.older();
+        }
     }
 
     pub fn scrolled(self, event: &ScrollEvent) {
         let distance =
             (event.content_size.height.0 - event.size.height.0 - event.offset.y.0).max(0.0);
+        if crate::terminal::active() {
+            self.terminal_at_tail.replace(distance <= 1.0);
+        }
         self.following_tail.set(distance <= 50.0);
         if self.settling.get() {
             if distance <= 50.0 {
@@ -707,18 +746,31 @@ impl Timeline {
     }
 
     pub(super) fn page(self, older: bool) {
-        let Some((first, last)) = self.visible_range.get() else {
+        let Some((reported_first, last)) = self.visible_range.get() else {
             return;
         };
-        let end = self
-            .messages
-            .with_untracked(|rows| rows.len().saturating_sub(1));
-        let page = last.saturating_sub(first).max(1);
+        // A page splice can move the visible message before NSH reports
+        // its new index. Advance from the message the reader was looking at.
+        let Some((first, end)) = self.messages.with_untracked(|rows| {
+            self.visible_anchor.with_untracked(|anchor| {
+                let id = anchor.as_ref()?;
+                let first = rows.iter().position(|row| &row.message_id == id)?;
+                Some((first, rows.len() - 1))
+            })
+        }) else {
+            return;
+        };
+        let page = last.saturating_sub(reported_first).max(1);
         let index = if older {
             first.saturating_add(page).min(end)
         } else {
             first.saturating_sub(page)
         };
+        if !older && index == 0 && !self.has_newer.get_untracked() {
+            // The composer covers the bottom of the list's viewport.
+            self.reveal.to_latest(self.history, false);
+            return;
+        }
         self.history
             .scroll_to_index(index as u32, percentage(0.0), Points::ZERO, false);
         if older && index == end {

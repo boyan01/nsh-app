@@ -457,7 +457,7 @@ pub(crate) fn screen(
                                     timeline.viewable(event);
                                     unread.viewable(event, messages);
                                 })
-                                .event_throttle(32.0)
+                                .event_throttle(if terminal { 0.0 } else { 32.0 })
                                 .on_scroll(move |event: &ScrollEvent| timeline.scrolled(event))
                                 .on_load_more(move || timeline.older())
                                 .on_load_more_at_start(move || timeline.newer())

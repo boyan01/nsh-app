@@ -5,7 +5,7 @@ pub(crate) use actions::{State as Commands, surface as command_surface, wrap as 
 pub(crate) use window::Window;
 
 use mixin_desktop_api::{AccountClient, ConversationListData};
-use nsh_core::prelude::*;
+use nsh_core::{AccessibilityState, prelude::*};
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
@@ -179,22 +179,20 @@ impl Cells {
             })
         });
         let terminal = crate::terminal::active();
-        let frame = if terminal {
-            ui::list_row()
-                .h(px(3.0 * crate::terminal::ROW))
-                .min_h(px(3.0 * crate::terminal::ROW))
-                .my(Points::ZERO)
-                .mx(px(crate::terminal::COLUMN))
-                .items_start()
-                .relative()
-                .pl(px(3.0 * crate::terminal::COLUMN))
-                .pr(px(crate::terminal::COLUMN))
-                .gap(px(crate::terminal::COLUMN))
-        } else {
-            ui::list_row()
+        let selection = move || AccessibilityState {
+            selected: selected.get(),
+            ..Default::default()
+        };
+        let activate = move || {
+            if selected.get_untracked() {
+                // The open chat again: back to its newest message.
+                self.navigation.show_latest();
+            } else if let Some(row) = row.get_untracked() {
+                self.navigation.select(row);
+            }
         };
         let focused = signal(false);
-        let frame = if let Some(window) = self.terminal_focus {
+        let focus_ref = self.terminal_focus.map(|window| {
             let focus = window.terminal_focus;
             let reference = element_ref();
             let wanted = move || {
@@ -225,59 +223,98 @@ impl Cells {
                     window.last_focused.replace(Some(id));
                 }
             });
-            frame.element_ref(&reference)
-        } else {
-            frame
-        };
-        let content = frame
-            .selected(selected)
-            .on_press(move || {
-                if selected.get_untracked() {
-                    // The open chat again: back to its newest message.
-                    self.navigation.show_latest();
-                } else if let Some(row) = row.get_untracked() {
-                    self.navigation.select(row);
-                }
-            })
-            .children(terminal.then(|| {
-                text(move || {
-                    if focused.get() {
-                        "›"
-                    } else if selected.get() {
-                        "│"
-                    } else {
-                        " "
-                    }
-                })
-                .absolute()
-                .left_0()
-                .top_0()
-                .w(px(crate::terminal::COLUMN))
+            reference
+        });
+        let avatar = ui::conversation_avatar(
+            move || row.get(),
+            if terminal {
+                ui::AvatarSize::Compact
+            } else {
+                ui::AvatarSize::Large
+            },
+        );
+        let details = view()
+            .flex_1()
+            .min_w_0()
+            .gap_1()
+            .style_when(move || terminal, |s| s.gap_0())
+            .child(self.title_line(row))
+            .child(self.preview_line(row));
+        let content = if terminal {
+            view()
+                .h(px(2.0 * crate::terminal::ROW))
+                .min_h(px(2.0 * crate::terminal::ROW))
+                .mx(px(crate::terminal::COLUMN))
+                .flex_row()
+                .items_start()
+                .pl(px(3.0 * crate::terminal::COLUMN))
+                .pr(px(crate::terminal::COLUMN))
+                .gap(px(crate::terminal::COLUMN))
+                .text_role(ui::TextRole::Body)
                 .text_color(ui::fg_primary)
-            }))
-            .child(ui::conversation_avatar(
-                move || row.get(),
-                if terminal {
-                    ui::AvatarSize::Compact
-                } else {
-                    ui::AvatarSize::Large
-                },
-            ))
-            .child(
-                view()
-                    .flex_1()
-                    .min_w_0()
-                    .gap_1()
-                    .style_when(move || terminal, |s| s.gap_0())
-                    .child(self.title_line(row))
-                    .child(self.preview_line(row))
-                    .children(terminal.then(crate::terminal::spacer)),
-            );
-        match self.commands {
+                .focusable(focus_ref.is_none())
+                .role(AccessibilityRole::Button)
+                .accessibility_state(selection)
+                .on_press(move |_: &()| activate())
+                .child(avatar)
+                .child(details)
+                .into_element()
+        } else {
+            ui::list_row()
+                .selected(selected)
+                .on_press(activate)
+                .child(avatar)
+                .child(details)
+                .into_element()
+        };
+        let content = match self.commands {
             Some(commands) => {
                 actions::wrap(commands, move || row.get_untracked(), content).into_element()
             }
-            None => content.into_element(),
+            None => content,
+        };
+        if terminal {
+            // Paint focus on the marker before drawing the row text. The keyboard
+            // target keeps the list item's bounds for directional focus and scrolling.
+            let marker = view()
+                .mx(px(crate::terminal::COLUMN))
+                .h(px(3.0 * crate::terminal::ROW))
+                .min_h(px(3.0 * crate::terminal::ROW))
+                .pointer_events(PointerEvents::None)
+                .child(
+                    text(move || {
+                        if focused.get() {
+                            "›"
+                        } else if selected.get() {
+                            "│"
+                        } else {
+                            " "
+                        }
+                    })
+                    .w(px(crate::terminal::COLUMN))
+                    .h(px(crate::terminal::ROW))
+                    .line_height(px(crate::terminal::ROW))
+                    .text_color(terminal_primary),
+                )
+                .child(crate::terminal::spacer())
+                .child(crate::terminal::spacer());
+            let marker = if let Some(reference) = focus_ref {
+                marker
+                    .element_ref(&reference)
+                    .focusable(true)
+                    .role(AccessibilityRole::Button)
+                    .label(move || read(row, |row| row.name.clone()))
+                    .on_press(move |_: &()| activate())
+            } else {
+                marker
+            };
+            view()
+                .relative()
+                .child(marker)
+                .child(view().absolute().top_0().left_0().right_0().child(content))
+                .into_element()
+        } else {
+            content
         }
     }
 
@@ -324,7 +361,11 @@ impl Cells {
                     .text_role(ui::TextRole::Label)
                     .style_when(
                         move || terminal,
-                        |s| s.line_height(px(crate::terminal::ROW)),
+                        |s| {
+                            s.line_height(px(crate::terminal::ROW))
+                                .font_weight(FontWeight::BOLD)
+                                .text_color(terminal_primary)
+                        },
                     ),
             )
             .child(appearance::identity_badge_reactive(badge))
@@ -476,6 +517,12 @@ impl Cells {
                 .unwrap_or(source)
         })
     }
+}
+
+fn terminal_primary() -> AdaptiveColor {
+    let foreground = ui::fg_primary();
+    // Keep the dark list's primary ink above NSH's DIM contrast threshold.
+    AdaptiveColor::new(foreground.light, foreground.dark.lighten(0.05))
 }
 
 fn read<T: Default>(row: Row, value: impl FnOnce(&ConversationListData) -> T) -> T {

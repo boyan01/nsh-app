@@ -43,7 +43,7 @@ pub(super) fn bar(
     let return_width = move || px((width.get() * 0.45).min(ui::card_width().0));
     let layout = computed(move || {
         let horizontal_insets = if terminal::active() {
-            6.0 * terminal::COLUMN
+            2.0 * terminal::cols(3.0).0
         } else {
             let leading = if narrow() {
                 ui::title_bar_leading(rail.width())

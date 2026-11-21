@@ -83,17 +83,10 @@ lengths! {
     row_height = "control-row";
     /// A row of a grouped page, such as chat info: an iOS cell.
     group_row_height = "control-row-grouped";
-    /// A navigation rail row.
-    nav_row_height = "control-nav";
-    /// A conversation-sized list cell, margins included.
-    list_row_height = "control-list-row";
     /// The height requested for the row shared with the native window controls.
     title_bar_requested_height = "control-title-bar";
     button_height = "control-button";
-    button_height_small = "control-button-sm";
     field_height = "control-field";
-    /// Six 20pt editor lines plus the content's vertical inset, before text scaling.
-    composer_text_max_height = "composer-text-max-height";
     badge_height = "control-badge";
     badge_min_width = "control-badge-min-width";
 
@@ -104,7 +97,6 @@ lengths! {
     login_height = "login-height";
     sidebar_width = "sidebar-width";
     navigation_width = "navigation-width";
-    navigation_compact_width = "navigation-compact";
     /// The fixed width of a file or location card: Flutter's map preview.
     card_width = "card-width";
     /// The column of a page. Flutter's `CellGroup` caps a page here.
@@ -175,8 +167,7 @@ lengths! {
     message_far_edge = "message-far-edge";
     /// Where a sender's name starts, from the bubble's nip gutter.
     message_name_inset = "message-name-inset";
-    /// The line of a message's time and delivery, and the marks in it.
-    message_status_height = "message-status-height";
+    /// The marks in a message's status line.
     message_status_icon = "message-status-icon";
     /// The gap between a message's text and the status at the end of its last line.
     message_status_spacing = "message-status-spacing";
@@ -209,7 +200,6 @@ lengths! {
     /// The reading column, including its side insets.
     post_reader_width = "post-reader-width";
     quote_min_height = "quote-min-height";
-    quote_bar_width = "quote-bar-width";
     /// The bounds of a bot's button group, and the side inset of a button in it.
     action_group_min_width = "action-group-min-width";
     action_group_max_width = "action-group-max-width";
@@ -223,6 +213,60 @@ lengths! {
     /// The focal amount in a transaction detail dialog.
     detail_amount_size = "text-detail-amount-size";
     asset_text_size = "text-asset-size";
+}
+
+/// Horizontal spacing that resolves to `terminal_cols` cells when the terminal host is active.
+pub(crate) fn space_x(desktop: Points, terminal_cols: f32) -> Points {
+    if crate::terminal::active() {
+        crate::terminal::cols(terminal_cols)
+    } else {
+        desktop
+    }
+}
+
+/// Vertical spacing that resolves to `terminal_rows` cells when the terminal host is active.
+pub(crate) fn space_y(desktop: Points, terminal_rows: f32) -> Points {
+    if crate::terminal::active() {
+        crate::terminal::rows(terminal_rows)
+    } else {
+        desktop
+    }
+}
+
+/// A navigation rail row.
+pub(crate) fn nav_row_height() -> Points {
+    space_y(px(number("control-nav")), 1.0)
+}
+
+/// A conversation-sized list cell, margins included.
+pub(crate) fn list_row_height() -> Points {
+    space_y(px(number("control-list-row")), 3.0)
+}
+
+pub(crate) fn button_height_small() -> Points {
+    space_y(px(number("control-button-sm")), 2.0)
+}
+
+/// Six 20pt editor lines plus the content's vertical inset, scaled with text size on desktop.
+pub(crate) fn composer_text_max_height() -> Points {
+    if crate::terminal::active() {
+        crate::terminal::rows(4.0)
+    } else {
+        px(number("composer-text-max-height") * font_scale())
+    }
+}
+
+pub(crate) fn navigation_compact_width() -> Points {
+    space_x(px(number("navigation-compact")), 18.0)
+}
+
+/// The line of a message's time and delivery.
+pub(crate) fn message_status_height() -> Points {
+    space_y(px(number("message-status-height")), 1.0)
+}
+
+pub(crate) fn quote_bar_width() -> Points {
+    space_x(px(number("quote-bar-width")), 1.0)
 }
 
 colors! {

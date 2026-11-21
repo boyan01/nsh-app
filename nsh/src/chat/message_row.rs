@@ -148,18 +148,12 @@ impl Rows {
         view()
             .element_ref(&row_ref)
             .rounded(ui::radius_md())
+            // Terminal vertical padding starts at 24pt, rounded to a single row.
             .style_when(
                 move || !follows_sender(),
-                |style| {
-                    if terminal::active() {
-                        // Terminal vertical padding starts at 24pt, rounded to a single row.
-                        style.pt(terminal::rows(2.0))
-                    } else {
-                        style.pt_2()
-                    }
-                },
+                |style| style.pt(ui::space_y(ui::space_sm(), 2.0)),
             )
-            .style_when(terminal::active, |s| s.px(terminal::cols(3.0)))
+            .px(ui::space_x(Points::ZERO, 3.0))
             .style_when(selected, |style| style.bg(ui::state_selected))
             .children(unread.map(|unread| unread.divider(i18n, id)))
             .child(when(

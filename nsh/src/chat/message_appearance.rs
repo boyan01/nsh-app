@@ -326,29 +326,17 @@ pub(super) fn stamp(row: &MessageListView, delivery: Option<Memo<String>>, on_me
     };
     let mark = move |source: &'static str| {
         svg(ImageSrc::svg_markup(source))
-            .size(ui::message_status_icon())
+            .w(ui::space_x(ui::message_status_icon(), 1.0))
+            .h(ui::space_y(ui::message_status_icon(), 1.0))
             .flex_shrink_0()
-            .mr(ui::space_xs())
+            .mr(ui::space_x(ui::space_xs(), 1.0))
             .text_color(tone)
-            .style_when(
-                move || terminal,
-                |style| {
-                    style
-                        .w(terminal::cols(1.0))
-                        .h(terminal::rows(1.0))
-                        .mr(terminal::cols(1.0))
-                },
-            )
     };
     let mut line = view()
         .flex_row()
         .flex_shrink_0()
         .items_center()
-        .h(if terminal {
-            terminal::rows(1.0)
-        } else {
-            ui::message_status_height()
-        });
+        .h(ui::message_status_height());
     if row.pinned {
         line = line.child(mark(crate::assets::svg::MESSAGE_PIN));
     }

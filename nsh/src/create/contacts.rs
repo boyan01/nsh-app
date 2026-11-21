@@ -382,8 +382,8 @@ fn content(
     ui::picker::dialog()
         .when(crate::terminal::active(), |v| {
             v.basis(move || {
-                px((window().height.0 - 6.0 * crate::terminal::ROW)
-                    .clamp(crate::terminal::ROW, ui::picker_height().0))
+                px((window().height.0 - crate::terminal::rows(6.0).0)
+                    .clamp(crate::terminal::rows(1.0).0, ui::picker_height().0))
             })
         })
         .h(move || {

@@ -70,9 +70,7 @@ pub(crate) fn attachments(
             .expect("Home provides chat navigation"),
     };
     view()
-        .style_when(crate::terminal::active, |s| {
-            s.mr(crate::terminal::cols(1.0))
-        })
+        .mr(ui::space_x(Points::ZERO, 1.0))
         .child(attachment_menu_with_input(
             move || tray.pick(true),
             move || tray.pick(false),

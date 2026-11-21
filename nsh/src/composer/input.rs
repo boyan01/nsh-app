@@ -432,11 +432,7 @@ impl Input {
         let viewport = stored(Size::<Points>::default());
         let scroll_top = stored(Points::ZERO);
         let reveal_queued = stored(false);
-        let min_height = if terminal {
-            crate::terminal::rows(2.0)
-        } else {
-            crate::ui::button_height_small()
-        };
+        let min_height = crate::ui::button_height_small();
         let editor_height = signal(min_height);
         let measured = stored(false);
         let reveal = move || {
@@ -523,11 +519,7 @@ impl Input {
                         .flex_none()
                         .on_layout(move |bounds: &Bounds<Points>| {
                             let first = !measured.replace(true);
-                            let max_height = if terminal {
-                                crate::terminal::rows(4.0)
-                            } else {
-                                px(crate::ui::composer_text_max_height().0 * font_scale())
-                            };
+                            let max_height = crate::ui::composer_text_max_height();
                             let height = bounds.size.height.clamp(min_height, max_height);
                             if height != editor_height.get_untracked() {
                                 // Resize the viewport after the document's own layout

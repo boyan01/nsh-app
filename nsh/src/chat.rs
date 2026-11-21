@@ -474,13 +474,8 @@ pub(crate) fn screen(
                                 timeline.reveal.measure_bottom(value);
                             }
                         })
-                        .style_when(
-                            move || terminal,
-                            |s| {
-                                s.px(crate::terminal::cols(1.0))
-                                    .pb(crate::terminal::rows(1.0))
-                            },
-                        )
+                        .px(ui::space_x(Points::ZERO, 1.0))
+                        .pb(ui::space_y(Points::ZERO, 1.0))
                         .child(ui::edge_fade(false, ui::surface_chat))
                         .child(compose::bar(compose::Props {
                             account: account.clone(),

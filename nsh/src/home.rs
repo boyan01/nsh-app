@@ -700,12 +700,9 @@ pub(crate) fn list_header(
     let i18n = i18n::current();
     ui::title_bar()
         .pl(move || ui::title_bar_leading(nav.width()))
-        .pr_3()
+        .pr(ui::space_x(ui::space_md(), 2.0))
         .py_2()
         .gap_2()
-        .style_when(crate::terminal::active, |s| {
-            s.px(crate::terminal::cols(2.0))
-        })
         .child(sidebar::trigger(nav))
         .child(search_field(query, composing, unread, search))
         .child(ui::glass_button(

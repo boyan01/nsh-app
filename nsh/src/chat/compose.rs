@@ -387,14 +387,10 @@ pub(super) fn bar(props: Props) -> impl IntoElement {
     }
     let mention_account = stored(account.clone());
     let editor = view()
-        .px_4()
-        .pt_2()
-        .pb_3()
-        .gap_2()
-        .style_when(
-            move || terminal,
-            |style| style.p_0().gap(crate::terminal::rows(1.0)),
-        )
+        .px(ui::space_x(ui::space_lg(), 0.0))
+        .pt(ui::space_y(ui::space_sm(), 0.0))
+        .pb(ui::space_y(ui::space_md(), 0.0))
+        .gap(ui::space_y(ui::space_sm(), 1.0))
         .style_when(move || !can_send.get(), |style| style.hidden())
         .child(when(
             move || {

@@ -108,9 +108,9 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
     let terminal = crate::terminal::active();
     let status = move || {
         view()
-            .gap_3()
+            .gap(ui::space_y(ui::space_md(), 1.0))
             .when(!terminal, |v| v.size_40())
-            .when(terminal, |v| v.w_full().gap(crate::terminal::rows(1.0)))
+            .when(terminal, |v| v.w_full())
             .items_center()
             .justify_center()
     };
@@ -131,9 +131,9 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                     .shadow_lg()
                     .items_center()
                     .justify_center()
-                    .gap_4()
+                    .gap(ui::space_y(ui::space_lg(), 1.0))
                     .p_8()
-                    .style_when(move || terminal, |s| s.w_full().h_full().px(crate::terminal::cols(1.0)).py_0().gap(crate::terminal::rows(1.0)))
+                    .style_when(move || terminal, |s| s.w_full().h_full().px(crate::terminal::cols(1.0)).py_0())
                     .child(
                         view()
                             .style_when(move || !terminal, |s| s.size_40())
@@ -226,9 +226,8 @@ fn content(state: Signal<LoginPhase>, retry: Signal<u64>) -> impl IntoElement {
                 .flex_row()
                 .justify_between()
                 .items_center()
-                .px_4()
-                .py_3()
-                .when(terminal, |v| v.px(crate::terminal::cols(1.0)).py_0())
+                .px(ui::space_x(ui::space_lg(), 1.0))
+                .py(ui::space_y(ui::space_md(), 0.0))
                 .child(i18n.picker())
                 .child(
                     text(env!("CARGO_PKG_VERSION"))

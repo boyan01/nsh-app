@@ -159,11 +159,7 @@ impl Cells {
             })
         })
         .element_ref(&list)
-        .estimated_item_size(if crate::terminal::active() {
-            crate::terminal::rows(3.0)
-        } else {
-            ui::list_row_height()
-        })
+        .estimated_item_size(ui::list_row_height())
         .flex_1()
         .min_h_0()
     }
@@ -278,8 +274,8 @@ impl Cells {
             // target keeps the list item's bounds for directional focus and scrolling.
             let marker = view()
                 .mx(crate::terminal::cols(1.0))
-                .h(crate::terminal::rows(3.0))
-                .min_h(crate::terminal::rows(3.0))
+                .h(ui::list_row_height())
+                .min_h(ui::list_row_height())
                 .pointer_events(PointerEvents::None)
                 .child(
                     text(move || {

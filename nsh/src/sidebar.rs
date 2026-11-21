@@ -18,14 +18,6 @@ pub(crate) use circles::{Circles, add_to_circle_item, remove_from_circle_item};
 use crate::navigation::Navigation;
 use crate::terminal;
 
-fn rail_width(nav: Navigation) -> Points {
-    if terminal::active() && !nav.drawer() {
-        terminal::cols(18.0)
-    } else {
-        nav.width()
-    }
-}
-
 fn rail_button(button: nsh_base::ButtonElement, reference: ElementRef) -> nsh_base::ButtonElement {
     button.when(terminal::active(), |row| {
         let focused = signal(false);
@@ -38,7 +30,7 @@ fn rail_button(button: nsh_base::ButtonElement, reference: ElementRef) -> nsh_ba
                     .style_when(move || !focused.get(), |s| s.invisible()),
             )
             .w_full()
-            .min_h(terminal::rows(1.0))
+            .min_h(ui::nav_row_height())
             .px(terminal::cols(1.0))
             .py_0()
             .gap(terminal::cols(1.0))
@@ -215,7 +207,7 @@ impl Rail {
             });
         }
         view()
-            .w(move || rail_width(nav))
+            .w(move || nav.width())
             .flex_shrink_0()
             .child(
                 self.content_with_entry(feedback, rail_entry, false)
@@ -280,6 +272,7 @@ impl Rail {
         )
     }
 
+    #[cfg(debug_assertions)]
     pub(crate) fn content(self) -> View {
         self.content_with_entry(view().hidden(), element_ref(), false)
     }
@@ -296,29 +289,21 @@ impl Rail {
                 if nav.drawer() {
                     ui::navigation_width()
                 } else {
-                    rail_width(nav)
+                    nav.width()
                 }
             })
             .h_full()
             .flex_shrink_0()
             .overflow_hidden()
             .bg(ui::surface_rail)
-            .px_3()
-            .pb_2()
-            .gap_1()
-            .when(terminal::active(), |v| {
-                v.flex_1()
-                    .px(terminal::cols(1.0))
-                    .py(terminal::rows(1.0))
-                    .gap_0()
-            })
+            .px(ui::space_x(ui::space_md(), 1.0))
+            .pt(ui::space_y(Points::ZERO, 1.0))
+            .pb(ui::space_y(ui::space_sm(), 1.0))
+            .gap(ui::space_y(ui::space_xs(), 0.0))
+            .when(terminal::active(), |v| v.flex_1())
             .child(ui::title_bar().when(terminal::active(), |v| v.hidden()))
             .child(self.account_item(entry, focus_on_mount))
-            .child(
-                view()
-                    .h_2()
-                    .when(terminal::active(), |v| v.h(terminal::rows(1.0))),
-            )
+            .child(view().h(ui::space_y(ui::space_sm(), 1.0)))
             .child(self.category(ui::Icon::Chat, Key::NshAllChats, "chats"))
             .child(ui::divider())
             .child(self.category(ui::Icon::Contacts, Key::ContactTitle, "contacts"))

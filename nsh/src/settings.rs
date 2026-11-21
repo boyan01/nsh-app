@@ -132,14 +132,9 @@ pub(crate) fn navigation(
         .child(when(move || !compact(), ui::title_bar))
         .child(scroll().flex_1().min_h_0().child({
             let categories = view()
-                .px(ui::space_lg())
-                .pb(ui::space_xl())
-                .gap(ui::space_lg())
-                .when(terminal, |v| {
-                    v.px(crate::terminal::cols(1.0))
-                        .pb(crate::terminal::rows(1.0))
-                        .gap(crate::terminal::rows(1.0))
-                })
+                .px(ui::space_x(ui::space_lg(), 1.0))
+                .pb(ui::space_y(ui::space_xl(), 1.0))
+                .gap(ui::space_y(ui::space_lg(), 1.0))
                 .child(account_header(profile))
                 .child(ui::card().child(row(Page::Profile)))
                 .child(
@@ -230,9 +225,7 @@ pub(crate) fn screen(
         .min_w_0()
         .min_h_0()
         .bg(ui::surface_pane)
-        .when(crate::terminal::active(), |v| {
-            v.px(crate::terminal::cols(1.0))
-        })
+        .px(ui::space_x(Points::ZERO, 1.0))
         // Storage draws its own bar: its detail page has another title and Back.
         .child(when(
             move || page.get() != Page::Storage,
